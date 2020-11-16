@@ -1,0 +1,41 @@
+name: Semantic Release
+description: Deploy using semantic-release
+inputs:
+  GITHUB_TOKEN:
+    description: Token to use to update version in 'package.json' and create GitHub release
+    required: true
+  NPM_TOKEN:
+    description: Token to publish to NPM
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Installing semantic-release
+      run: |
+        if [ ${{ !contains(github.event.head_commit.message, 'skip ci') }} == true ]; then
+          echo "Installing semantic-release..."
+          npm install semantic-release@17 @semantic-release/git@9
+        fi
+      shell: bash
+    - name: Create semantic-release configuration
+      run: |
+        if [ ${{ !contains(github.event.head_commit.message, 'skip ci') }} == true ]; then
+          echo "Creating semantic-relase configuration (default)..."
+          ${{ github.action_path }}/create-config.sh
+        fi
+      env:
+        FILE_PATH: ${{ github.workspace }}/.releaserc.yml
+      shell: bash
+    - name: Running semantic-release
+      env:
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+        NPM_TOKEN: ${{ inputs.NPM_TOKEN }}
+      run: |
+        if [ ${{ contains(github.event.head_commit.message, 'skip ci') }} == true ]; then
+          echo "[skip ci] detected so skipping release"
+          exit 0;
+        fi
+        echo "Running semantic-release..."
+        npx semantic-release
+      shell: bash
+
