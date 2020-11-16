@@ -18,6 +18,8 @@ on:
   push:
     branches:
       - master
+      - '[0-9]+.x'
+      - '[0-9]+.[0-9]+.x'
 jobs:
   release:
     timeout-minutes: 2
@@ -41,6 +43,7 @@ jobs:
 Notes:
 * If you have additional release validation steps (e.g. build step, validation tests), run them after the "Setup Node" step and before the "Semantic Release" step.
 * In the checkout step, you must set the `persist-credentials` option to `false`. This opts out of the default `GITHUB_TOKEN` which is not an admin and cannot bypass branch protection rules.
+* This example will release only from `master` and maintenance branches (e.g. `1.15.x` or `2.x`) -- see more info about maintenance branches below.
 
 ## NPM Package Deployment
 
@@ -70,3 +73,13 @@ Releases occur based on the commit messages since the previous release. Our sema
 To revert a change, add the `revert` prefix to the original commit message. This will cause the reverted change to not appear in release notes. Example: `revert: fix: validate input before using`.
 
 To trigger a MAJOR release, include `BREAKING CHANGE:` with a space or two newlines in the footer of the commit message.
+
+## Releasing from Maintenance Branches
+
+Occasionally you'll want to backport a feature or bug fix to an older release. `semantic-release` refers to these as [maintenance branches](https://semantic-release.gitbook.io/semantic-release/usage/workflow-configuration#maintenance-branches).
+
+Maintenance branch names should be of the form: `+([0-9])?(.{+([0-9]),x}).x`.
+
+Regular expressions are complicated, but this essentially means branch names should look like:
+* `1.15.x` for patch releases on top of the `1.0` release (after version `1.16` exists)
+* `2.x` for feature releases on top of the `2` release (after version `3` exists)
