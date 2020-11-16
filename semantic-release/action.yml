@@ -4,6 +4,9 @@ inputs:
   GITHUB_TOKEN:
     description: Token to use to update version in 'package.json' and create GitHub release
     required: true
+  NPM:
+    description: Whether or not to release as an NPM package
+    default: false
   NPM_TOKEN:
     description: Token to publish to NPM
     required: true
@@ -20,11 +23,12 @@ runs:
     - name: Create semantic-release configuration
       run: |
         if [ ${{ !contains(github.event.head_commit.message, 'skip ci') }} == true ]; then
-          echo "Creating semantic-relase configuration (default)..."
+          echo "Creating semantic-relase configuration (NPM: ${{ inputs.NPM }})..."
           ${{ github.action_path }}/create-config.sh
         fi
       env:
         FILE_PATH: ${{ github.workspace }}/.releaserc.yml
+        NPM: ${{ inputs.NPM }}
       shell: bash
     - name: Running semantic-release
       env:

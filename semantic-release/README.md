@@ -4,7 +4,7 @@ This GitHub action uses the [semantic-release](https://semantic-release.gitbook.
 * Release notes will be generated
 * The version in `package.json` will be incremented
 * A GitHub Release will be created
-* The package will be published to NPM
+* Optionally, the package will be published to NPM
 
 ## Using the Action
 
@@ -34,13 +34,25 @@ jobs:
         uses: BrightspaceUI/actions/semantic-release@master
         with:
           GITHUB_TOKEN: ${{ secrets.SPECIAL_GITHUB_TOKEN }}
+          NPM: true
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
 Notes:
 * If you have additional release validation steps (e.g. build step, validation tests), run them after the "Setup Node" step and before the "Semantic Release" step.
 * In the checkout step, you must set the `persist-credentials` option to `false`. This opts out of the default `GITHUB_TOKEN` which is not an admin and cannot bypass branch protection rules.
-* `NPM_TOKEN` is available automatically as a shared organization secret in the `BrightspaceUI`, `BrightspaceUILabs` and `BrightspaceHypermediaComponents` organizations.
+
+## NPM Package Deployment
+
+If you'd like the action to deploy your package to NPM, set the `NPM` option to `true` and pass through the `NPM_TOKEN` secret. `NPM_TOKEN` is available automatically as a shared organization secret in the `BrightspaceUI`, `BrightspaceUILabs` and `BrightspaceHypermediaComponents` organizations.
+
+If your package is being published under the `@brightspace-ui` or `@brightspace-ui-labs` NPM organizations, ensure that it has the proper configuration in its `package.json`:
+
+```json
+"publishConfig": {
+  "access": "public"
+}
+```
 
 ## Triggering a Release
 
