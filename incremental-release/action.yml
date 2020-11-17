@@ -1,0 +1,63 @@
+name: Incremental Release
+description: Create a release based on increment keywords in the most recent commit message
+inputs:
+  DEFAULT_INCREMENT:
+    description: Default increment if no value is found
+    default: skip
+  DRY_RUN:
+    description: Simulates a release but does not actually do one
+    default: false
+  GITHUB_TOKEN:
+    description: Token to use to update version in 'package.json' and create the tag
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Incremental Release
+      run: |
+        if [ ${{ contains(github.event.head_commit.message, 'skip ci') }} == true ]; then
+          echo "[skip ci] detected, so skipping release."
+          exit 0;
+        fi
+
+        TYPE=${DEFAULT_INCREMENT}
+        if [ ${{ contains(github.event.head_commit.message, '[increment patch]') }} == true ]; then
+          echo "Found [increment patch], creating a patch release..."
+          TYPE="patch"
+        elif [ ${{ contains(github.event.head_commit.message, '[increment minor]') }} == true ]; then
+          echo "Found [increment minor], creating a minor release..."
+          TYPE="minor"
+        elif [ ${{ contains(github.event.head_commit.message, '[increment major]') }} == true ]; then
+          echo "Found [increment major], creating a major release..."
+          TYPE="major"
+        elif [ ${{ contains(github.event.head_commit.message, '[skip version]') }} == true ]; then
+          echo "Found [skip version], skipping release..."
+          TYPE="skip"
+        else
+          echo "Did not find commit message flag, using DEFAULT_INCREMENT ($DEFAULT_INCREMENT)"
+        fi
+
+        if [ $TYPE == "skip" ]; then
+          echo "Skipping release."
+          exit 0;
+        fi
+
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        
+        echo "Executing: \"npm version ${TYPE}\"..."
+        NEW_VERSION=$(npm version ${TYPE} -m "Updated version to %s [skip ci][skip version]")
+        echo "New version number will be: $NEW_VERSION"
+
+        if [ ${{ inputs.DRY_RUN }} == true ]; then
+          echo "DRY_RUN option specified, aborting release creation."
+          exit 0;
+        fi
+        
+        echo "Executing: \"git push --follow-tags\""
+        git push --follow-tags
+
+      env:
+        DEFAULT_INCREMENT: ${{ inputs.DEFAULT_INCREMENT }}
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+      shell: bash
