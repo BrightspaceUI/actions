@@ -41,7 +41,7 @@ runs:
           echo "[skip ci] detected so skipping release"
           exit 0;
         fi
-        if [ ${{ inputs.DRY_RUN }} ]; then
+        if [ ${{ inputs.DRY_RUN }} == true ]; then
           echo "Running semantic-release (dry run)..."
           npx semantic-release --dry-run
         else
