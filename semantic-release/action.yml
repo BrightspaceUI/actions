@@ -9,7 +9,6 @@ inputs:
     default: false
   NPM_TOKEN:
     description: Token to publish to NPM
-    required: true
 runs:
   using: composite
   steps:
