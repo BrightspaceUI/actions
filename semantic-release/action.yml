@@ -19,7 +19,7 @@ runs:
       run: |
         if [ ${{ !contains(github.event.head_commit.message, 'skip ci') }} == true ]; then
           echo "Installing semantic-release..."
-          npm install semantic-release@17 @semantic-release/git@9
+          npm install semantic-release@17 @semantic-release/git@9 --no-save
         fi
       shell: bash
     - name: Create semantic-release configuration
