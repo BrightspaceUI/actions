@@ -40,6 +40,12 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
+Options:
+* `DRY_RUN` (default: `false`): Runs semantic-release with the `--dry-run` flag to simulate a release but not actually do one
+* `GITHUB_TOKEN`: Token to use to update version in 'package.json' and create GitHub release
+* `NPM` (default: `false`): Whether or not to release as an NPM package
+* `NPM_TOKEN`: Token to publish to NPM
+
 Notes:
 * If you have additional release validation steps (e.g. build step, validation tests), run them after the "Setup Node" step and before the "Semantic Release" step.
 * In the checkout step, you must set the `persist-credentials` option to `false`. This opts out of the default `GITHUB_TOKEN` which is not an admin and cannot bypass branch protection rules.
@@ -56,6 +62,8 @@ If your package is being published under the `@brightspace-ui` or `@brightspace-
   "access": "public"
 }
 ```
+
+Also ensure that `"private": true` is not present.
 
 ## Triggering a Release
 

@@ -1,6 +1,9 @@
 name: Semantic Release
 description: Deploy using semantic-release
 inputs:
+  DRY_RUN:
+    description: Runs semantic-release with the "--dry-run" flag to simulate a release but not actually do one
+    default: false
   GITHUB_TOKEN:
     description: Token to use to update version in 'package.json' and create GitHub release
     required: true
@@ -38,7 +41,11 @@ runs:
           echo "[skip ci] detected so skipping release"
           exit 0;
         fi
-        echo "Running semantic-release..."
-        npx semantic-release
+        if [ ${{ inputs.DRY_RUN }} ]; then
+          echo "Running semantic-release (dry run)..."
+          npx semantic-release --dry-run
+        else
+          echo "Running semantic-release..."
+          npx semantic-release
+        fi
       shell: bash
-
