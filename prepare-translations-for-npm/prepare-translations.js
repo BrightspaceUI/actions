@@ -4,7 +4,7 @@ const chalk = require('chalk'),
 const langs = ['ar', 'cy', 'da', 'de', 'es', 'es-es', 'fr', 'fr-fr', 'ja', 'ko', 'nl', 'pt', 'sv', 'tr', 'zh-tw', 'zh', 'zebras'];
 
 function _parseFile(filePath) {
-    const file = fs.readFileSync(filePath).toString();
+	const file = fs.readFileSync(filePath).toString();
 	const firstBit = file.split('default ')[1];
 	const stringContent = firstBit.substring(0, firstBit.lastIndexOf(';'));
 	return JSON.parse(stringContent);
@@ -25,10 +25,10 @@ function prepare(langTermsPath) {
 	langs.forEach((lang) => {
 		const filePath = `${langTermsPath}/${lang}.js`;
 
-        if (!fs.existsSync(filePath)) return;
-        
-        let changes = false;
-        const translations = _parseFile(filePath);
+		if (!fs.existsSync(filePath)) return;
+		
+		let changes = false;
+		const translations = _parseFile(filePath);
 		englishKeys.forEach((key) => {
 			const translatedValue = translations[key];
 			if (translatedValue === undefined || translatedValue === '') {
