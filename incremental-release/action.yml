@@ -20,7 +20,7 @@ runs:
           exit 0;
         fi
 
-        TYPE=${DEFAULT_INCREMENT}
+        TYPE=${{ inputs.DEFAULT_INCREMENT }}
         if [ ${{ contains(github.event.head_commit.message, '[increment patch]') }} == true ]; then
           echo "Found [increment patch], creating a patch release..."
           TYPE="patch"
@@ -34,7 +34,7 @@ runs:
           echo "Found [skip version], skipping release..."
           TYPE="skip"
         else
-          echo "Did not find commit message flag, using DEFAULT_INCREMENT ($DEFAULT_INCREMENT)"
+          echo "Did not find commit message flag, using DEFAULT_INCREMENT (${{ inputs.DEFAULT_INCREMENT }})"
         fi
 
         if [ $TYPE == "skip" ]; then
@@ -58,6 +58,5 @@ runs:
         git push --follow-tags
 
       env:
-        DEFAULT_INCREMENT: ${{ inputs.DEFAULT_INCREMENT }}
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
       shell: bash
