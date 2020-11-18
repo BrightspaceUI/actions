@@ -22,6 +22,7 @@ on:
       - '[0-9]+.[0-9]+.x'
 jobs:
   release:
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
     timeout-minutes: 2
     runs-on: ubuntu-latest
     steps:

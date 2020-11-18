@@ -16,6 +16,7 @@ on:
       - master
 jobs:
   release:
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
     timeout-minutes: 2
     runs-on: ubuntu-latest
     steps:
@@ -33,7 +34,7 @@ jobs:
 ```
 
 Options:
-* `DEFAULT_INCREMENT` (default: `skip`): if no release keyword is found in the latest commit message, this value will be used to trigger a release
+* `DEFAULT_INCREMENT` (default: `skip`): If no release keyword is found in the latest commit message, this value will be used to trigger a release. Can be one of: `skip`, `patch`, `minor`, `major`.
 * `DRY_RUN` (default: `false`): Simulates a release but does not actually do one
 * `GITHUB_TOKEN`: Token to use to update version in 'package.json' and create the tag
 
@@ -47,6 +48,8 @@ Releases occur based on the most recent commit message:
 * Commits which contain `[increment patch]` will trigger a `patch` release. Example: `validate input before using [increment patch]`
 * Commits which contain `[increment minor]` will trigger a `minor` release. Example: `add toggle() method [increment minor]`
 * Commits which contain `[increment major]` will trigger a `major` release. Example: `breaking all the things [increment major]`
+
+**Note:** When merging a pull request, this will be the merge commit message.
 
 ### Default Increment
 
