@@ -1,7 +1,7 @@
 const chalk = require('chalk'),
 	fs = require('fs');
 
-const langs = ['ar', 'cy', 'da', 'de', 'es', 'es-es', 'fr', 'fr-fr', 'ja', 'ko', 'nl', 'pt', 'sv', 'tr', 'zh-tw', 'zh', 'zebras'];
+const langs = ['ar', 'cy', 'da', 'de', 'es', 'es-es', 'fr', 'fr-fr', 'ja', 'ko', 'nl', 'pt', 'sv', 'tr', 'zh-tw', 'zh'];
 
 function _parseFile(filePath) {
 	const file = fs.readFileSync(filePath).toString();
