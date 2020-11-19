@@ -5,7 +5,8 @@ in your project that doesn't yet have a proper translation.
 
 ## Using the Action
 
-Typically this action is triggered from a workflow that runs on your `master` branch after each commit or pull request merge that you are planning to publish to npm (for example, before running the [`semantic-release` action](https://github.com/BrightspaceUI/actions/tree/master/semantic-release).
+Typically this action is triggered from a workflow that runs on your `master` branch after each commit or pull request merge that you are planning to publish to npm (for example, before running the [`semantic-release` action](https://github.com/BrightspaceUI/actions/tree/master/semantic-release)).
+
 
 Here's a sample workflow:
 
