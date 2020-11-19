@@ -4,10 +4,8 @@ const chalk = require('chalk'),
 const langs = ['ar', 'cy', 'da', 'de', 'es', 'es-es', 'fr', 'fr-fr', 'ja', 'ko', 'nl', 'pt', 'sv', 'tr', 'zh-tw', 'zh'];
 
 function _parseFile(filePath) {
-	const file = fs.readFileSync(filePath).toString();
-	const firstBit = file.split('default ')[1];
-	const stringContent = firstBit.substring(0, firstBit.lastIndexOf(';'));
-	return JSON.parse(stringContent);
+	const lang = import(filePath);
+	return lang;
 }
 
 function _writeChanges(langTermsPath, fileName, content) {
