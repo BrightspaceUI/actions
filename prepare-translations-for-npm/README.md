@@ -45,3 +45,11 @@ Notes:
 * If you have additional release validation steps (e.g. build step, validation tests), run them before the "Prepare Translations for NPM" step.
 * You must run the checkout step before running the "Prepare Translations for NPM" step, otherwise the action will not be able to find your lang path.
 * Don't run this action if you're not publishing to NPM. It doesn't commit to your repo and isn't relevant outside of publishing to NPM.
+
+## Lang File Format
+
+This action expects the following format for lang files:
+* All lang files should be contained within the top level of the `LANG_PATH` directory. This action does not support language files within nested directories (e.g. `{LANG_PATH}/es/es.js`, `{LANG_PATH}/en/en.js` would not be supported).
+* Lang files must be JavaScript modules, formatted as outlined in the [localize mixin documentation](https://github.com/BrightspaceUI/core/blob/master/mixins/localize-mixin.md).
+* Languages not included in the default list within the `prepare-translations.js` script within this action will not be prepared for translation. Please ensure any new languages are added to that list.
+* Language files with empty default exports should be created for all supported languages, even those that don't currently have translations.
