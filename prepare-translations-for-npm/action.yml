@@ -3,7 +3,7 @@ description: Prepares translations for NPM publishing, ensuring that new lang te
 inputs:
   LANG_PATH:
     description: Path to your repo's translation files
-    required: true
+    default: 'lang'
 runs:
   using: composite
   steps:

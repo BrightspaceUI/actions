@@ -35,7 +35,7 @@ jobs:
 ```
 
 Options:
-* `LANG_PATH`: The relative path to your language files from the root of your repository
+* `LANG_PATH` (default: `lang`): The relative path to your language files from the root of your repository
 
 Notes:
 * If you have additional release validation steps (e.g. build step, validation tests), run them before the "Prepare Translations for NPM" step.
