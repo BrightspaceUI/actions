@@ -28,7 +28,6 @@ jobs:
       - name: Setup Node
         uses: Brightspace/third-party-actions@actions/setup-node
         with:
-          node-version: 12.x
         # additional validation steps can be run here
       - name: Prepare Translations for NPM
         uses: BrightspaceUI/actions/prepare-translations-for-npm@master
@@ -41,7 +40,6 @@ Options:
 * `LANG_PATH` (default: `lang`): The relative path to your language files from the root of your repository
 
 Notes:
-* When setting up NodeJS, the version specified must be `>= 12`. This action uses features introduced in v12.
 * If you have additional release validation steps (e.g. build step, validation tests), run them before the "Prepare Translations for NPM" step.
 * You must run the checkout step before running the "Prepare Translations for NPM" step, otherwise the action will not be able to find your lang path.
 * Don't run this action if you're not publishing to NPM. It doesn't commit to your repo and isn't relevant outside of publishing to NPM.
