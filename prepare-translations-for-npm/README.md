@@ -23,9 +23,10 @@ jobs:
     steps:
       - name: Checkout
         uses: Brightspace/third-party-actions@actions/checkout
+        with:
+          persist-credentials: false
       - name: Setup Node
         uses: Brightspace/third-party-actions@actions/setup-node
-        with:
         # additional validation steps can be run here
       - name: Prepare Translations for NPM
         uses: BrightspaceUI/actions/prepare-translations-for-npm@master
