@@ -22,8 +22,6 @@ jobs:
     steps:
       - name: Checkout
         uses: Brightspace/third-party-actions@actions/checkout
-        with:
-          persist-credentials: false
       - name: Setup Node
         uses: Brightspace/third-party-actions@actions/setup-node
         # additional validation steps can be run here
@@ -40,7 +38,6 @@ Options:
 
 Notes:
 * If you have additional release validation steps (e.g. build step, validation tests), run them after the "Setup Node" step and before the "Incremental Release" step.
-* In the checkout step, you must set the `persist-credentials` option to `false`. This opts out of the default `GITHUB_TOKEN` which is not an admin and cannot bypass branch protection rules.
 
 ## Triggering a Release
 

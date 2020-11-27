@@ -13,15 +13,21 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Incremental Release
+    - name: Install Dependencies
       run: |
+        if [ ${{ !contains(github.event.head_commit.message, 'skip ci') }} == true ]; then
+          echo "Installing dependencies..."
+          npm install @octokit/rest@18 --prefix ${{ github.action_path }} --no-save --loglevel error
+        fi
+      shell: bash
+    - name: Determine Increment
+      id: determine-increment
+      run: |
+        TYPE=${{ inputs.DEFAULT_INCREMENT }}
         if [ ${{ contains(github.event.head_commit.message, 'skip ci') }} == true ]; then
           echo "[skip ci] detected, so skipping release."
-          exit 0;
-        fi
-
-        TYPE=${{ inputs.DEFAULT_INCREMENT }}
-        if [ ${{ contains(github.event.head_commit.message, '[increment patch]') }} == true ]; then
+          TYPE="skip"
+        elif [ ${{ contains(github.event.head_commit.message, '[increment patch]') }} == true ]; then
           echo "Found [increment patch], creating a patch release..."
           TYPE="patch"
         elif [ ${{ contains(github.event.head_commit.message, '[increment minor]') }} == true ]; then
@@ -36,27 +42,38 @@ runs:
         else
           echo "Did not find commit message flag, using DEFAULT_INCREMENT (${{ inputs.DEFAULT_INCREMENT }})"
         fi
-
-        if [ $TYPE == "skip" ]; then
-          echo "Skipping release."
+        echo "::set-output name=increment::$(echo "$TYPE")"
+      shell: bash
+    - name: Increment Version
+      id: increment-version
+      run: |
+        if [ ${{ steps.determine-increment.outputs.increment }} == "skip" ]; then
           exit 0;
         fi
 
         git config user.name github-actions
         git config user.email github-actions@github.com
-        
-        echo "Executing: \"npm version ${TYPE}\"..."
-        NEW_VERSION=$(npm version ${TYPE} -m "Updated version to %s [skip ci][skip version]")
-        echo "New version number will be: $NEW_VERSION"
 
-        if [ ${{ inputs.DRY_RUN }} == true ]; then
-          echo "DRY_RUN option specified, aborting release creation."
+        echo "Executing: \"npm version ${{ steps.determine-increment.outputs.increment }}\"..."
+        NEW_VERSION=$(npm version ${{ steps.determine-increment.outputs.increment }} -m "Updated version to %s [skip ci][skip version]")
+        echo "New version number will be: $NEW_VERSION"
+        echo "::set-output name=version::$(echo "$NEW_VERSION")"
+
+        if [ ${{ inputs.DRY_RUN }} == false ]; then
+          echo "Not a dry run, pushing..."
+          git push --follow-tags --repo=https://${{ inputs.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+        fi
+      shell: bash
+    - name: Create Release
+      run: |
+        if [ ${{ steps.determine-increment.outputs.increment }} == "skip" ]; then
           exit 0;
         fi
-        
-        echo "Executing: \"git push --follow-tags\""
-        git push --follow-tags
-
+        if [ ${{ inputs.DRY_RUN }} == true ]; then
+          echo "DRY_RUN option specified, skipping release creation."
+          exit 0;
+        fi
+        node ${{ github.action_path }}/create-release.js ${{ steps.increment-version.outputs.version }}
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
       shell: bash
