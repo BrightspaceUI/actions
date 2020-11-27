@@ -73,10 +73,6 @@ runs:
           echo "DRY_RUN option specified, skipping release creation."
           exit 0;
         fi
-        if [ ${{ steps.increment-version.outputs.version }} == "" ]; then
-          echo "No new version, skipping release creation."
-          exit 0;
-        fi
         node ${{ github.action_path }}/create-release.js ${{ steps.increment-version.outputs.version }}
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
