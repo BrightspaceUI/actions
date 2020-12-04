@@ -1,0 +1,117 @@
+name: Visual Diff
+description: Run your visual diff tests and open a PR with the new goldens as necessary
+inputs:
+  AWS_ACCESS_KEY_ID:
+    description: Access key id for the role that will assume the visual diff role
+    required: true
+  AWS_SECRET_ACCESS_KEY:
+    description: Access key secret for the role that will assume the visual diff role
+    required: true
+  AWS_SESSION_TOKEN:
+    description: Session token for the role that will assume the visual diff role
+    required: true
+  GITHUB_TOKEN:
+    description: Token to use to open the goldens PR
+    required: true
+  TEST_PATH:
+    description: Path passed into the mocha call defining the locations and name structure of the tests
+    default: './**/*.visual-diff.js'
+  TEST_TIMEOUT:
+    description: Test timeout passed into the mocha call
+    default: '40000'
+runs:
+  using: composite
+  steps:
+    - name: Install Dependencies
+      run: |
+        echo -e "\e[34mInstalling Dependencies"
+        npm install mocha@8 puppeteer@5 @brightspace-ui/visual-diff@2 --no-save
+        npm install chalk@4 @octokit/rest@18 --prefix ${{ github.action_path }} --no-save --loglevel error
+      env:
+        FORCE_COLOR: 3
+      shell: bash
+    - name: Visual Diff Branch Cleanup
+      run: |
+        echo -e "\e[34mCleaning Up Orphaned Visual Diff Branches"
+        node ${{ github.action_path }}/cleanup-branches.js
+      env:
+        FORCE_COLOR: 3
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+        VISUAL_DIFF_BRANCH_PREFIX: 'ghworkflow/visual-diff-pr-'
+      shell: bash
+    - name: Running Visual Diff Tests
+      id: visual-diff-tests
+      run: |
+        echo -e "\e[34mRunning Visual Diff Tests"
+        npx mocha ${{ inputs.TEST_PATH }} -t ${{ inputs.TEST_TIMEOUT }} --colors && echo "::set-output name=tests-passed::$(echo true)" || echo "::set-output name=tests-passed::$(echo false)"
+        if [ -f failed-reports.txt ]; then
+          FAILED_REPORTS=$(<failed-reports.txt)
+          echo "::set-output name=failed-reports::$(echo "$FAILED_REPORTS")"
+          rm failed-reports.txt
+        fi
+      env:
+        FORCE_COLOR: 3
+        AWS_ACCESS_KEY_ID: ${{ inputs.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.AWS_SECRET_ACCESS_KEY }}
+        AWS_SESSION_TOKEN: ${{ inputs.AWS_SESSION_TOKEN }}
+      shell: bash
+    - name: Committing the New Goldens (if necessary)
+      id: committing-goldens
+      run: |
+        if [ ${{ github.event.number }} ]; then
+          SOURCE_BRANCH=${{ github.event.pull_request.head.ref }}
+          VISUAL_DIFF_BRANCH=ghworkflow/visual-diff-pr-${{ github.event.number }}
+        else
+          SOURCE_BRANCH=${GITHUB_REF#refs/heads/}
+          VISUAL_DIFF_BRANCH=ghworkflow/visual-diff-${GITHUB_REF#refs/heads/}
+        fi
+        echo "::set-output name=source-branch::$(echo "$SOURCE_BRANCH")"
+        echo "::set-output name=visual-diff-branch::$(echo "$VISUAL_DIFF_BRANCH")"
+      
+        if [ ${{ steps.visual-diff-tests.outputs.tests-passed }} == true ]; then
+          echo -e "\e[32mVisual diff tests have passed - no new goldens needed."
+          exit 0;
+        fi
+        echo -e "\e[31mVisual diff tests failed - generating new goldens."
+        
+        echo -e "\n\e[34mCreating the Visual Diff Branch"
+        git stash
+        git fetch origin +refs/heads/$SOURCE_BRANCH:refs/heads/$SOURCE_BRANCH -q
+        git checkout $SOURCE_BRANCH
+        git checkout -b $VISUAL_DIFF_BRANCH
+        git stash apply
+        
+        echo -e "\n\e[34mCommitting new goldens"
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add .
+        git commit -m 'Updating Visual Diff Goldens'
+        
+        echo -e "\n\e[34mPushing the Visual Diff Branch"
+        git push --force origin $VISUAL_DIFF_BRANCH  
+      env:
+        FORCE_COLOR: 3
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+      shell: bash
+    - name: Handling the Goldens PR (if necessary)
+      run: |   
+        if [ ${{ steps.visual-diff-tests.outputs.tests-passed }} == true ]; then
+          echo -e "\n\e[34mClosing Goldens PR and Deleting Branch (if it exists)"
+          git push -d origin $VISUAL_DIFF_BRANCH || true
+     
+          echo -e "\e[32mCompleted - Build Passed."
+          exit 0;
+        fi
+
+        node ${{ github.action_path }}/handle-pr.js
+ 
+        echo -e "\e[31mCompleted - Build Failed."
+        exit 1;
+      env:
+        FAILED_REPORTS: ${{ steps.visual-diff-tests.outputs.failed-reports }}
+        FORCE_COLOR: 3
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+        PULL_REQUEST_NUM: ${{ github.event.number }}
+        SOURCE_BRANCH: ${{ steps.committing-goldens.outputs.source-branch }}
+        VISUAL_DIFF_BRANCH: ${{ steps.committing-goldens.outputs.visual-diff-branch }}
+      shell: bash
