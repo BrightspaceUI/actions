@@ -18,7 +18,7 @@ inputs:
     default: './**/*.visual-diff.js'
   TEST_TIMEOUT:
     description: Test timeout passed into the mocha call
-    default: '40000'
+    default: 40000
 runs:
   using: composite
   steps:
@@ -76,7 +76,7 @@ runs:
         
         echo -e "\n\e[34mCreating the Visual Diff Branch"
         git stash
-        git fetch origin +refs/heads/$SOURCE_BRANCH:refs/heads/$SOURCE_BRANCH -q
+        git fetch origin +refs/heads/$SOURCE_BRANCH:refs/heads/$SOURCE_BRANCH -q || true
         git checkout $SOURCE_BRANCH
         git checkout -b $VISUAL_DIFF_BRANCH
         git stash apply
