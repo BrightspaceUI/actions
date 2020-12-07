@@ -11,7 +11,7 @@ More specifically, this action will:
 
 ## Using the Action
 
-Typically this action is triggered from a ci workflow that runs on your pull requests, to ensure that your new coed changes only caused the expected visual changes before merging.
+Typically this action is triggered from a CI (continuous integration) workflow that runs on your pull requests, ensuring that your new code changes did not cause unexpected visual changes before they are merged.
 
 Here's a sample ci workflow:
 
