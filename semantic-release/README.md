@@ -49,6 +49,7 @@ Options:
 
 Outputs:
 * `RELEASE`: `true` if a release occurred, `false` otherwise
+* `VERSION`: will contain the new version number if a release occurred
 
 Notes:
 * If you have additional release validation steps (e.g. build step, validation tests), run them after the "Setup Node" step and before the "Semantic Release" step.
