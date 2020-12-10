@@ -25,7 +25,10 @@ runs:
     - name: Install Dependencies
       run: |
         echo -e "\e[34mInstalling Dependencies"
-        npm install mocha@8 puppeteer@5 @brightspace-ui/visual-diff@2 --no-save
+        NPM_PACKAGE=$(cut -d "=" -f 2 <<< $(npm run env | grep "npm_package_name"))
+        if [ $NPM_PACKAGE != '@brightspace-ui/visual-diff' ]; then
+          npm install mocha@8 puppeteer@5 @brightspace-ui/visual-diff@2 --no-save
+        fi
         npm install chalk@4 @octokit/rest@18 --prefix ${{ github.action_path }} --no-save --loglevel error
       env:
         FORCE_COLOR: 3
@@ -69,13 +72,13 @@ runs:
         echo "::set-output name=visual-diff-branch::$(echo "$VISUAL_DIFF_BRANCH")"
       
         if [ ${{ steps.visual-diff-tests.outputs.tests-passed }} == true ]; then
-          echo -e "\e[32mVisual diff tests have passed - no new goldens needed."
+          echo -e "\e[32mVisual diff tests have passed - no new goldens needed.\n"
           exit 0;
         fi
         echo -e "\e[31mVisual diff tests failed - generating new goldens."
         
         echo -e "\n\e[34mCreating the Visual Diff Branch"
-        git stash
+        git stash --include-untracked
         git fetch origin +refs/heads/$SOURCE_BRANCH:refs/heads/$SOURCE_BRANCH -q || true
         git checkout $SOURCE_BRANCH
         git checkout -b $VISUAL_DIFF_BRANCH
@@ -96,8 +99,10 @@ runs:
     - name: Handling the Goldens PR (if necessary)
       run: |   
         if [ ${{ steps.visual-diff-tests.outputs.tests-passed }} == true ]; then
-          echo -e "\n\e[34mClosing Goldens PR and Deleting Branch (if it exists)"
-          git push -d origin $VISUAL_DIFF_BRANCH || true
+          if git ls-remote --exit-code --heads origin $VISUAL_DIFF_BRANCH; then
+            echo -e "\e[34mClosing Goldens PR and Deleting Branch"
+            git push -d origin $VISUAL_DIFF_BRANCH || true
+          fi
      
           echo -e "\e[32mCompleted - Build Passed."
           exit 0;
