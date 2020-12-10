@@ -99,6 +99,14 @@ async function handlePR() {
 				'auto-visual-diff'
 			]
 		});
+		if (prNum) {
+			await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+				owner: owner,
+				repo: repo,
+				issue_number: prNum,
+				body: `Visual diff tests failed - pull request #${goldenPrNum} has been opened with the updated goldens.`
+			});
+		}
 	} else {
 		goldenPrNum = goldenPRs.data[0].number;
 		console.log(`Goldens PR already exists: ${goldenPRs.data[0].html_url}`);
