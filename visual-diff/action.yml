@@ -72,7 +72,7 @@ runs:
         echo "::set-output name=visual-diff-branch::$(echo "$VISUAL_DIFF_BRANCH")"
       
         if [ ${{ steps.visual-diff-tests.outputs.tests-passed }} == true ]; then
-          echo -e "\e[32mVisual diff tests have passed - no new goldens needed."
+          echo -e "\e[32mVisual diff tests have passed - no new goldens needed.\n"
           exit 0;
         fi
         echo -e "\e[31mVisual diff tests failed - generating new goldens."
@@ -99,8 +99,10 @@ runs:
     - name: Handling the Goldens PR (if necessary)
       run: |   
         if [ ${{ steps.visual-diff-tests.outputs.tests-passed }} == true ]; then
-          echo -e "\n\e[34mClosing Goldens PR and Deleting Branch (if it exists)"
-          git push -d origin $VISUAL_DIFF_BRANCH || true
+          if git ls-remote --exit-code --heads origin $VISUAL_DIFF_BRANCH; then
+            echo -e "\e[34mClosing Goldens PR and Deleting Branch"
+            git push -d origin $VISUAL_DIFF_BRANCH || true
+          fi
      
           echo -e "\e[32mCompleted - Build Passed."
           exit 0;
