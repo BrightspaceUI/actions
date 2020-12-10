@@ -16,12 +16,13 @@ const octokit = new Octokit({
 });
 
 function createPRBody() {
-	let body = prNum ? `This PR updates the goldens for the changes in PR #${prNum}.` : `This PR fixes the goldens for branch \`${sourceBranchName}\`.`;
+	let body = `This pull request updates the visual-diff golden images for ${prNum ? `the changes in pull request #${prNum}.` : `branch \`${sourceBranchName}\`.`}`;
 	if (!process.env['FAILED_REPORTS']) {
 		return body;
 	}
 
-	body = body + '\nFailed Reports:';
+	body = body + '\n\nPlease review the following failed reports closely before merging to ensure the visual differences are expected.';
+	body = body + '\n\nFailed Reports:';
 	const links = process.env['FAILED_REPORTS'].split(',');
 	const formattedLinks = links.reduce((combined, link) => {
 		const name = link.split('/');
