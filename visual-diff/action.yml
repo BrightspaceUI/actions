@@ -78,7 +78,7 @@ runs:
         echo -e "\e[31mVisual diff tests failed - generating new goldens."
         
         echo -e "\n\e[34mCreating the Visual Diff Branch"
-        git stash
+        git stash --include-untracked
         git fetch origin +refs/heads/$SOURCE_BRANCH:refs/heads/$SOURCE_BRANCH -q || true
         git checkout $SOURCE_BRANCH
         git checkout -b $VISUAL_DIFF_BRANCH
