@@ -12,6 +12,13 @@ inputs:
     default: false
   NPM_TOKEN:
     description: Token to publish to NPM
+outputs:
+  RELEASE:
+    description: Whether or not a release occurred
+    value: ${{ steps.semantic-release.outputs.release }}
+  VERSION:
+    description: Version of the new release
+    value: ${{ steps.semantic-release.outputs.version }}
 runs:
   using: composite
   steps:
@@ -33,10 +40,13 @@ runs:
         NPM: ${{ inputs.NPM }}
       shell: bash
     - name: Running semantic-release
+      id: semantic-release
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
         NPM_TOKEN: ${{ inputs.NPM_TOKEN }}
       run: |
+        echo "::set-output name=release::false"
+        echo "::set-output name=version::"
         if [ ${{ contains(github.event.head_commit.message, 'skip ci') }} == true ]; then
           echo "[skip ci] detected so skipping release"
           exit 0;
@@ -45,7 +55,13 @@ runs:
           echo "Running semantic-release (dry run)..."
           npx semantic-release --dry-run
         else
+          OLD_VERSION=$(node -p -e "require('./package.json').version")
           echo "Running semantic-release..."
           npx semantic-release
+          NEW_VERSION=$(node -p -e "require('./package.json').version")
+          if [ "$OLD_VERSION" != "$NEW_VERSION" ]; then
+            echo "::set-output name=release::true"
+            echo "::set-output name=version::$(echo $NEW_VERSION)"
+          fi
         fi
       shell: bash
