@@ -48,8 +48,7 @@ Options:
 * `NPM_TOKEN` (optional if `NPM` is `false`): Token to publish to NPM (see "NPM Package Deployment" below for more info)
 
 Outputs:
-* `RELEASE`: `true` if a release occurred, `false` otherwise
-* `VERSION`: will contain the new version number if a release occurred
+* `VERSION`: will contain the new version number if a release occurred, empty otherwise
 
 Notes:
 * If you have additional release validation steps (e.g. build step, validation tests), run them after the "Setup Node" step and before the "Semantic Release" step.
