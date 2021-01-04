@@ -38,6 +38,9 @@ Options:
 * `DRY_RUN` (default: `false`): Simulates a release but does not actually do one
 * `GITHUB_TOKEN`: Token to use to update version in 'package.json' and create the tag
 
+Outputs:
+* `VERSION`: will contain the new version number if a release occurred, empty otherwise
+
 Notes:
 * If you have additional release validation steps (e.g. build step, validation tests), run them after the "Setup Node" step and before the "Incremental Release" step.
 * In the checkout step, you must set the `persist-credentials` option to `false`. This opts out of the default `GITHUB_TOKEN` which is not an admin and cannot bypass branch protection rules.
@@ -66,3 +69,43 @@ with:
 ### Skipping Releases
 
 When a default increment is specified, sometimes you want to bypass it and skip a release. To do this, include `[skip release]` in the commit message.
+
+## Publishing a Free-Rang App Using `frau-publisher`
+
+A common use case for `incremental-release` is with Free-Range Apps. With each release, FRAs publish to the CDN using [frau-publisher](https://github.com/Brightspace/frau-publisher), which traditionally used Travis CI environment variables to determine the new version.
+
+Here's a sample workflow to publish a Free-Range App:
+
+```yml
+name: Release
+on:
+  push:
+    branches:
+      - master
+jobs:
+  release:
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+    timeout-minutes: 2
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: Brightspace/third-party-actions@actions/checkout
+        with:
+          persist-credentials: false
+      - name: Setup Node
+        uses: Brightspace/third-party-actions@actions/setup-node
+      # additional build/validation steps can be run here
+      - name: Incremental Release
+        id: release
+        uses: BrightspaceUI/actions/incremental-release@master
+        with:
+          GITHUB_TOKEN: ${{ secrets.D2L_GITHUB_TOKEN }}
+      - name: Publish
+        if: steps.release.outputs.VERSION != ''
+        run: npx frau-publisher --v="${{ steps.semantic-release.outputs.VERSION }}" --f="./dist/**/*.*" --m="app" --t="my-fra"
+```
+
+Notes:
+* `id` has been to the release step so that we can reference its `VERSION` output parameter in the subsequent step
+* The publish step will be skipped if no version increment occurred
+* Obviously the `--f`, `--m` and `--t` parameters passed to `frau-publisher` may be different for your FRA
