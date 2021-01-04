@@ -106,6 +106,6 @@ jobs:
 ```
 
 Notes:
-* `id` has been to the release step so that we can reference its `VERSION` output parameter in the subsequent step
+* `id` has been added to the release step so that we can reference its `VERSION` output parameter in the subsequent step
 * The publish step will be skipped if no version increment occurred
 * Obviously the `--f`, `--m` and `--t` parameters passed to `frau-publisher` may be different for your FRA
