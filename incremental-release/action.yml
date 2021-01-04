@@ -10,6 +10,10 @@ inputs:
   GITHUB_TOKEN:
     description: Token to use to update version in 'package.json' and create the tag
     required: true
+outputs:
+  VERSION:
+    description: Version of the new release
+    value: ${{ steps.increment-version.outputs.version }}
 runs:
   using: composite
   steps:
@@ -55,12 +59,12 @@ runs:
         git config user.email github-actions@github.com
 
         echo "Executing: \"npm version ${{ steps.determine-increment.outputs.increment }}\"..."
-        NEW_VERSION=$(npm version ${{ steps.determine-increment.outputs.increment }} -m "Updated version to %s [skip ci][skip version]")
+        NEW_VERSION=$(npm version ${{ steps.determine-increment.outputs.increment }} -m "Updated version to %s [skip ci][skip version]" | cut -dv -f2)
         echo "New version number will be: $NEW_VERSION"
-        echo "::set-output name=version::$(echo "$NEW_VERSION")"
 
         if [ ${{ inputs.DRY_RUN }} == false ]; then
           echo "Not a dry run, pushing..."
+          echo "::set-output name=version::$(echo "$NEW_VERSION")"
           git push --follow-tags --repo=https://${{ inputs.GITHUB_TOKEN }}@github.com/${{ github.repository }}
         fi
       shell: bash
