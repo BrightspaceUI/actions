@@ -70,7 +70,7 @@ with:
 
 When a default increment is specified, sometimes you want to bypass it and skip a release. To do this, include `[skip release]` in the commit message.
 
-## Publishing a Free-Rang App Using `frau-publisher`
+## Publishing a Free-Range App Using `frau-publisher`
 
 A common use case for `incremental-release` is with Free-Range Apps. With each release, FRAs publish to the CDN using [frau-publisher](https://github.com/Brightspace/frau-publisher), which traditionally used Travis CI environment variables to determine the new version.
 
