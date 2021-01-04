@@ -103,9 +103,14 @@ jobs:
       - name: Publish
         if: steps.release.outputs.VERSION != ''
         run: npx frau-publisher --v="${{ steps.semantic-release.outputs.VERSION }}" --f="./dist/**/*.*" --m="app" --t="my-fra"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
 ```
 
 Notes:
 * `id` has been added to the release step so that we can reference its `VERSION` output parameter in the subsequent step
 * The publish step will be skipped if no version increment occurred
-* Obviously the `--f`, `--m` and `--t` parameters passed to `frau-publisher` may be different for your FRA
+* Obviously the `--f` (files), `--m` (module type) and `--t` (target directory) parameters passed to `frau-publisher` may be different for your FRA
+* This example uses IAM tokens to publish to the CDN's S3 bucket -- [learn more about setting up IAM tokens](https://github.com/Brightspace/iam-build-tokens/blob/master/docs/howto-cdn-users.md). When [registering your repo](https://github.com/Brightspace/iam-build-tokens/tree/master/terraform/roles), we recommend [using a hub role](https://github.com/Brightspace/iam-build-tokens/blob/master/docs/howto-hub-roles.md), so that you can easily add more roles as needed (for example, to set up visual-diff tests in the future).
