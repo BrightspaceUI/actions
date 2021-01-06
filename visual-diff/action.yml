@@ -82,7 +82,11 @@ runs:
         git fetch origin +refs/heads/$SOURCE_BRANCH:refs/heads/$SOURCE_BRANCH -q || true
         git checkout $SOURCE_BRANCH
         git checkout -b $VISUAL_DIFF_BRANCH
-        git stash apply
+        if ! git stash apply; then
+          echo -e "\e[31mCould not apply stash - merge conflicts with ${{ github.event.pull_request.base.ref }}."
+          echo "::set-output name=goldens-conflict::$(echo true)"
+          exit 0;
+        fi
         
         echo -e "\n\e[34mCommitting new goldens"
         git config user.name github-actions
@@ -98,17 +102,23 @@ runs:
       shell: bash
     - name: Handling the Goldens PR (if necessary)
       run: |   
-        if [ ${{ steps.visual-diff-tests.outputs.tests-passed }} == true ]; then
+        if [ ${{ steps.visual-diff-tests.outputs.tests-passed }} == true ] || [ ${{ steps.committing-goldens.outputs.goldens-conflict }} == true ]; then
           if git ls-remote --exit-code --heads origin $VISUAL_DIFF_BRANCH; then
             echo -e "\e[34mClosing Goldens PR and Deleting Branch"
             git push -d origin $VISUAL_DIFF_BRANCH || true
           fi
+        fi
      
+        if [ ${{ steps.visual-diff-tests.outputs.tests-passed }} == true ]; then
           echo -e "\e[32mCompleted - Build Passed."
           exit 0;
         fi
-
-        node ${{ github.action_path }}/handle-pr.js
+        
+        if [ ${{ steps.committing-goldens.outputs.goldens-conflict }} == true ]; then
+          node ${{ github.action_path }}/handle-goldens-conflict.js
+        else 
+          node ${{ github.action_path }}/handle-pr.js
+        fi
  
         echo -e "\e[31mCompleted - Build Failed."
         exit 1;
@@ -117,6 +127,7 @@ runs:
         FORCE_COLOR: 3
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
         PULL_REQUEST_NUM: ${{ github.event.number }}
+        PULL_REQUEST_BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
         SOURCE_BRANCH: ${{ steps.committing-goldens.outputs.source-branch }}
         VISUAL_DIFF_BRANCH: ${{ steps.committing-goldens.outputs.visual-diff-branch }}
       shell: bash
