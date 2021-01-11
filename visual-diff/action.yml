@@ -64,9 +64,11 @@ runs:
         if [ ${{ github.event.number }} ]; then
           SOURCE_BRANCH=${{ github.event.pull_request.head.ref }}
           VISUAL_DIFF_BRANCH=ghworkflow/visual-diff-pr-${{ github.event.number }}
+          ORIGINAL_SHA=${{ github.event.pull_request.head.sha }}
         else
           SOURCE_BRANCH=${GITHUB_REF#refs/heads/}
           VISUAL_DIFF_BRANCH=ghworkflow/visual-diff-${GITHUB_REF#refs/heads/}
+          ORIGINAL_SHA=$GITHUB_SHA
         fi
         echo "::set-output name=source-branch::$(echo "$SOURCE_BRANCH")"
         echo "::set-output name=visual-diff-branch::$(echo "$VISUAL_DIFF_BRANCH")"
@@ -79,9 +81,15 @@ runs:
         
         echo -e "\n\e[34mCreating the Visual Diff Branch"
         git stash --include-untracked
-        git fetch origin +refs/heads/$SOURCE_BRANCH:refs/heads/$SOURCE_BRANCH -q || true
+        git fetch origin +refs/heads/$SOURCE_BRANCH:refs/heads/$SOURCE_BRANCH -q -u || true
         git checkout $SOURCE_BRANCH
         git checkout -b $VISUAL_DIFF_BRANCH
+        if [ $(git rev-parse HEAD) != $ORIGINAL_SHA ]; then
+          echo -e "\e[31mBranch out of date - more commits have been added to the '$SOURCE_BRANCH' branch since this action started running.  Stopping this test run."
+          exit 1;
+        fi
+        
+        echo "::set-output name=goldens-conflict::$(echo false)"
         if ! git stash apply; then
           echo -e "\e[31mCould not apply stash - merge conflicts with ${{ github.event.pull_request.base.ref }}."
           echo "::set-output name=goldens-conflict::$(echo true)"
