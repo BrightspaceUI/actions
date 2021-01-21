@@ -102,7 +102,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.D2L_GITHUB_TOKEN }}
       - name: Publish
         if: steps.release.outputs.VERSION != ''
-        run: npx frau-publisher --v="${{ steps.semantic-release.outputs.VERSION }}" --f="./dist/**/*.*" --m="app" --t="my-fra"
+        run: npx frau-publisher --v="${{ steps.release.outputs.VERSION }}" --f="./dist/**/*.*" --m="app" --t="my-fra"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
