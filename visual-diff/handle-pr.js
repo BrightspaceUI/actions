@@ -120,14 +120,19 @@ async function handlePR() {
 	}
 
 	console.log('Adding PR Reviewers');
-	await octokit.request('POST /repos/{owner}/{repo}/pulls/{pull_number}/requested_reviewers', {
-		owner: owner,
-		repo: repo,
-		pull_number: goldenPrNum,
-		reviewers: [
-			actor
-		]
-	});
+	try {
+		await octokit.request('POST /repos/{owner}/{repo}/pulls/{pull_number}/requested_reviewers', {
+			owner: owner,
+			repo: repo,
+			pull_number: goldenPrNum,
+			reviewers: [
+				actor
+			]
+		});
+	} catch (e) {
+		console.log('Could not add reviewer (expected for Dependabot PRs):');
+		console.log(e);
+	}
 }
 
 handlePR().catch((e) => {
