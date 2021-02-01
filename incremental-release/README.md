@@ -26,7 +26,6 @@ jobs:
           persist-credentials: false
       - name: Setup Node
         uses: Brightspace/third-party-actions@actions/setup-node
-        # additional validation steps can be run here
       - name: Incremental Release
         uses: BrightspaceUI/actions/incremental-release@master
         with:
@@ -36,14 +35,19 @@ jobs:
 Options:
 * `DEFAULT_INCREMENT` (default: `skip`): If no release keyword is found in the latest commit message, this value will be used to trigger a release. Can be one of: `skip`, `patch`, `minor`, `major`.
 * `DRY_RUN` (default: `false`): Simulates a release but does not actually do one
-* `GITHUB_TOKEN`: Token to use to update version in 'package.json' and create the tag
+* `GITHUB_TOKEN`: Token to use to update version in 'package.json' and create the tag -- see section below on branch protection for more details
 
 Outputs:
 * `VERSION`: will contain the new version number if a release occurred, empty otherwise
 
 Notes:
 * If you have additional release validation steps (e.g. build step, validation tests), run them after the "Setup Node" step and before the "Incremental Release" step.
-* In the checkout step, you must set the `persist-credentials` option to `false`. This opts out of the default `GITHUB_TOKEN` which is not an admin and cannot bypass branch protection rules.
+
+### Branch Protection Rules and D2L_GITHUB_TOKEN
+
+The release step will fail to write to `package.json` if you have branch protection rules set up in your repository. To get around this, we use a special Admin `D2L_GITHUB_TOKEN`.
+
+[../docs/branch-protection.md](Learn how to set up the D2L_GITHUB_TOKEN...)
 
 ## Triggering a Release
 
