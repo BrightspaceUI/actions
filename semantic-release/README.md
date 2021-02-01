@@ -32,7 +32,6 @@ jobs:
           persist-credentials: false
       - name: Setup Node
         uses: Brightspace/third-party-actions@actions/setup-node
-        # additional validation steps can be run here
       - name: Semantic Release
         uses: BrightspaceUI/actions/semantic-release@master
         with:
@@ -43,7 +42,7 @@ jobs:
 
 Options:
 * `DRY_RUN` (default: `false`): Runs semantic-release with the `--dry-run` flag to simulate a release but not actually do one
-* `GITHUB_TOKEN`: Token to use to update version in 'package.json' and create GitHub release
+* `GITHUB_TOKEN`: Token to use to update version in 'package.json' and create GitHub release -- see section below on branch protection for more details
 * `NPM` (default: `false`): Whether or not to release as an NPM package (see "NPM Package Deployment" below for more info)
 * `NPM_TOKEN` (optional if `NPM` is `false`): Token to publish to NPM (see "NPM Package Deployment" below for more info)
 
@@ -52,8 +51,13 @@ Outputs:
 
 Notes:
 * If you have additional release validation steps (e.g. build step, validation tests), run them after the "Setup Node" step and before the "Semantic Release" step.
-* In the checkout step, you must set the `persist-credentials` option to `false`. This opts out of the default `GITHUB_TOKEN` which is not an admin and cannot bypass branch protection rules.
 * This example will release only from `master` and maintenance branches (e.g. `1.15.x` or `2.x`) -- see more info about maintenance branches below.
+
+### Branch Protection Rules and D2L_GITHUB_TOKEN
+
+The release step will fail to write to `package.json` if you have branch protection rules set up in your repository. To get around this, we use a special Admin `D2L_GITHUB_TOKEN`.
+
+[../docs/branch-protection.md](Learn how to set up the D2L_GITHUB_TOKEN...)
 
 ## NPM Package Deployment
 
