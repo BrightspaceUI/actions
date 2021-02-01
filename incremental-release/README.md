@@ -47,7 +47,7 @@ Notes:
 
 The release step will fail to write to `package.json` if you have branch protection rules set up in your repository. To get around this, we use a special Admin `D2L_GITHUB_TOKEN`.
 
-[../docs/branch-protection.md](Learn how to set up the D2L_GITHUB_TOKEN...)
+[Learn how to set up the D2L_GITHUB_TOKEN...](../docs/branch-protection.md)
 
 ## Triggering a Release
 
