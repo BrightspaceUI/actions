@@ -1,6 +1,9 @@
 name: Semantic Release
 description: Deploy using semantic-release
 inputs:
+  DEFAULT_BRANCH:
+    description: name of the default release branch
+    default: master
   DRY_RUN:
     description: Runs semantic-release with the "--dry-run" flag to simulate a release but not actually do one
     default: false
@@ -29,10 +32,11 @@ runs:
     - name: Create semantic-release configuration
       run: |
         if [ ${{ !contains(github.event.head_commit.message, 'skip ci') }} == true ]; then
-          echo "Creating semantic-relase configuration (NPM: ${{ inputs.NPM }})..."
+          echo "Creating semantic-release configuration (DEFAULT_BRANCH: ${{ inputs.DEFAULT_BRANCH }} , NPM: ${{ inputs.NPM }})..."
           ${{ github.action_path }}/create-config.sh
         fi
       env:
+        DEFAULT_BRANCH: ${{ inputs.DEFAULT_BRANCH }}
         FILE_PATH: ${{ github.workspace }}/.releaserc.yml
         NPM: ${{ inputs.NPM }}
       shell: bash
