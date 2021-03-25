@@ -57,7 +57,7 @@ runs:
         else
           OLD_VERSION=$(node -p -e "require('./package.json').version")
           echo "Running semantic-release..."
-          npx semantic-release
+          npx semantic-release --debug
           NEW_VERSION=$(node -p -e "require('./package.json').version")
           if [ "$OLD_VERSION" != "$NEW_VERSION" ]; then
             echo "::set-output name=version::$(echo $NEW_VERSION)"
