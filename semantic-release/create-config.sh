@@ -13,7 +13,7 @@ cat >$FILE_PATH <<EOL
     "next-major",
     {"name": "beta", "prerelease": true},
     {"name": "alpha", "prerelease": true}
-  ]
+  ],
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/github",
