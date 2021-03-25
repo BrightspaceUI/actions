@@ -6,16 +6,14 @@ else
 fi
 cat >$FILE_PATH <<EOL
 {
-  "release": {
-    "branches": [
-      "+([0-9])?(.{+([0-9]),x}).x",
-      "$DEFAULT_BRANCH",
-      "next",
-      "next-major",
-      {name: "beta", prerelease: true},
-      {name: "alpha", prerelease: true}
-    ]
-  },
+  "branches": [
+    "+([0-9])?(.{+([0-9]),x}).x",
+    "$DEFAULT_BRANCH",
+    "next",
+    "next-major",
+    {"name": "beta", "prerelease": true},
+    {"name": "alpha", "prerelease": true}
+  ],
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/github",

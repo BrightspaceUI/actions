@@ -37,7 +37,7 @@ runs:
         fi
       env:
         DEFAULT_BRANCH: ${{ inputs.DEFAULT_BRANCH }}
-        FILE_PATH: ${{ github.workspace }}/.releaserc.yml
+        FILE_PATH: ${{ github.workspace }}/.releaserc.json
         NPM: ${{ inputs.NPM }}
       shell: bash
     - name: Running semantic-release
