@@ -12,8 +12,8 @@ cat >$FILE_PATH <<EOL
       "$DEFAULT_BRANCH",
       "next",
       "next-major",
-      {name: "beta", prerelease: true},
-      {name: "alpha", prerelease: true}
+      {"name": "beta", "prerelease": true},
+      {"name": "alpha", "prerelease": true}
     ]
   },
   "plugins": [
