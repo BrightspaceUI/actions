@@ -1,5 +1,5 @@
 IS_TRACKED=$(git ls-files package-lock.json || true)
-if [ $IS_TRACKED != "" ]; then
+if [ "$IS_TRACKED" != "" ]; then
   ASSETS="[\"package.json\", \"package-lock.json\"]"
 else
   ASSETS="[\"package.json\"]"
