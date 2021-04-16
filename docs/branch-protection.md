@@ -8,7 +8,7 @@ To set up this bypass:
 
 1) Ensure that `D2L_GITHUB_TOKEN` is a secret available to your repo
 
-For repos in `Brigthspace`, `BrightspaceUI`, `BrightspaceUILabs` and `BrightspaceHypermediaComponents` this secret will already be available org-wide.
+For repos in `Brightspace`, `BrightspaceUI`, `BrightspaceUILabs` and `BrightspaceHypermediaComponents` this secret will already be available org-wide.
 
 We plan to automate the configuration and rotation of this secret in the future.
 
