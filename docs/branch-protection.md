@@ -8,9 +8,9 @@ To set up this bypass:
 
 1) Ensure that `D2L_GITHUB_TOKEN` is a secret available to your repo
 
-For repos in `BrightspaceUI`, `BrightspaceUILabs` and `BrightspaceHypermediaComponents` this secret will already be available org-wide. Repos in the `Brightspace` organization will need to have it set manually in each individual repository.
+For repos in `Brightspace`, `BrightspaceUI`, `BrightspaceUILabs` and `BrightspaceHypermediaComponents` this secret will already be available org-wide.
 
-We plan to automate the configuration and rotation of this secret in the future, but for now reach out to Dave Lockhart to get this secret added to your repo.
+We plan to automate the configuration and rotation of this secret in the future.
 
 2) Configure access to the `brightspace-bot`
 
