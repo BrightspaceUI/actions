@@ -27,7 +27,9 @@ runs:
         echo -e "\e[34mInstalling Dependencies"
         NPM_PACKAGE=$(cut -d "=" -f 2 <<< $(npm run env | grep "npm_package_name"))
         if [ $NPM_PACKAGE != '@brightspace-ui/visual-diff' ]; then
-          npm install mocha@8 puppeteer@7 @brightspace-ui/visual-diff@3 --no-save
+          npm install esm@3 mocha@8 puppeteer@8 @brightspace-ui/visual-diff@4 --no-save
+        else
+          npm install esm@3 --no-save
         fi
         npm install chalk@4 @octokit/rest@18 --prefix ${{ github.action_path }} --no-save --loglevel error
       env:
@@ -46,7 +48,7 @@ runs:
       id: visual-diff-tests
       run: |
         echo -e "\e[34mRunning Visual Diff Tests"
-        npx mocha '${{ inputs.TEST_PATH }}' -t ${{ inputs.TEST_TIMEOUT }} --colors && echo "::set-output name=tests-passed::$(echo true)" || echo "::set-output name=tests-passed::$(echo false)"
+        npx mocha '${{ inputs.TEST_PATH }}' -t ${{ inputs.TEST_TIMEOUT }} --colors --require esm && echo "::set-output name=tests-passed::$(echo true)" || echo "::set-output name=tests-passed::$(echo false)"
         if [ -f failed-reports.txt ]; then
           FAILED_REPORTS=$(<failed-reports.txt)
           echo "::set-output name=failed-reports::$(echo "$FAILED_REPORTS")"
@@ -89,7 +91,13 @@ runs:
           exit 1;
         fi
         
+        echo "::set-output name=changes-empty::$(echo false)"
         echo "::set-output name=goldens-conflict::$(echo false)"
+        if [ $(git stash list | wc -l) == 0 ]; then
+          echo -e "\e[31mNo changes to apply - please see errors above."
+          echo "::set-output name=changes-empty::$(echo true)"
+          exit 0;
+        fi
         if ! git stash apply; then
           echo -e "\e[31mCould not apply stash - merge conflicts with ${{ github.event.pull_request.base.ref }}."
           echo "::set-output name=goldens-conflict::$(echo true)"
@@ -122,9 +130,9 @@ runs:
           exit 0;
         fi
         
-        if [ ${{ steps.committing-goldens.outputs.goldens-conflict }} == true ]; then
-          node ${{ github.action_path }}/handle-goldens-conflict.js
-        else 
+        if [ ${{ steps.committing-goldens.outputs.changes-empty }} == true ] || [ ${{ steps.committing-goldens.outputs.goldens-conflict }} == true ]; then
+          node ${{ github.action_path }}/handle-issues.js
+        else
           node ${{ github.action_path }}/handle-pr.js
         fi
  
@@ -134,6 +142,7 @@ runs:
         FAILED_REPORTS: ${{ steps.visual-diff-tests.outputs.failed-reports }}
         FORCE_COLOR: 3
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+        GOLDENS_CONFLICT: ${{ steps.committing-goldens.outputs.goldens-conflict }}
         PULL_REQUEST_NUM: ${{ github.event.number }}
         PULL_REQUEST_BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
         SOURCE_BRANCH: ${{ steps.committing-goldens.outputs.source-branch }}
