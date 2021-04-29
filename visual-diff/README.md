@@ -41,6 +41,7 @@ Options:
 * `AWS_ACCESS_KEY_ID`: Access key id for the role that will assume the visual diff role - see [setup details](#setting-up-aws-access-creds) below.
 * `AWS_SECRET_ACCESS_KEY`: Access key secret for the role that will assume the visual diff role - see [setup details](#setting-up-aws-access-creds) below.
 * `AWS_SESSION_TOKEN`: Session token for the role that will assume the visual diff role - see [setup details](#setting-up-aws-access-creds) below.
+* `DRAFT_PR` (default: `true`): Whether to open the goldens PR as a draft PR.
 * `GITHUB_TOKEN`: Token to use to open the goldens PR.  This does not need admin privileges, so you can use the standard `GITHUB_TOKEN` that exists automatically.
 * `TEST_PATH` (default: `./{,!(node_modules)/**}/*.visual-diff.js`): Path passed into the mocha call defining the locations and name structure of the tests.
 * `TEST_TIMEOUT` (default: `40000`): Test timeout passed into the mocha call.

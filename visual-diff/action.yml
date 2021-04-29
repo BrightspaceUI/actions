@@ -10,6 +10,9 @@ inputs:
   AWS_SESSION_TOKEN:
     description: Session token for the role that will assume the visual diff role
     required: true
+  DRAFT_PR:
+    description: Whether to open the goldens PR as a draft PR
+    default: true
   GITHUB_TOKEN:
     description: Token to use to open the goldens PR
     required: true
@@ -139,6 +142,7 @@ runs:
         echo -e "\e[31mCompleted - Build Failed."
         exit 1;
       env:
+        DRAFT_PR: ${{ inputs.DRAFT_PR }}
         FAILED_REPORTS: ${{ steps.visual-diff-tests.outputs.failed-reports }}
         FORCE_COLOR: 3
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
