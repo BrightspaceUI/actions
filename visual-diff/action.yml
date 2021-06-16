@@ -30,7 +30,7 @@ runs:
         echo -e "\e[34mInstalling Dependencies"
         NPM_PACKAGE=$(cut -d "=" -f 2 <<< $(npm run env | grep "npm_package_name"))
         if [ $NPM_PACKAGE != '@brightspace-ui/visual-diff' ]; then
-          npm install esm@3 mocha@8 puppeteer@9 @brightspace-ui/visual-diff@5 --no-save
+          npm install esm@3 mocha@8 puppeteer@10 @brightspace-ui/visual-diff@6 --no-save
         else
           npm install esm@3 --no-save
         fi
