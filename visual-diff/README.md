@@ -52,28 +52,21 @@ Notes:
 
 ## Setting Up AWS Access Creds
 
-In order to have the `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_SESSION_TOKEN` available to you, you will need to register your repo in [`iam-build-tokens`](https://github.com/Brightspace/iam-build-tokens).  The role you want to assume already exists, so you only need to worry about "signing up" to receive rotating tokens for it.  We are using [hub roles](https://github.com/Brightspace/iam-build-tokens/blob/master/docs/howto-hub-roles.md#create-hub-role) for this, in case your repo needs (or will one day need) access to multiple roles.
+In order to have the `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_SESSION_TOKEN` available to you, you will need to add that info to your repo setup in [`repo-settings`](https://github.com/Brightspace/repo-settings).  The role you want to assume already exists, so you only need to worry about "signing up" to receive rotating tokens for it.
 
-Specifically, you will need to add the following to [https://github.com/Brightspace/iam-build-tokens/tree/master/terraform/roles](https://github.com/Brightspace/iam-build-tokens/tree/master/terraform/roles):
+Specifically, you will need to add the following to `<your_repo>.yaml` in [https://github.com/Brightspace/repo-settings/tree/main/repositories/github](https://github.com/Brightspace/repo-settings/tree/main/repositories/github):
 ```
-module "<github_repo_name>" {
-  source = "../modules/githubactions/hub-role"
-
-  assumable_role_arns = [
-    # Dev-UiPlatform
-    "arn:aws:iam::037018655140:role/visual-diff-githubactions-access",
-  ]
-
-  githubactions_project = "<github_repo_name>"
-  githubactions_org = "<github_org_name>"
-}
+aws_access:
+  repo:
+    assumable_role_arns:
+      # Dev-UiPlatform
+      - arn:aws:iam::037018655140:role/visual-diff-githubactions-access
 ```
 
 Once you've merged the above, you'll see the new secrets in your repo within a few minutes!  These tokens will be rotated automatically for you.
 
 Notes:
-* You can register multiple repos in the same file, so we've created [`brightspace-ui.tf`](https://github.com/Brightspace/iam-build-tokens/blob/master/terraform/roles/brightspace-ui.tf), [`brightspace-ui-labs.tf`](https://github.com/Brightspace/iam-build-tokens/blob/master/terraform/roles/brightspace-ui-labs.tf) and [`brightspace-hypermedia-components.tf`](https://github.com/Brightspace/iam-build-tokens/blob/master/terraform/roles/brightspace-hypermedia-components.tf) to help organize. Project repos can decide how they'd like to organize.
-* Remember after merging to [apply your terraform changes](https://github.com/Brightspace/iam-build-tokens/blob/master/docs/howto-terraform.md)!
+* This uses [`iam-build-tokens`](https://github.com/Brightspace/iam-build-tokens) hub roles behind the scenes, so you can register multiple roles to assume if needed (for example, if you also need permissions for deployment).
 
 ## Writing Visual Diff Tests
 
