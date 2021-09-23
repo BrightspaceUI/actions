@@ -66,7 +66,7 @@ aws_access:
 Once you've merged the above, you'll see the new secrets in your repo within a few minutes!  These tokens will be rotated automatically for you.
 
 Notes:
-* This uses [`iam-build-tokens`](https://github.com/Brightspace/iam-build-tokens) hub roles behind the scenes, in case your repo needs (or will one day need) access to multiple roles.
+* This uses [`iam-build-tokens`](https://github.com/Brightspace/iam-build-tokens) hub roles behind the scenes, so you can register multiple roles to assume if needed (for example, if you also need permissions for deployment).
 
 ## Writing Visual Diff Tests
 
