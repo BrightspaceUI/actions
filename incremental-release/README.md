@@ -72,7 +72,7 @@ with:
 
 ### Skipping Releases
 
-When a default increment is specified, sometimes you want to bypass it and skip a release. To do this, include `[skip release]` in the commit message.
+When a default increment is specified, sometimes you want to bypass it and skip a release. To do this, include `[skip version]` in the commit message.
 
 ## Publishing a Free-Range App Using `frau-publisher`
 
