@@ -5,7 +5,7 @@ in your project that doesn't yet have a proper translation.
 
 ## Using the Action
 
-Typically this action is called from a release workflow before a step which publishes to NPM, such as the [semantic-release action](https://github.com/BrightspaceUI/actions/tree/main/semantic-release).
+Typically this action is called from a release workflow before a step which publishes to NPM, such as the [semantic-release action](https://github.com/BrightspaceUI/actions/tree/master/semantic-release).
 
 
 Here's a sample workflow:
@@ -15,7 +15,7 @@ name: Release
 on:
   push:
     branches:
-      - main
+      - master
 jobs:
   release:
     timeout-minutes: 2
@@ -29,7 +29,7 @@ jobs:
         uses: Brightspace/third-party-actions@actions/setup-node
         # additional validation steps can be run here
       - name: Prepare Translations for NPM
-        uses: BrightspaceUI/actions/prepare-translations-for-npm@main
+        uses: BrightspaceUI/actions/prepare-translations-for-npm@master
         with:
           LANG_PATH: lang
         # NPM publishing step happens here
@@ -47,6 +47,6 @@ Notes:
 
 This action expects the following format for lang files:
 * All lang files should be contained within the top level of the `LANG_PATH` directory. This action does not support language files within nested directories (e.g. `{LANG_PATH}/es/es.js`, `{LANG_PATH}/en/en.js` would not be supported).
-* Lang files must be JavaScript modules, formatted as outlined in the [localize mixin documentation](https://github.com/BrightspaceUI/core/blob/main/mixins/localize-mixin.md).
+* Lang files must be JavaScript modules, formatted as outlined in the [localize mixin documentation](https://github.com/BrightspaceUI/core/blob/master/mixins/localize-mixin.md).
 * Languages not included in the default list within the `prepare-translations.js` script within this action will not be prepared for translation. Please ensure any new languages are added to that list.
 * Language files with empty default exports should be created for all supported languages, even those that don't currently have translations. This action will not fail if language files are missing in your repo, but will also not attempt to prepare default translations for those languages.

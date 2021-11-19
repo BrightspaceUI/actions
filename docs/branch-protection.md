@@ -33,7 +33,7 @@ This tells GitHub Actions not to set up the default `GITHUB_TOKEN`.
 
 ```yml
 - name: Semantic/Incremental Release
-  uses: BrightspaceUI/actions/semantic-release@main (or incremental-release)
+  uses: BrightspaceUI/actions/semantic-release@master (or incremental-release)
   with:
     GITHUB_TOKEN: ${{ secrets.D2L_GITHUB_TOKEN }}
 ```
