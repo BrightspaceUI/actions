@@ -8,7 +8,7 @@ This GitHub action uses the [semantic-release](https://semantic-release.gitbook.
 
 ## Using the Action
 
-Typically this action is triggered from a workflow that runs on your `main` branch after each commit or pull request merge.
+Typically this action is triggered from a workflow that runs on your `master` branch after each commit or pull request merge.
 
 Here's a sample release workflow:
 
@@ -17,7 +17,7 @@ name: Release
 on:
   push:
     branches:
-      - main
+      - master
       - '[0-9]+.x'
       - '[0-9]+.[0-9]+.x'
 jobs:
@@ -33,9 +33,8 @@ jobs:
       - name: Setup Node
         uses: Brightspace/third-party-actions@actions/setup-node
       - name: Semantic Release
-        uses: BrightspaceUI/actions/semantic-release@main
+        uses: BrightspaceUI/actions/semantic-release@master
         with:
-          DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.D2L_GITHUB_TOKEN }}
           NPM: true
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -54,7 +53,7 @@ Outputs:
 
 Notes:
 * If you have additional release validation steps (e.g. build step, validation tests), run them after the "Setup Node" step and before the "Semantic Release" step.
-* This example will release only from `main` and maintenance branches (e.g. `1.15.x` or `2.x`) -- see more info about maintenance branches below.
+* This example will release only from `master` and maintenance branches (e.g. `1.15.x` or `2.x`) -- see more info about maintenance branches below.
 
 ### Branch Protection Rules and D2L_GITHUB_TOKEN
 
