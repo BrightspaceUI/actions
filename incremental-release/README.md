@@ -4,7 +4,7 @@ This GitHub action looks for keywords in the latest commit to automatically incr
 
 ## Using the Action
 
-Typically this action is triggered from a workflow that runs on your `master` branch after each commit or pull request merge.
+Typically this action is triggered from a workflow that runs on your `main` branch after each commit or pull request merge.
 
 Here's a sample release workflow:
 
@@ -13,7 +13,7 @@ name: Release
 on:
   push:
     branches:
-      - master
+      - main
 jobs:
   release:
     if: "!contains(github.event.head_commit.message, 'skip ci')"
@@ -27,7 +27,7 @@ jobs:
       - name: Setup Node
         uses: Brightspace/third-party-actions@actions/setup-node
       - name: Incremental Release
-        uses: BrightspaceUI/actions/incremental-release@master
+        uses: BrightspaceUI/actions/incremental-release@main
         with:
           GITHUB_TOKEN: ${{ secrets.D2L_GITHUB_TOKEN }}
 ```
@@ -65,7 +65,7 @@ Normally, if the most recent commit does not contain `[increment major|minor|pat
 In this example, a minor release will occur if no increment value is found in the most recent commit:
 
 ```yml
-uses: BrightspaceUI/actions/incremental-release@master
+uses: BrightspaceUI/actions/incremental-release@main
 with:
   DEFAULT_INCREMENT: minor
 ```
@@ -85,7 +85,7 @@ name: Release
 on:
   push:
     branches:
-      - master
+      - main
 jobs:
   release:
     if: "!contains(github.event.head_commit.message, 'skip ci')"
@@ -101,7 +101,7 @@ jobs:
       # additional build/validation steps can be run here
       - name: Incremental Release
         id: release
-        uses: BrightspaceUI/actions/incremental-release@master
+        uses: BrightspaceUI/actions/incremental-release@main
         with:
           GITHUB_TOKEN: ${{ secrets.D2L_GITHUB_TOKEN }}
       - name: Publish

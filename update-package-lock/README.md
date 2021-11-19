@@ -23,9 +23,9 @@ jobs:
       - uses: Brightspace/third-party-actions@actions/checkout
       - uses: Brightspace/third-party-actions@actions/setup-node
       - name: Update package-lock.json
-        uses: BrightspaceUI/actions/update-package-lock@master
+        uses: BrightspaceUI/actions/update-package-lock@main
         with:
-          DEFAULT_BRANCH: master
+          DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.D2L_GITHUB_TOKEN }}
 ```
 

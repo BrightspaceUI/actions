@@ -29,7 +29,7 @@ jobs:
         run: npm install
         # additional linting and testing steps here
       - name: Visual Diff Tests
-        uses: BrightspaceUI/actions/visual-diff@master
+        uses: BrightspaceUI/actions/visual-diff@main
         with:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -47,7 +47,7 @@ Options:
 * `TEST_TIMEOUT` (default: `40000`): Test timeout passed into the mocha call.
 
 Notes:
-* You can also run this action in your release workflow to confirm the `master` branch is in a good state before releasing.  If there's a problem, a PR will be opened against `master` to get the goldens back in the expected state.  This mostly comes down to a time versus risk trade-off - the risk of things getting out of sync may be lower than the time taken to run your visual diff tests every release.
+* You can also run this action in your release workflow to confirm the `main` branch is in a good state before releasing.  If there's a problem, a PR will be opened against `main` to get the goldens back in the expected state.  This mostly comes down to a time versus risk trade-off - the risk of things getting out of sync may be lower than the time taken to run your visual diff tests every release.
 * You can use the standard `GITHUB_TOKEN` that exists automatically, but will need to [setup the AWS secrets](#setting-up-aws-access-creds).
 
 ## Setting Up AWS Access Creds
