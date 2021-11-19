@@ -25,6 +25,7 @@ jobs:
       - name: Update package-lock.json
         uses: BrightspaceUI/actions/update-package-lock@main
         with:
+          DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.D2L_GITHUB_TOKEN }}
 ```
 
