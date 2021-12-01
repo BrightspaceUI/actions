@@ -1,10 +1,10 @@
-const chalk = require('chalk'),
-	fs = require('fs');
+import chalk from 'chalk';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 
 const langs = ['ar', 'cy', 'da', 'de', 'es', 'es-es', 'fr', 'fr-fr', 'ja', 'ko', 'nl', 'pt', 'sv', 'tr', 'zh-tw', 'zh'];
 
 function _parseFile(filePath) {
-	const file = fs.readFileSync(filePath).toString();
+	const file = readFileSync(filePath).toString();
 	const firstBit = file.split('default ')[1];
 	const stringContent = firstBit.substring(0, firstBit.lastIndexOf(';'));
 	return JSON.parse(stringContent);
@@ -15,7 +15,7 @@ function _writeChanges(langTermsPath, fileName, content) {
 	const fileContent = `/* eslint quotes: 0 */
 export default ${json};
 `;
-	fs.writeFileSync(`${langTermsPath}/${fileName}.js`, fileContent, 'utf8');
+	writeFileSync(`${langTermsPath}/${fileName}.js`, fileContent, 'utf8');
 }
 
 function prepare(langTermsPath) {
@@ -25,7 +25,7 @@ function prepare(langTermsPath) {
 	langs.forEach((lang) => {
 		const filePath = `${langTermsPath}/${lang}.js`;
 
-		if (!fs.existsSync(filePath)) return;
+		if (!existsSync(filePath)) return;
 		
 		let changes = false;
 		const translations = _parseFile(filePath);

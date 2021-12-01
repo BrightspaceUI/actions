@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-const chalk = require('chalk');
-const { graphql } = require('@octokit/graphql');
+import chalk from 'chalk';
+import { graphql } from '@octokit/graphql';
 
 const [owner, repo] = process.env['GITHUB_REPOSITORY'].split('/');
 const approvalToken = process.env['APPROVAL_TOKEN'];

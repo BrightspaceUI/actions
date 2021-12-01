@@ -1,4 +1,4 @@
-const { Octokit } = require('@octokit/rest');
+import { Octokit } from '@octokit/rest';
 
 const release = `v${process.argv[2]}`;
 const [owner, repo] = process.env['GITHUB_REPOSITORY'].split('/');
