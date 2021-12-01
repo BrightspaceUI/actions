@@ -8,7 +8,7 @@ runs:
   using: composite
   steps:
     - name: Installing chalk
-      run: npm install --no-save --prefix ${{ github.action_path }} chalk@4
+      run: npm install --no-save --prefix ${{ github.action_path }} chalk@5
       shell: bash
     - name: Preparing translations
       run: node ${{ github.action_path }}/prepare-translations.js

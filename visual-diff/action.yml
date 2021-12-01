@@ -34,7 +34,7 @@ runs:
         else
           npm install esm@3 --no-save
         fi
-        npm install chalk@4 @octokit/rest@18 --prefix ${{ github.action_path }} --no-save --loglevel error
+        npm install chalk@5 @octokit/rest@18 --prefix ${{ github.action_path }} --no-save --loglevel error
       env:
         FORCE_COLOR: 3
       shell: bash

@@ -26,7 +26,7 @@ runs:
       - name: Install Dependencies
         run: |
           echo -e "\e[34mInstalling Dependencies"
-          npm install chalk@4 @octokit/graphql@4 --prefix ${{ github.action_path }} --no-save --loglevel error
+          npm install chalk@5 @octokit/graphql@4 --prefix ${{ github.action_path }} --no-save --loglevel error
         shell: bash
       - name: Checkout Branch
         run: |
