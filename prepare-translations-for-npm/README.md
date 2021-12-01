@@ -5,7 +5,7 @@ in your project that doesn't yet have a proper translation.
 
 ## Using the Action
 
-Typically this action is called from a release workflow before a step which publishes to NPM, such as the [semantic-release action](https://github.com/BrightspaceUI/actions/tree/master/semantic-release).
+Typically this action is called from a release workflow before a step which publishes to NPM, such as the [semantic-release action](https://github.com/BrightspaceUI/actions/tree/main/semantic-release).
 
 
 Here's a sample workflow:
@@ -15,7 +15,7 @@ name: Release
 on:
   push:
     branches:
-      - master
+      - main
 jobs:
   release:
     timeout-minutes: 2
@@ -29,7 +29,7 @@ jobs:
         uses: Brightspace/third-party-actions@actions/setup-node
         # additional validation steps can be run here
       - name: Prepare Translations for NPM
-        uses: BrightspaceUI/actions/prepare-translations-for-npm@master
+        uses: BrightspaceUI/actions/prepare-translations-for-npm@main
         with:
           LANG_PATH: lang
         # NPM publishing step happens here
