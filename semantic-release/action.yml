@@ -3,7 +3,7 @@ description: Deploy using semantic-release
 inputs:
   DEFAULT_BRANCH:
     description: name of the default release branch
-    default: master
+    default: main
   DRY_RUN:
     description: Runs semantic-release with the "--dry-run" flag to simulate a release but not actually do one
     default: false

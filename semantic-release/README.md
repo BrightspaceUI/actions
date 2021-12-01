@@ -35,7 +35,6 @@ jobs:
       - name: Semantic Release
         uses: BrightspaceUI/actions/semantic-release@main
         with:
-          DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.D2L_GITHUB_TOKEN }}
           NPM: true
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -43,7 +42,7 @@ jobs:
 
 Options:
 
-* `DEFAULT_BRANCH` (default: `"master"`): name of the default release branch
+* `DEFAULT_BRANCH` (default: `"main"`): name of the default release branch
 * `DRY_RUN` (default: `false`): Runs semantic-release with the `--dry-run` flag to simulate a release but not actually do one
 * `GITHUB_TOKEN`: Token to use to update version in 'package.json' and create GitHub release -- see section below on branch protection for more details
 * `NPM` (default: `false`): Whether or not to release as an NPM package (see "NPM Package Deployment" below for more info)
