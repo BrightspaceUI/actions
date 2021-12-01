@@ -3,7 +3,7 @@
 This GitHub action runs your repo's [visual diff tests](https://github.com/BrightspaceUI/visual-diff).  If the tests fail, a draft PR will be opened with the new goldens against the branch/PR that triggered the action.  If they pass, any open goldens PRs for that branch/PR will be closed for you.
 
 More specifically, this action will:
-* Install the `@brightspace-ui/visual-diff`, `esm`, `mocha` and `puppeteer` dependencies for you, so you don't need to include them in your local `devDependencies`
+* Install the `@brightspace-ui/visual-diff`, `mocha` and `puppeteer` dependencies for you, so you don't need to include them in your local `devDependencies`
 * Cleanup abandoned golden PRs
 * Run your visual diff tests and display the results (including links to the visual diff reports stored in S3)
 * If failures occurred, it will open/update the corresponding goldens PR with the new goldens and links to the failed reports
