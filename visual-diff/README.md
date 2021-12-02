@@ -68,6 +68,15 @@ Once you've merged the above, you'll see the new secrets in your repo within a f
 Notes:
 * This uses [`iam-build-tokens`](https://github.com/Brightspace/iam-build-tokens) hub roles behind the scenes, so you can register multiple roles to assume if needed (for example, if you also need permissions for deployment).
 
+## Removing CODEOWNER Restrictions for Golden Update PRs
+
+If you have a `CODEOWNERS` file for your repo, you may not want the visual-diff pull requests to have the same restrictions as other PRs.  Visual-diff PRs are usually opened against a branch that will be reviewed later by a code owner anyways. To remove the code owner restriction on visual-diff PRs, you can add the following to your `CODEOWNERS` file:
+
+```
+*       @<your_team> <some_username>
+golden/
+```
+
 ## Writing Visual Diff Tests
 
 For more info on setting up and writing visual diff tests, you can checkout the [visual diff repo's README](https://github.com/BrightspaceUI/visual-diff).
