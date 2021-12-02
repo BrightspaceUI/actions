@@ -78,6 +78,6 @@ This action relies on the `@brightspace-ui/visual-diff`, `mocha` and `puppeteer`
 
 If you'd like to install the same versions the action is using locally, the specific versions currently used by the action are provided below:
 
-* `@brightspace-ui/visual-diff`: version `7`
-* `mocha`: version `9`
-* `puppeteer`: version `12`
+```shell
+npm install @brightspace-ui/visual-diff@7 mocha@9 puppeteer@12  --no-save
+```
