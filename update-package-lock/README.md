@@ -22,6 +22,8 @@ jobs:
     steps:
       - uses: Brightspace/third-party-actions@actions/checkout
       - uses: Brightspace/third-party-actions@actions/setup-node
+        with:
+          node-version: '14'
       - name: Update package-lock.json
         uses: BrightspaceUI/actions/update-package-lock@main
         with:
