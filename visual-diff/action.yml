@@ -18,7 +18,7 @@ inputs:
     required: true
   TEST_PATH:
     description: Path passed into the mocha call defining the locations and name structure of the tests
-    default: './{,!(node_modules)/**}/*.visual-diff.js'
+    default: './{,!(node_modules)/**}/*.visual-diff.{js,mjs}'
   TEST_TIMEOUT:
     description: Test timeout passed into the mocha call
     default: 40000
