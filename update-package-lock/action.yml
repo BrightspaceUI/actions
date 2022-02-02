@@ -59,8 +59,8 @@ runs:
           rm -rf ./node_modules
           rm package-lock.json
           npm install
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git config user.name brightspace-bot
+          git config user.email 11837500+brightspace-bot@users.noreply.github.com
           git add package-lock.json
           git commit -m '${{ inputs.COMMIT_MESSAGE }}'
           git push --force origin ${{ inputs.BRANCH_NAME }}
