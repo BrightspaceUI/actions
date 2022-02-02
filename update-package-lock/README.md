@@ -21,6 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: Brightspace/third-party-actions@actions/checkout
+        with:
+          persist-credentials: false
       - uses: Brightspace/third-party-actions@actions/setup-node
         with:
           node-version: '14'
@@ -41,7 +43,7 @@ Options:
 
 ## Setting GITHUB_TOKEN
 
-The `GITHUB_TOKEN` is used to open the PR with the `package-lock.json` updates. This token does not need admin privileges, so the standard `secrets.GITHUB_TOKEN` _can_ work.  However, that token [does not trigger additional workflows](https://docs.github.com/en/actions/reference/authentication-in-a-workflow#using-the-github_token-in-a-workflow).  If you use GitHub actions for your CI, you probably want to use `D2L_GITHUB_TOKEN` here instead.
+The `GITHUB_TOKEN` is used to open the PR with the `package-lock.json` updates. This token does not need admin privileges, so the standard `secrets.GITHUB_TOKEN` _can_ work.  However, that token [does not trigger additional workflows](https://docs.github.com/en/actions/reference/authentication-in-a-workflow#using-the-github_token-in-a-workflow).  If you use GitHub actions for your CI, you probably want to use `D2L_GITHUB_TOKEN` here instead.  You'll also need to make sure `persist-credentials: false` is set like in the example workflow above.
 
 [Learn more about the D2L_GITHUB_TOKEN...](../docs/branch-protection.md)
 
