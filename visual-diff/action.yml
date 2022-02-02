@@ -51,6 +51,7 @@ runs:
         echo -e "\e[34mRunning Visual Diff Tests"
         npx mocha '${{ inputs.TEST_PATH }}' -t ${{ inputs.TEST_TIMEOUT }} --colors && echo "::set-output name=tests-passed::$(echo true)" || echo "::set-output name=tests-passed::$(echo false)"
         if [ -f failed-reports.txt ]; then
+          echo -e "Saving failed reports.\n"
           FAILED_REPORTS=$(<failed-reports.txt)
           echo "::set-output name=failed-reports::$(echo "$FAILED_REPORTS")"
           rm failed-reports.txt
