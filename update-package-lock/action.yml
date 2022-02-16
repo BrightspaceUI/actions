@@ -8,6 +8,8 @@ inputs:
   BRANCH_NAME:
     description: Name of the branch for the PR
     default: ghworkflow/package_lock_auto_update
+  CODEARTIFACT_AUTH_TOKEN:
+    description: Token for reading @d2l packages from CodeArtifact
   COMMIT_MESSAGE:
     description: Commit message for the update
     default: 'Auto Update Dependencies'
@@ -40,6 +42,8 @@ runs:
           echo -e "\n\e[34mRunning Fresh Dependency Install"
           rm package-lock.json
           npm install
+        env:
+          CODEARTIFACT_AUTH_TOKEN: ${{ inputs.CODEARTIFACT_AUTH_TOKEN }}
         shell: bash
       - name: Check For Changes
         id: check-for-changes
@@ -66,6 +70,7 @@ runs:
           git push --force https://${GITHUB_TOKEN}@github.com/${{ github.repository }} ${{ inputs.BRANCH_NAME }}
         env:
           GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+          CODEARTIFACT_AUTH_TOKEN: ${{ inputs.CODEARTIFACT_AUTH_TOKEN }}
         shell: bash
       - name: Create PR (if necessary)
         run: |
