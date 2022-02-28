@@ -51,7 +51,7 @@ async function handlePR() {
 	let newPrId;
 	try {
 		const createPrResponse = await graphqlForPR(
-			`mutation createPR($repositoryId: String!, $head: String!, $base: String!, $title: String!, $body: String!) {
+			`mutation createPR($repositoryId: ID!, $head: String!, $base: String!, $title: String!, $body: String!) {
 				createPullRequest(input: {repositoryId: $repositoryId, headRefName: $head, baseRefName: $base, title: $title, body: $body}) {
 					pullRequest {
 						id
