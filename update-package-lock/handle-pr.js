@@ -83,7 +83,7 @@ async function handlePR() {
 
 		try {
 			await graphqlForAutoMerge(
-				`mutation enableAutoMerge($pullRequestId: String!) {
+				`mutation enableAutoMerge($pullRequestId: ID!) {
 					enablePullRequestAutoMerge(input: { pullRequestId: $pullRequestId }) {
 						clientMutationId
 					}
@@ -108,7 +108,7 @@ async function handlePR() {
 
 		try {
 			await graphqlForApproval(
-				`mutation approvePR($pullRequestId: String!) {
+				`mutation approvePR($pullRequestId: ID!) {
 					addPullRequestReview(input: {pullRequestId: $pullRequestId}) {
 						clientMutationId
 					}
