@@ -15,7 +15,8 @@ async function createRelease() {
 		owner: owner,
 		repo: repo,
 		tag_name: release,
-		name: release
+		name: release,
+		generate_release_notes: true
 	});
 	console.log('Success!');
 
