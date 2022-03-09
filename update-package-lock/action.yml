@@ -29,6 +29,7 @@ runs:
   steps:
       - name: Determine Token
         id: token
+        shell: bash
         run: |
           TOKEN="$NODE_AUTH_TOKEN"
           TOKEN=${TOKEN:-"$CODEARTIFACT_AUTH_TOKEN"}
