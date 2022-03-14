@@ -3,6 +3,9 @@ description: Opens a pull request with an updated package-lock.json
 inputs:
   APPROVAL_TOKEN:
     description: Token for automatically approving the PR (will skip if not provided)
+  AUTO_MERGE_METHOD:
+    description: Merge method to use when enabling auto-merge
+    default: merge
   AUTO_MERGE_TOKEN:
     description: Token for enabling auto-merge for the PR (will skip if not provided)
   BRANCH_NAME:
@@ -10,8 +13,6 @@ inputs:
     default: ghworkflow/package_lock_auto_update
   CODEARTIFACT_AUTH_TOKEN:
     description: Token for reading @d2l packages from CodeArtifact
-  NODE_AUTH_TOKEN:
-    description: Token for reading packages from already setup private registry
   COMMIT_MESSAGE:
     description: Commit message for the update
     default: 'Auto Update Dependencies'
@@ -21,6 +22,8 @@ inputs:
   GITHUB_TOKEN:
     description: Token for opening the pull request
     required: true
+  NODE_AUTH_TOKEN:
+    description: Token for reading packages from already setup private registry
   PR_TITLE:
     description: Title for the opened pull request
     default: 'Updating package-lock.json'
@@ -96,6 +99,7 @@ runs:
           echo -e "\n\e[32mBuild Complete."
         env:
           APPROVAL_TOKEN: ${{ inputs.APPROVAL_TOKEN }}
+          AUTO_MERGE_METHOD: ${{ inputs.AUTO_MERGE_METHOD }}
           AUTO_MERGE_TOKEN: ${{ inputs.AUTO_MERGE_TOKEN }}
           BRANCH_NAME: ${{ inputs.BRANCH_NAME }}
           DEFAULT_BRANCH: ${{ inputs.DEFAULT_BRANCH }}

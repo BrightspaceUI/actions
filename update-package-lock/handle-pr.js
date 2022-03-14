@@ -9,6 +9,7 @@ const autoMergeToken = process.env['AUTO_MERGE_TOKEN'];
 const branchName = process.env['BRANCH_NAME'];
 const defaultBranch = process.env['DEFAULT_BRANCH'];
 const prTitle = process.env['PR_TITLE'];
+const autoMergeMethod = process.env['AUTO_MERGE_METHOD'];
 
 const graphqlForPR = graphql.defaults({
 	headers: {
@@ -42,6 +43,11 @@ async function handlePR() {
 
 	const repositoryId = existingPrResponse.repository.id;
 	const existingPr = existingPrResponse.repository.ref.associatedPullRequests.edges[0];
+
+	if (!['merge', 'squash', 'rebase'].includes(autoMergeMethod)) {
+		console.log(chalk.red('Must use supported merge method, can be `merge`, `squash` or `rebase`'));
+		process.exit(1);
+	}
 
 	if (existingPr) {
 		console.log(`PR for branch ${branchName} already exists: #${existingPr.node.number}`);
@@ -84,12 +90,16 @@ async function handlePR() {
 		try {
 			await graphqlForAutoMerge(
 				`mutation enableAutoMerge($pullRequestId: ID!) {
-					enablePullRequestAutoMerge(input: { pullRequestId: $pullRequestId }) {
+					enablePullRequestAutoMerge(input: {
+						pullRequestId: $pullRequestId,
+						mergeMethod: $mergeMethod
+					}) {
 						clientMutationId
 					}
 				}`,
 				{
-					pullRequestId: newPrId
+					pullRequestId: newPrId,
+					mergeMethod: autoMergeMethod
 				}
 			);
 			console.log('PR set to auto-merge');

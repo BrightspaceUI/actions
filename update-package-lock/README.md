@@ -35,6 +35,7 @@ jobs:
 Options:
 * `APPROVAL_TOKEN`: Token to auto-approve the PR after opening. If no token is passed, the auto-approval will be skipped. See [setup details](#setting-up-auto-approval) below.
 * `AUTO_MERGE_TOKEN`: Token to enable auto-merge on the PR. If no token is passed, the auto-merge will be skipped. See [setup details](#setting-up-auto-merge) below.
+* `AUTO_MERGE_METHOD`: Merge method to use when enabling auto-merge. Can be one of `merge`, `squash` or `rebase`. Note that the repository must allow this type of merge. Default is `merge`.
 * `BRANCH_NAME` (default: `ghworkflow/package_lock_auto_update`): Name of the branch to add the changes to and open the pull request from.
 * `NODE_AUTH_TOKEN`: Token for reading packages from already setup private registry
 * `CODEARTIFACT_AUTH_TOKEN`: Token for reading @d2l packages from CodeArtifact. If no token is passed, any attempts at installing private packages from CodeArtifact will fail with a 401 error (deprecated, use `NODE_AUTH_TOKEN` instead).
