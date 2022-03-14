@@ -43,8 +43,9 @@ async function handlePR() {
 
 	const repositoryId = existingPrResponse.repository.id;
 	const existingPr = existingPrResponse.repository.ref.associatedPullRequests.edges[0];
-
-	if (!['merge', 'squash', 'rebase'].includes(autoMergeMethod)) {
+	const mergeMethod = autoMergeMethod.toUpperCase()
+	
+	if (!['MERGE', 'SQUASH', 'REBASE'].includes(mergeMethod)) {
 		console.log(chalk.red('Must use supported merge method, can be `merge`, `squash` or `rebase`'));
 		process.exit(1);
 	}
@@ -99,7 +100,7 @@ async function handlePR() {
 				}`,
 				{
 					pullRequestId: newPrId,
-					mergeMethod: autoMergeMethod
+					mergeMethod: mergeMethod
 				}
 			);
 			console.log('PR set to auto-merge');
