@@ -2,8 +2,11 @@ name: Semantic Release
 description: Deploy using semantic-release
 inputs:
   DEFAULT_BRANCH:
-    description: name of the default release branch
+    description: Name of the default release branch
     default: main
+  DEFAULT_BRANCH_PRERELEASE:
+    description: Whether or not to create a prerelease on the default branch
+    default: false
   DRY_RUN:
     description: Runs semantic-release with the "--dry-run" flag to simulate a release but not actually do one
     default: false

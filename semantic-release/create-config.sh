@@ -4,11 +4,16 @@ if [ "$IS_TRACKED" != "" ]; then
 else
   ASSETS="[\"package.json\"]"
 fi
+if [ $DEFAULT_BRANCH_PRERELEASE == "true" ] || [ $DEFAULT_BRANCH_PRERELEASE == "TRUE" ] || [ $DEFAULT_BRANCH_PRERELEASE == true ]; then
+  PRERELEASE=true
+else
+  PRERELEASE=false
+fi
 cat >$FILE_PATH <<EOL
 {
   "branches": [
     "+([0-9])?(.{+([0-9]),x}).x",
-    "$DEFAULT_BRANCH",
+    {"name": "$DEFAULT_BRANCH", "prerelease": PRERELEASE},
     "next",
     "next-major",
     {"name": "beta", "prerelease": true},
