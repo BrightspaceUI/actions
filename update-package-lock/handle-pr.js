@@ -89,7 +89,7 @@ async function handlePR() {
 
 		try {
 			await graphqlForAutoMerge(
-				`mutation enableAutoMerge($pullRequestId: ID!) {
+				`mutation ($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!) {
 					enablePullRequestAutoMerge(input: {
 						pullRequestId: $pullRequestId,
 						mergeMethod: $mergeMethod
