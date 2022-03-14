@@ -100,7 +100,7 @@ async function handlePR() {
 				}`,
 				{
 					pullRequestId: newPrId,
-					mergeMethod: autoMergeMethod
+					mergeMethod: mergeMethod
 				}
 			);
 			console.log('PR set to auto-merge');
