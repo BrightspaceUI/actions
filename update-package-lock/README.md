@@ -35,7 +35,7 @@ jobs:
 Options:
 * `APPROVAL_TOKEN`: Token to auto-approve the PR after opening. If no token is passed, the auto-approval will be skipped. See [setup details](#setting-up-auto-approval) below.
 * `AUTO_MERGE_TOKEN`: Token to enable auto-merge on the PR. If no token is passed, the auto-merge will be skipped. See [setup details](#setting-up-auto-merge) below.
-* `AUTO_MERGE_METHOD`: Merge method to use when enabling auto-merge. Can be one of `merge`, `squash` or `rebase`. Note that the repository must allow this type of merge. Default is `merge`.
+* `AUTO_MERGE_METHOD`: (default: `merge`): Merge method to use when enabling auto-merge. Can be one of `merge`, `squash` or `rebase`.
 * `BRANCH_NAME` (default: `ghworkflow/package_lock_auto_update`): Name of the branch to add the changes to and open the pull request from.
 * `NODE_AUTH_TOKEN`: Token for reading packages from already setup private registry
 * `CODEARTIFACT_AUTH_TOKEN`: Token for reading @d2l packages from CodeArtifact. If no token is passed, any attempts at installing private packages from CodeArtifact will fail with a 401 error (deprecated, use `NODE_AUTH_TOKEN` instead).
@@ -56,7 +56,7 @@ Automatically approving the PR is an optional enhancement this action can handle
 
 Note: This functionality may not be helpful to you if you require CODEOWNERS approval to merge.  You could consider removing CODEOWNERS for the `package-lock.json` file specifically.
 
-## Setting Up Auto Merge
+## Setting Up Auto-Merge
 
 Setting the PR to auto-merge is another optional enhancement of this action. Requirements for auto merge to work are:
 * Auto merge needs to be enabled [at the repository level](https://docs.github.com/en/github/administering-a-repository/configuring-pull-request-merges/managing-auto-merge-for-pull-requests-in-your-repository)
@@ -64,3 +64,7 @@ Setting the PR to auto-merge is another optional enhancement of this action. Req
 * While not required, it's highly recommended to [enable "Automatically delete head branches"](https://docs.github.com/en/github/administering-a-repository/configuring-pull-request-merges/managing-the-automatic-deletion-of-branches) before using auto-merge, to help cleanup branches after they are automatically merged.
 
 Like with [setting the `GITHUB_TOKEN` above](#setting-github-token), setting `AUTO_MERGE_TOKEN` to `secrets.GITHUB_TOKEN` will work, but will not trigger any "push" workflows you've setup to run after a merge to your default branch.  If you _do_ need those triggered, you'll want to use `D2L_GITHUB_TOKEN`.
+
+### Auto-Merge Method
+
+When using `AUTO_MERGE_METHOD` you must make sure the repository allows the method of merge selected, otherwise enabling auto merge will fail. By default all new repositories allow `merge` as the merge method hence the default for `AUTO_MERGE_METHOD`. For the merge method `squash` the value of `COMMIT_MESSAGE` will always be used as the [squash merge message](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/about-pull-request-merges#merge-message-for-a-squash-merge) as we will fall into the `one commit` section of the selection process at auto-merge enablement time.
