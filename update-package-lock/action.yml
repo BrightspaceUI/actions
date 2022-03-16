@@ -11,8 +11,6 @@ inputs:
   BRANCH_NAME:
     description: Name of the branch for the PR
     default: ghworkflow/package_lock_auto_update
-  CODEARTIFACT_AUTH_TOKEN:
-    description: Token for reading @d2l packages from CodeArtifact
   COMMIT_MESSAGE:
     description: Commit message for the update
     default: 'Auto Update Dependencies'
@@ -30,16 +28,6 @@ inputs:
 runs:
   using: composite
   steps:
-      - name: Determine Token
-        id: token
-        shell: bash
-        run: |
-          TOKEN="$NODE_AUTH_TOKEN"
-          TOKEN=${TOKEN:-"$CODEARTIFACT_AUTH_TOKEN"}
-          echo "::set-output name=NODE_AUTH_TOKEN::$TOKEN"
-        env:
-          CODEARTIFACT_AUTH_TOKEN: ${{inputs.CODEARTIFACT_AUTH_TOKEN}}
-          NODE_AUTH_TOKEN: ${{inputs.NODE_AUTH_TOKEN}}
       - name: Install Dependencies
         run: |
           echo -e "\e[34mInstalling Dependencies"
@@ -58,7 +46,7 @@ runs:
           rm package-lock.json
           npm install
         env:
-          NODE_AUTH_TOKEN: ${{ steps.token.outputs.NODE_AUTH_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ inputs.NODE_AUTH_TOKEN }}
         shell: bash
       - name: Check For Changes
         id: check-for-changes
@@ -85,7 +73,7 @@ runs:
           git push --force https://${GITHUB_TOKEN}@github.com/${{ github.repository }} ${{ inputs.BRANCH_NAME }}
         env:
           GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ steps.token.outputs.NODE_AUTH_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ inputs.NODE_AUTH_TOKEN }}
         shell: bash
       - name: Create PR (if necessary)
         run: |
