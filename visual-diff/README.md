@@ -54,8 +54,6 @@ Notes:
 
 In order to have the `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_SESSION_TOKEN` available to you, you will need to add that info to your repo setup in [`repo-settings`](https://github.com/Brightspace/repo-settings).  [See the documentation](https://github.com/Brightspace/repo-settings/blob/main/docs/visual-diff.md).
 
-Once you've merged the above, you'll see the new secrets in your repo within a few minutes!  These tokens will be rotated automatically for you.
-
 ## Removing CODEOWNER Restrictions for Golden Update PRs
 
 If you have a `CODEOWNERS` file for your repo, you may not want the visual-diff pull requests to have the same restrictions as other PRs.  Visual-diff PRs are usually opened against a branch that will be reviewed later by a code owner anyways. To remove the code owner restriction on visual-diff PRs, you can add the following to your `CODEOWNERS` file:
