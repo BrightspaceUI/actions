@@ -52,21 +52,9 @@ Notes:
 
 ## Setting Up AWS Access Creds
 
-In order to have the `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_SESSION_TOKEN` available to you, you will need to add that info to your repo setup in [`repo-settings`](https://github.com/Brightspace/repo-settings).  The role you want to assume already exists, so you only need to worry about "signing up" to receive rotating tokens for it.
-
-Specifically, you will need to add the following to `<your_repo>.yaml` in [https://github.com/Brightspace/repo-settings/tree/main/repositories/github](https://github.com/Brightspace/repo-settings/tree/main/repositories/github):
-```
-aws_access:
-  repo:
-    assumable_role_arns:
-      # Dev-UiPlatform
-      - arn:aws:iam::037018655140:role/visual-diff-githubactions-access
-```
+In order to have the `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_SESSION_TOKEN` available to you, you will need to add that info to your repo setup in [`repo-settings`](https://github.com/Brightspace/repo-settings).  [See the documentation](https://github.com/Brightspace/repo-settings/blob/main/docs/visual-diff.md).
 
 Once you've merged the above, you'll see the new secrets in your repo within a few minutes!  These tokens will be rotated automatically for you.
-
-Notes:
-* This uses [`iam-build-tokens`](https://github.com/Brightspace/iam-build-tokens) hub roles behind the scenes, so you can register multiple roles to assume if needed (for example, if you also need permissions for deployment).
 
 ## Removing CODEOWNER Restrictions for Golden Update PRs
 
