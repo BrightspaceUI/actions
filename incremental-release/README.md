@@ -1,6 +1,6 @@
 # Incremental Release Action
 
-This GitHub action looks for keywords in the latest commit to automatically increment the package version and create a tag.
+This GitHub action looks for keywords in the latest commit to automatically increment the package version, create a GitHub release/tag and optionally publish to NPM.
 
 ## Using the Action
 
@@ -36,6 +36,8 @@ Options:
 * `DEFAULT_INCREMENT` (default: `skip`): If no release keyword is found in the latest commit message, this value will be used to trigger a release. Can be one of: `skip`, `patch`, `minor`, `major`.
 * `DRY_RUN` (default: `false`): Simulates a release but does not actually do one
 * `GITHUB_TOKEN`: Token to use to update version in 'package.json' and create the tag -- see section below on branch protection for more details
+* `NPM` (default: `false`): Whether or not to release as an NPM package (see "NPM Package Deployment" below for more info)
+* `NPM_TOKEN` (optional if `NPM` is `false` or publishing to CodeArtifact): Token to publish to NPM (see "NPM Package Deployment" below for more info)
 
 Outputs:
 * `VERSION`: will contain the new version number if a release occurred, empty otherwise
@@ -48,6 +50,47 @@ Notes:
 The release step will fail to write to `package.json` if you have branch protection rules set up in your repository. To get around this, we use a special Admin `D2L_GITHUB_TOKEN`.
 
 [Learn how to set up the D2L_GITHUB_TOKEN...](../docs/branch-protection.md)
+
+## NPM Package Deployment
+
+If you'd like the action to deploy your package to NPM, set the `NPM` option to `true`.
+
+### CodeArtifact
+
+To publish to CodeArtifact, ensure that prior to running the `incremental-release` step that the [add-registry](https://github.com/Brightspace/codeartifact-actions/tree/main/npm) and the [get-authorization-token](https://github.com/Brightspace/codeartifact-actions/tree/main/get-authorization-token) steps have been run.
+
+### NPM
+
+Setup Node with the `registry-url` option:
+
+```yml
+- name: Setup Node
+  uses: Brightspace/third-party-actions@actions/setup-node
+    with:
+     registry-url: 'https://registry.npmjs.org'
+```
+
+Then pass through the `NPM_TOKEN` secret.
+
+```yml
+- name: Incremental Release
+  uses: BrightspaceUI/actions/incremental-release@main
+    with:
+      NPM: true
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+```
+
+`NPM_TOKEN` is available as a shared organization secret in the `Brightspace`, `BrightspaceUI`, `BrightspaceUILabs` and `BrightspaceHypermediaComponents` organizations.
+
+If your package is being published under the `@brightspace-ui` or `@brightspace-ui-labs` NPM organizations, ensure that it has the proper configuration in its `package.json`:
+
+```json
+"publishConfig": {
+  "access": "public"
+}
+```
+
+Also ensure that `"private": true` is not present.
 
 ## Triggering a Release
 
