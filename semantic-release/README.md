@@ -36,8 +36,6 @@ jobs:
         uses: BrightspaceUI/actions/semantic-release@main
         with:
           GITHUB_TOKEN: ${{ secrets.D2L_GITHUB_TOKEN }}
-          NPM: true
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
 Options:
@@ -63,7 +61,36 @@ The release step will fail to write to `package.json` if you have branch protect
 
 ## NPM Package Deployment
 
-If you'd like the action to deploy your package to NPM, set the `NPM` option to `true` and pass through the `NPM_TOKEN` secret. `NPM_TOKEN` is available automatically as a shared organization secret in the `BrightspaceUI`, `BrightspaceUILabs` and `BrightspaceHypermediaComponents` organizations.
+If you'd like the action to deploy your package to NPM, set the `NPM` option to `true`.
+
+### CodeArtifact
+
+To publish to CodeArtifact, ensure that prior to running the `semantic-release` step that the [add-registry](https://github.com/Brightspace/codeartifact-actions/tree/main/npm) and the [get-authorization-token](https://github.com/Brightspace/codeartifact-actions/tree/main/get-authorization-token) steps have been run.
+
+Then, pass through the `CODEARTIFACT_AUTH_TOKEN` as `NPM_TOKEN`:
+
+```yml
+- name: Semantic Release
+  uses: BrightspaceUI/actions/semantic-release@main
+  with:
+    NPM: true
+    NPM_TOKEN: ${{ env.CODEARTIFACT_AUTH_TOKEN }}
+```
+
+### NPM
+
+Simply pass through the `NPM_TOKEN` secret.
+
+
+```yml
+- name: Semantic Release
+  uses: BrightspaceUI/actions/semantic-release@main
+    with:
+      NPM: true
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+```
+
+`NPM_TOKEN` is available as a shared organization secret in the `Brightspace`, `BrightspaceUI`, `BrightspaceUILabs` and `BrightspaceHypermediaComponents` organizations.
 
 If your package is being published under the `@brightspace-ui` or `@brightspace-ui-labs` NPM organizations, ensure that it has the proper configuration in its `package.json`:
 
