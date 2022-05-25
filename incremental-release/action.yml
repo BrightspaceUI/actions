@@ -10,11 +10,6 @@ inputs:
   GITHUB_TOKEN:
     description: Token to use to update version in 'package.json' and create the tag
     required: true
-  NPM:
-    description: Whether or not to release as an NPM package
-    default: false
-  NPM_TOKEN:
-    description: Token to publish to NPM
 outputs:
   VERSION:
     description: Version of the new release
@@ -85,16 +80,4 @@ runs:
         node ${{ github.action_path }}/create-release.js ${{ steps.increment-version.outputs.version }}
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
-      shell: bash
-    - name: Publish to NPM
-        if [ ${{ steps.determine-increment.outputs.increment }} == "skip" || ${{ inputs.NPM }} == false ]; then
-          exit 0;
-        fi
-        if [ ${{ inputs.DRY_RUN }} == true ]; then
-          npm publish --dry-run
-        else
-          npm publish
-        fi
-      env:
-        NODE_AUTH_TOKEN: ${{ inputs.NPM_TOKEN }}
       shell: bash
