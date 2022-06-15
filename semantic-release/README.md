@@ -22,7 +22,6 @@ on:
       - '[0-9]+.[0-9]+.x'
 jobs:
   release:
-    if: "!contains(github.event.head_commit.message, 'skip ci')"
     timeout-minutes: 2
     runs-on: ubuntu-latest
     steps:
@@ -43,8 +42,10 @@ Options:
 * `DEFAULT_BRANCH` (default: `"main"`): name of the default release branch
 * `DRY_RUN` (default: `false`): Runs semantic-release with the `--dry-run` flag to simulate a release but not actually do one
 * `GITHUB_TOKEN`: Token to use to update version in 'package.json' and create GitHub release -- see section below on branch protection for more details
+* `MINOR_RELEASE_WITH_LMS` (default: `false`): Automatically perform a minor release whenever the LMS release changes (requires `RALLY_API_KEY`)
 * `NPM` (default: `false`): Whether or not to release as an NPM package (see "NPM Package Deployment" below for more info)
 * `NPM_TOKEN` (optional if `NPM` is `false`): Token to publish to NPM (see "NPM Package Deployment" below for more info)
+* `RALLY_API_KEY`: Key to access the Rally API, required for `MINOR_RELEASE_WITH_LMS`
 
 Outputs:
 * `VERSION`: will contain the new version number if a release occurred, empty otherwise
@@ -80,7 +81,6 @@ Then, pass through the `CODEARTIFACT_AUTH_TOKEN` as `NPM_TOKEN`:
 ### NPM
 
 Simply pass through the `NPM_TOKEN` secret.
-
 
 ```yml
 - name: Semantic Release
@@ -128,3 +128,13 @@ Maintenance branch names should be of the form: `+([0-9])?(.{+([0-9]),x}).x`.
 Regular expressions are complicated, but this essentially means branch names should look like:
 * `1.15.x` for patch releases on top of the `1.15` release (after version `1.16` exists)
 * `2.x` for feature releases on top of the `2` release (after version `3` exists)
+
+## Auto-releasing when LMS version changes
+
+When the LMS version changes -- for example from `20.22.6` to `20.22.7` -- it can be desireable for your project to ignore semantic versioning rules and automatically do a minor release.
+
+This ensures that if a patch is required for the previous LMS version in the future, there's room in the version scheme to fit it in.
+
+To enable this feature, set the `MINOR_RELEASE_WITH_LMS` input to `true` and pass in `RALLY_API_KEY`, which will be set as an organization secret.
+
+The workflow will then add a `.lmsrelease` file to source control. When the value in that file differs from the current active LMS release, a minor release will automaticaly occur.
