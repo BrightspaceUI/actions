@@ -54,7 +54,7 @@ runs:
         git commit -m "feat: updating tracked LMS release version [skip ci]"
         git push --follow-tags --repo=https://$GITHUB_TOKEN@github.com/${{ github.repository }}
       env:
-        GITHUB_TOKEN: ${{ inputs.D2L_GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
       shell: bash
     - name: Create semantic-release configuration
       run: |
