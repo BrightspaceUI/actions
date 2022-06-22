@@ -16,6 +16,9 @@ inputs:
   GITHUB_TOKEN:
     description: Token to use to open the goldens PR
     required: true
+  RETRIES:
+    description: Number of times to retry a failed test
+    default: 2
   TEST_PATH:
     description: Path passed into the mocha call defining the locations and name structure of the tests
     default: './{,!(node_modules)/**}/*.visual-diff.{js,mjs}'
@@ -49,7 +52,7 @@ runs:
       id: visual-diff-tests
       run: |
         echo -e "\e[34mRunning Visual Diff Tests"
-        npx mocha '${{ inputs.TEST_PATH }}' -t ${{ inputs.TEST_TIMEOUT }} --colors && echo "::set-output name=tests-passed::$(echo true)" || echo "::set-output name=tests-passed::$(echo false)"
+        npx mocha '${{ inputs.TEST_PATH }}' -t ${{ inputs.TEST_TIMEOUT }} --colors --retries ${{ inputs.RETRIES }} && echo "::set-output name=tests-passed::$(echo true)" || echo "::set-output name=tests-passed::$(echo false)"
         if [ -f failed-reports.txt ]; then
           echo -e "Saving failed reports.\n"
           FAILED_REPORTS=$(<failed-reports.txt)
