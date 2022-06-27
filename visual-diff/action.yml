@@ -33,7 +33,7 @@ runs:
         echo -e "\e[34mInstalling Dependencies"
         NPM_PACKAGE=$(cut -d "=" -f 2 <<< $(npm run env | grep "npm_package_name"))
         if [ $NPM_PACKAGE != '@brightspace-ui/visual-diff' ]; then
-          npm install mocha@10 puppeteer@14 @brightspace-ui/visual-diff@9 --no-save
+          npm install mocha@10 puppeteer@15 @brightspace-ui/visual-diff@10 --no-save
         fi
         npm install chalk@5 @octokit/rest@18 --prefix ${{ github.action_path }} --no-save --loglevel error
       env:
