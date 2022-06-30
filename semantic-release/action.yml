@@ -32,19 +32,22 @@ runs:
         echo "Installing semantic-release..."
         npm install semantic-release@17 @semantic-release/git@9 --no-save
       shell: bash
+    - name: Get maintenance version
+      uses: BrightspaceUI/actions/get-maintenance-version@main
+      id: get-maintenance-version
     - name: Get Repo's Last LMS Release
-      if: ${{ inputs.MINOR_RELEASE_WITH_LMS == 'true' }}
+      if: ${{ inputs.MINOR_RELEASE_WITH_LMS == 'true' && steps.get-maintenance-version.IS_MAINTENANCE_VERSION != 'true' }}
       id: repo-lms-version
       run: echo "::set-output name=value::$(cat .lmsrelease)"
       shell: bash
     - name: Get Active LMS Release
-      if: ${{ inputs.MINOR_RELEASE_WITH_LMS == 'true' }}
+      if: ${{ inputs.MINOR_RELEASE_WITH_LMS == 'true' && steps.get-maintenance-version.IS_MAINTENANCE_VERSION != 'true' }}
       id: get-lms-version
       uses: Brightspace/lms-version-actions/get-lms-release@main
       with:
         RALLY_API_KEY: ${{ inputs.RALLY_API_KEY }}
     - name: Update Repo's Last LMS Release
-      if: ${{ inputs.MINOR_RELEASE_WITH_LMS == 'true' && inputs.DRY_RUN == 'false' && steps.repo-lms-version.outputs.VALUE != steps.get-lms-version.outputs.LMS_VERSION }}
+      if: ${{ inputs.MINOR_RELEASE_WITH_LMS == 'true' && steps.get-maintenance-version.IS_MAINTENANCE_VERSION != 'true' && inputs.DRY_RUN == 'false' && steps.repo-lms-version.outputs.VALUE != steps.get-lms-version.outputs.LMS_VERSION }}
       run: |
         echo "Updating last LMS release..."
         echo "${{ steps.get-lms-version.outputs.LMS_VERSION }}" > .lmsrelease
