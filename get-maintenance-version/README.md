@@ -13,7 +13,7 @@ Include this action at any point before its data is required, and retrieve the d
 - name: Some other action
   run: |
     echo "Maintenance version: ${{ steps.get-maintenance-version.outputs.MAINTENANCE_VERSION }}"
-    [ ${{ inputs.AUTO_MAINTENANCE_BRANCH }} == true ] && echo "Is a maintenance branch"
+    [ ${{ steps.get-maintenance-version.outputs.IS_MAINTENANCE_BRANCH }} == true ] && echo "Is a maintenance branch"
 - name: Only runs on non-maintenance branches
   if: ${{ steps.get-maintenance-version.outputs.IS_MAINTENANCE_BRANCH != 'true' }}
   run: echo "Not a maintenance branch"
