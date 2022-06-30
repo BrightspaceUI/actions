@@ -1,0 +1,18 @@
+name: Get Maintenance Version
+description: Detect the maintenance version from the current branch name, if any
+outputs:
+  MAINTENANCE_VERSION:
+    description: Maintenance version of the current branch
+    value: ${{ steps.main.outputs.MAINTENANCE_VERSION }}
+  IS_MAINTENANCE_BRANCH:
+    description: Whether the current branch is a maintenance branch
+    value: ${{ steps.main.outputs.MAINTENANCE_VERSION != '' }}
+runs:
+  using: composite
+  steps:
+    - id: main
+      run: |
+        MAINTENANCE_VERSION=$(echo "${GITHUB_REF##*/}" | grep -Eo "^[0-9]+\.([0-9]+\.)?x$" || true)
+        echo "Maintenance version determined from branch name: $MAINTENANCE_VERSION"
+        echo "::set-output name=MAINTENANCE_VERSION::$MAINTENANCE_VERSION"
+      shell: bash
