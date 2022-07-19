@@ -10,6 +10,7 @@ const branchName = process.env['BRANCH_NAME'];
 const defaultBranch = process.env['DEFAULT_BRANCH'];
 const prTitle = process.env['PR_TITLE'];
 const autoMergeMethod = process.env['AUTO_MERGE_METHOD'];
+const commitMessage  = process.env['COMMIT_MESSAGE'];
 
 const graphqlForPR = graphql.defaults({
 	headers: {
@@ -90,17 +91,20 @@ async function handlePR() {
 
 		try {
 			await graphqlForAutoMerge(
-				`mutation enableAutoMerge($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!) {
+				`mutation enableAutoMerge($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!, $commitHeadline: String!) {
 					enablePullRequestAutoMerge(input: {
 						pullRequestId: $pullRequestId,
-						mergeMethod: $mergeMethod
+						mergeMethod: $mergeMethod,
+						commitHeadline: $commitHeadline,
+						commitBody: ''
 					}) {
 						clientMutationId
 					}
 				}`,
 				{
 					pullRequestId: newPrId,
-					mergeMethod: mergeMethod
+					mergeMethod: mergeMethod,
+					commitHeadline: commitMessage
 				}
 			);
 			console.log('PR set to auto-merge');
