@@ -16,7 +16,7 @@ We plan to automate the configuration and rotation of this secret in the future.
 
 This is also a temporary step, but make sure that the `brightspace-bot` GitHub account has Admin access to your repo.
 
-Also double-check that your branch protection rules do not include "Do not allow bypassing the above settings", meaning admins are also forced to open pull requests and wait for status checks. This will cause the `semantic-release` update to fail.
+Also double-check that your branch protection rules do not include "Do not allow bypassing the above settings", meaning admins are also forced to open pull requests and wait for status checks. This will cause the release job to fail.
 
 3) Set `persists-credentials` to `false` in the checkout step:
 
