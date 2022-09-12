@@ -10,6 +10,13 @@ inputs:
   GITHUB_TOKEN:
     description: Token to use to update version in 'package.json' and create the tag
     required: true
+  NPM:
+    description: Whether or not to release as an NPM package
+    default: false
+    required: false
+  NPM_TOKEN:
+    description: Token to publish to NPM
+    required: false
 outputs:
   VERSION:
     description: Version of the new release
@@ -19,11 +26,12 @@ runs:
   steps:
     - name: Install Dependencies
       run: |
-        if [ ${{ !contains(github.event.head_commit.message, 'skip ci') }} == true ]; then
-          echo "Installing dependencies..."
-          npm install @octokit/rest@18 --prefix ${{ github.action_path }} --no-save --loglevel error
-        fi
+        echo "Installing dependencies..."
+        npm install @octokit/rest@18 --prefix ${{ github.action_path }} --no-save --loglevel error
       shell: bash
+    - name: Get maintenance version
+      uses: BrightspaceUI/actions/get-maintenance-version@main
+      id: get-maintenance-version
     - name: Determine Increment
       id: determine-increment
       run: |
@@ -80,4 +88,15 @@ runs:
         node ${{ github.action_path }}/create-release.js ${{ steps.increment-version.outputs.version }}
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+      shell: bash
+    - name: Publish to NPM
+      if: ${{ inputs.NPM != 'false' && steps.determine-increment.outputs.increment != 'skip' }}
+      run: |
+        OPTS=""
+        [ ${{ inputs.DRY_RUN }} == true ] && OPTS=" --dry-run"
+        [ ${{ steps.get-maintenance-version.outputs.IS_MAINTENANCE_BRANCH }} == true ] && OPTS="${OPTS} --tag release-${{ steps.get-maintenance-version.outputs.MAINTENANCE_VERSION }}"
+        echo "Running npm publish with options: ${OPTS}"
+        npm publish ${OPTS}
+      env:
+        NODE_AUTH_TOKEN: ${{ inputs.NPM_TOKEN }}
       shell: bash
