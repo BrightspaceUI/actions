@@ -1,6 +1,6 @@
 # Get Maintenance Version Action
 
-This GitHub action determines whether the current branch is for a maintenance version (e.g. `release/2022.2.x`, `1.7.x`, or `1.x`), and if so, reports the detected maintenance version (e.g. `2022.2.x`, `1.7.x`, or `1.x`).
+This GitHub action determines whether the current branch is for a maintenance version (e.g. `release/2022.2.x`, `1.7.x`, `1.x`, `release/1.7`, etc.), and if so, reports the detected maintenance version (e.g. `2022.2.x`, `1.7.x`, `1.x`, `1.7`).
 
 ## Using the Action
 

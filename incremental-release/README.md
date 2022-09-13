@@ -1,6 +1,6 @@
 # Incremental Release Action
 
-This GitHub action looks for keywords in the latest commit to automatically increment the package version and create a tag.
+This GitHub action looks for keywords in the latest commit to automatically increment the package version, create a GitHub release/tag, and optionally publish to NPM.
 
 ## Using the Action
 
@@ -36,6 +36,8 @@ Options:
 * `DEFAULT_INCREMENT` (default: `skip`): If no release keyword is found in the latest commit message, this value will be used to trigger a release. Can be one of: `skip`, `patch`, `minor`, `major`.
 * `DRY_RUN` (default: `false`): Simulates a release but does not actually do one
 * `GITHUB_TOKEN`: Token to use to update version in 'package.json' and create the tag -- see section below on branch protection for more details
+* `NPM` (default: `false`): Whether or not to release as an NPM package (see "NPM Package Deployment" below for more info)
+* `NPM_TOKEN` (optional if `NPM` is `false` or publishing to CodeArtifact): Token to publish to NPM (see "NPM Package Deployment" below for more info)
 
 Outputs:
 * `VERSION`: will contain the new version number if a release occurred, empty otherwise
@@ -48,6 +50,61 @@ Notes:
 The release step will fail to write to `package.json` if you have branch protection rules set up in your repository. To get around this, we use a special Admin `D2L_GITHUB_TOKEN`.
 
 [Learn how to set up the D2L_GITHUB_TOKEN...](../docs/branch-protection.md)
+
+## NPM Package Deployment
+
+If you'd like the action to deploy your package to NPM, set the `NPM` option to `true`.
+
+NPM deployments for maintenance branches (ex: `release/2022.2.x`, `1.7.x`, or `1.x`) will be annotated with a tag corresponding to the branch version (ex: `release-2022.2.x`, `release-1.7.x`, or `release-1.x`). All other deployments will use NPM's default tag of `latest`.
+
+### CodeArtifact
+
+To publish to CodeArtifact, ensure that prior to running the `incremental-release` step that the [add-registry](https://github.com/Brightspace/codeartifact-actions/tree/main/npm) and the [get-authorization-token](https://github.com/Brightspace/codeartifact-actions/tree/main/get-authorization-token) steps have been run:
+
+```yml
+- name: Get CodeArtifact authorization token
+  uses: Brightspace/codeartifact-actions/get-authorization-token@main
+  env:
+    AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
+    AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+    AWS_SESSION_TOKEN: ${{secrets.AWS_SESSION_TOKEN}}
+- name: Add CodeArtifact npm registry
+  uses: Brightspace/codeartifact-actions/npm/add-registry@main
+  with:
+    auth-token: ${{env.CODEARTIFACT_AUTH_TOKEN}}
+```
+
+### NPM
+
+Setup Node:
+
+```yml
+- name: Setup Node
+  uses: Brightspace/third-party-actions@actions/setup-node
+```
+
+Then pass through the `NPM_TOKEN` secret.
+
+```yml
+- name: Incremental Release
+  uses: BrightspaceUI/actions/incremental-release@main
+  with:
+    GITHUB_TOKEN: ${{ secrets.D2L_GITHUB_TOKEN }}
+    NPM: true
+    NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+```
+
+`NPM_TOKEN` is available as a shared organization secret in the `Brightspace`, `BrightspaceUI`, `BrightspaceUILabs` and `BrightspaceHypermediaComponents` organizations.
+
+If your package is being published under the `@brightspace-ui` or `@brightspace-ui-labs` NPM organizations, ensure that it has the proper configuration in its `package.json`:
+
+```json
+"publishConfig": {
+  "access": "public"
+}
+```
+
+Also ensure that `"private": true` is not present.
 
 ## Triggering a Release
 
