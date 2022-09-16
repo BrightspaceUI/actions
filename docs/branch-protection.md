@@ -21,7 +21,7 @@ To set up this bypass:
 3. Set `persist-credentials` to `false` in the checkout step:
 
     ```yml
-    name: Checkout
+    - name: Checkout
       uses: Brightspace/third-party-actions@actions/checkout
       with:
         persist-credentials: false
