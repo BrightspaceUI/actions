@@ -14,5 +14,5 @@ runs:
       run: |
         MAINTENANCE_VERSION=$(echo "${GITHUB_REF##*/}" | grep -Eo "^[0-9]+(\.[0-9]+)?(\.x)?$" || true)
         echo "Maintenance version determined from branch name: $MAINTENANCE_VERSION"
-        echo "::set-output name=MAINTENANCE_VERSION::$MAINTENANCE_VERSION"
+        echo "MAINTENANCE_VERSION=$MAINTENANCE_VERSION" >> $GITHUB_OUTPUT
       shell: bash
