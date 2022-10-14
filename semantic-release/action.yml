@@ -74,7 +74,7 @@ runs:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
         NPM_TOKEN: ${{ inputs.NPM_TOKEN }}
       run: |
-        echo "version::=" >> $GITHUB_OUTPUT
+        echo "version=" >> $GITHUB_OUTPUT
         if [ ${{ inputs.DRY_RUN }} == true ]; then
           echo "Running semantic-release (dry run)..."
           npx semantic-release --dry-run
