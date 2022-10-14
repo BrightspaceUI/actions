@@ -52,11 +52,11 @@ runs:
       id: visual-diff-tests
       run: |
         echo -e "\e[34mRunning Visual Diff Tests"
-        npx mocha '${{ inputs.TEST_PATH }}' -t ${{ inputs.TEST_TIMEOUT }} --colors --retries ${{ inputs.RETRIES }} && echo "::set-output name=tests-passed::$(echo true)" || echo "::set-output name=tests-passed::$(echo false)"
+        npx mocha '${{ inputs.TEST_PATH }}' -t ${{ inputs.TEST_TIMEOUT }} --colors --retries ${{ inputs.RETRIES }} && echo "tests-passed=true" >> $GITHUB_OUTPUT || echo "tests-passed=false" >> $GITHUB_OUTPUT
         if [ -f failed-reports.txt ]; then
           echo -e "Saving failed reports.\n"
           FAILED_REPORTS=$(<failed-reports.txt)
-          echo "::set-output name=failed-reports::$(echo "$FAILED_REPORTS")"
+          echo "failed-reports=$FAILED_REPORTS" >> $GITHUB_OUTPUT
           rm failed-reports.txt
         fi
       env:
@@ -77,8 +77,8 @@ runs:
           VISUAL_DIFF_BRANCH=ghworkflow/visual-diff-${GITHUB_REF#refs/heads/}
           ORIGINAL_SHA=$GITHUB_SHA
         fi
-        echo "::set-output name=source-branch::$(echo "$SOURCE_BRANCH")"
-        echo "::set-output name=visual-diff-branch::$(echo "$VISUAL_DIFF_BRANCH")"
+        echo "source-branch=$SOURCE_BRANCH" >> $GITHUB_OUTPUT
+        echo "visual-diff-branch=$VISUAL_DIFF_BRANCH" >> $GITHUB_OUTPUT
       
         if [ ${{ steps.visual-diff-tests.outputs.tests-passed }} == true ]; then
           echo -e "\e[32mVisual diff tests have passed - no new goldens needed.\n"
@@ -96,16 +96,16 @@ runs:
           exit 1;
         fi
         
-        echo "::set-output name=changes-empty::$(echo false)"
-        echo "::set-output name=goldens-conflict::$(echo false)"
+        echo "changes-empty=false" >> $GITHUB_OUTPUT
+        echo "goldens-conflict=false" >> $GITHUB_OUTPUT
         if [ $(git stash list | wc -l) == 0 ]; then
           echo -e "\e[31mNo changes to apply - please see errors above."
-          echo "::set-output name=changes-empty::$(echo true)"
+          echo "changes-empty=true" >> $GITHUB_OUTPUT
           exit 0;
         fi
         if ! git stash apply; then
           echo -e "\e[31mCould not apply stash - merge conflicts with ${{ github.event.pull_request.base.ref }}."
-          echo "::set-output name=goldens-conflict::$(echo true)"
+          echo "goldens-conflict=true" >> $GITHUB_OUTPUT
           exit 0;
         fi
         

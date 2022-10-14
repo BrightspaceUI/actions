@@ -38,7 +38,7 @@ runs:
     - name: Get Repo's Last LMS Release
       if: ${{ inputs.MINOR_RELEASE_WITH_LMS == 'true' && steps.get-maintenance-version.outputs.IS_MAINTENANCE_BRANCH != 'true' }}
       id: repo-lms-version
-      run: echo "::set-output name=value::$(cat .lmsrelease)"
+      run: echo "value=$(cat .lmsrelease)" >> $GITHUB_OUTPUT
       shell: bash
     - name: Get Active LMS Release
       if: ${{ inputs.MINOR_RELEASE_WITH_LMS == 'true' && steps.get-maintenance-version.outputs.IS_MAINTENANCE_BRANCH != 'true' }}
@@ -74,7 +74,7 @@ runs:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
         NPM_TOKEN: ${{ inputs.NPM_TOKEN }}
       run: |
-        echo "::set-output name=version::"
+        echo "version=" >> $GITHUB_OUTPUT
         if [ ${{ inputs.DRY_RUN }} == true ]; then
           echo "Running semantic-release (dry run)..."
           npx semantic-release --dry-run
@@ -84,7 +84,7 @@ runs:
           npx semantic-release
           NEW_VERSION=$(node -p -e "require('./package.json').version")
           if [ "$OLD_VERSION" != "$NEW_VERSION" ]; then
-            echo "::set-output name=version::$(echo $NEW_VERSION)"
+            echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           fi
         fi
       shell: bash

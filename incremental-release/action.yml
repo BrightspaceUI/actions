@@ -54,7 +54,7 @@ runs:
         else
           echo "Did not find commit message flag, using DEFAULT_INCREMENT (${{ inputs.DEFAULT_INCREMENT }})"
         fi
-        echo "::set-output name=increment::$(echo "$TYPE")"
+        echo "increment=$TYPE" >> $GITHUB_OUTPUT
       shell: bash
     - name: Increment Version
       id: increment-version
@@ -72,7 +72,7 @@ runs:
 
         if [ ${{ inputs.DRY_RUN }} == false ]; then
           echo "Not a dry run, pushing..."
-          echo "::set-output name=version::$(echo "$NEW_VERSION")"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           git push --follow-tags --repo=https://${{ inputs.GITHUB_TOKEN }}@github.com/${{ github.repository }}
         fi
       shell: bash
