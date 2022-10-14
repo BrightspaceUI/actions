@@ -52,7 +52,7 @@ runs:
         id: check-for-changes
         run: |
           echo -e "\n\e[34mChecking For Changes"
-          git diff --exit-code package-lock.json && echo "changes-exist=$(echo false)" >> $GITHUB_OUTPUT || echo "changes-exist=true" >> $GITHUB_OUTPUT
+          git diff --exit-code package-lock.json && echo "changes-exist=false" >> $GITHUB_OUTPUT || echo "changes-exist=true" >> $GITHUB_OUTPUT
         shell: bash
       - name: Create Commit
         run: |
