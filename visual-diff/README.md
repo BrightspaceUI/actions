@@ -72,7 +72,7 @@ For more info on setting up and writing visual diff tests, you can checkout the 
 
 This action relies on the `@brightspace-ui/visual-diff`, `mocha` and `puppeteer` libraries. When those libraries are updated, it often results in minor changes to the visual diff images.
 
-If you'd like to install the same versions the action is using locally, the specific versions currently used by the action are provided below. If you are using npm >= 7, the mocha and puppeteer peer dependencies will be automatically installed.
+If you'd like to install the same versions the action is using locally, the specific versions currently used by the action are provided below. If you are using npm >= 7, the `mocha` and `puppeteer` peer dependencies will be automatically installed.
 
 ```shell
 npm install @brightspace-ui/visual-diff@14 --no-save
