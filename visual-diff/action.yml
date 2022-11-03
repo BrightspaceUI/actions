@@ -33,7 +33,7 @@ runs:
         echo -e "\e[34mInstalling Dependencies"
         NPM_PACKAGE=$(cut -d "=" -f 2 <<< $(npm run env | grep "npm_package_name"))
         if [ $NPM_PACKAGE != '@brightspace-ui/visual-diff' ]; then
-          npm install mocha@10 puppeteer@18 @brightspace-ui/visual-diff@13 --no-save
+          npm install @brightspace-ui/visual-diff@14 --no-save
         fi
         npm install chalk@5 @octokit/rest@18 --prefix ${{ github.action_path }} --no-save --loglevel error
       env:
@@ -79,13 +79,13 @@ runs:
         fi
         echo "source-branch=$SOURCE_BRANCH" >> $GITHUB_OUTPUT
         echo "visual-diff-branch=$VISUAL_DIFF_BRANCH" >> $GITHUB_OUTPUT
-      
+
         if [ ${{ steps.visual-diff-tests.outputs.tests-passed }} == true ]; then
           echo -e "\e[32mVisual diff tests have passed - no new goldens needed.\n"
           exit 0;
         fi
         echo -e "\e[31mVisual diff tests failed - generating new goldens."
-        
+
         echo -e "\n\e[34mCreating the Visual Diff Branch"
         git stash --include-untracked
         git fetch origin +refs/heads/$SOURCE_BRANCH:refs/heads/$SOURCE_BRANCH -q -u || true
@@ -95,7 +95,7 @@ runs:
           echo -e "\e[31mBranch out of date - more commits have been added to the '$SOURCE_BRANCH' branch since this action started running.  Stopping this test run."
           exit 1;
         fi
-        
+
         echo "changes-empty=false" >> $GITHUB_OUTPUT
         echo "goldens-conflict=false" >> $GITHUB_OUTPUT
         if [ $(git stash list | wc -l) == 0 ]; then
@@ -108,39 +108,39 @@ runs:
           echo "goldens-conflict=true" >> $GITHUB_OUTPUT
           exit 0;
         fi
-        
+
         echo -e "\n\e[34mCommitting new goldens"
         git config user.name github-actions
         git config user.email github-actions@github.com
         git add .
         git commit -m 'Updating Visual Diff Goldens'
-        
+
         echo -e "\n\e[34mPushing the Visual Diff Branch"
-        git push --force origin $VISUAL_DIFF_BRANCH  
+        git push --force origin $VISUAL_DIFF_BRANCH
       env:
         FORCE_COLOR: 3
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
       shell: bash
     - name: Handling the Goldens PR (if necessary)
-      run: |   
+      run: |
         if [ ${{ steps.visual-diff-tests.outputs.tests-passed }} == true ] || [ ${{ steps.committing-goldens.outputs.goldens-conflict }} == true ]; then
           if git ls-remote --exit-code --heads origin $VISUAL_DIFF_BRANCH; then
             echo -e "\e[34mClosing Goldens PR and Deleting Branch"
             git push -d origin $VISUAL_DIFF_BRANCH || true
           fi
         fi
-     
+
         if [ ${{ steps.visual-diff-tests.outputs.tests-passed }} == true ]; then
           echo -e "\e[32mCompleted - Build Passed."
           exit 0;
         fi
-        
+
         if [ ${{ steps.committing-goldens.outputs.changes-empty }} == true ] || [ ${{ steps.committing-goldens.outputs.goldens-conflict }} == true ]; then
           node ${{ github.action_path }}/handle-issues.js
         else
           node ${{ github.action_path }}/handle-pr.js
         fi
- 
+
         echo -e "\e[31mCompleted - Build Failed."
         exit 1;
       env:
