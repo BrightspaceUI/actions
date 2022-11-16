@@ -33,16 +33,41 @@ const loadPackageDependencies = (filePath) => {
    return dependencies;
 };
 
+const flattenDependencies = (dependencies, flattenedList, flattenedKey = '') => {
+	const rootKey = flattenedKey;
+	for (const [key, value] of Object.entries(dependencies)) {
+		if (rootKey === '') {
+			flattenedKey = key;
+		} else {
+			flattenedKey = rootKey + ` > ${key}`;
+		}
+
+		if (value?.version && value?.resolved) {
+			flattenedList.set(flattenedKey, value.version);
+		}
+
+		if (dependencies[key]?.dependencies) {
+			flattenDependencies(dependencies[key].dependencies, flattenedList, flattenedKey);
+		}
+	}
+};
+
 const getDependencyDiff = () => {
 	const beforeDependencies = loadPackageDependencies(`${tempDir}/dependencies-before.json`);
 	const afterDependencies = loadPackageDependencies(`${tempDir}/dependencies-after.json`);
+
+	const beforeFlattenedMap = new Map();
+	const afterFlattenedMap = new Map();
+	flattenDependencies(beforeDependencies, beforeFlattenedMap);
+	flattenDependencies(afterDependencies, afterFlattenedMap);
+
 	let hasDiff = false;
 	let markDownTableDiff = `| Package | Old Version | New Version |
 | --- | --- | --- |`;
 
-	for (const [key, value] of Object.entries(afterDependencies)) {
-		const oldVersion = beforeDependencies[key]?.version;
-		const newVersion = value?.version;
+	for (const [key, value] of afterFlattenedMap.entries()) {
+		const oldVersion = beforeFlattenedMap.get(key);
+		const newVersion = value;
 		if (oldVersion !== newVersion) {
 			hasDiff = true;
 			markDownTableDiff+=`
@@ -96,10 +121,7 @@ async function handlePR() {
 			await graphqlForPR(
 				`mutation updatePR($pullRequestId: ID!,  $body: String!) {
 					updatePullRequest(input: {pullRequestId: $pullRequestId, body: $body}) {
-						pullRequest {
-							id
-							number
-						}
+						clientMutationId
 					}
 				}`,
 				{
@@ -107,7 +129,7 @@ async function handlePR() {
 					body: prBody
 				}
 			);
-			console.log(`PR ${existingPr.node.id} body updated.`);
+			console.log(`PR ${existingPr.node.number} body updated on branch ${branchName}.`);
 		} catch (e) {
 			console.log(chalk.red('Failed to update the existing PR body.'));
 			return Promise.reject(e.message);
