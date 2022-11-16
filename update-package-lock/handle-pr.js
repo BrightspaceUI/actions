@@ -62,7 +62,9 @@ const getDependencyDiff = () => {
 	flattenDependencies(afterDependencies, afterFlattenedMap);
 
 	let hasDiff = false;
-	let markDownTableDiff = `| Package | Old Version | New Version |
+	let markDownTableDiff = `<details><summary>Dependency Changes</summary>
+<p>
+| Package | Old Version | New Version |
 | --- | --- | --- |`;
 
 	for (const [key, value] of afterFlattenedMap.entries()) {
@@ -74,8 +76,15 @@ const getDependencyDiff = () => {
 | ${key} | ${oldVersion} | ${newVersion} |`;
 		}
 	}
+	
+	if (hasDiff) {
+		markDownTableDiff += `
+</p>
+</details>`;
+		return markDownTableDiff;
+	}
 
-	return hasDiff ? markDownTableDiff : '';
+	return '';
 };
 
 async function handlePR() {
