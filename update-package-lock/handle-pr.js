@@ -74,8 +74,7 @@ const getDependencyDiff = () => {
 	}
 	
 	if (hasDiff) {
-		markDownTableDiff += `
-</details>`;
+		markDownTableDiff += `\n</details>`;
 		return markDownTableDiff;
 	}
 
