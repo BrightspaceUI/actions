@@ -42,7 +42,7 @@ const flattenDependencies = (dependencies, flattenedList, flattenedKey = '') => 
 			flattenedKey = rootKey + ` > ${key}`;
 		}
 
-		if (value?.version && value?.resolved) {
+		if (value?.version) {
 			flattenedList.set(flattenedKey, value.version);
 		}
 
