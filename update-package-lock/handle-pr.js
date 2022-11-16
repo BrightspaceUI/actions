@@ -63,7 +63,6 @@ const getDependencyDiff = () => {
 
 	let hasDiff = false;
 	let markDownTableDiff = `<details><summary>Dependency Changes</summary>
-<p>
 | Package | Old Version | New Version |
 | --- | --- | --- |`;
 
@@ -79,7 +78,6 @@ const getDependencyDiff = () => {
 	
 	if (hasDiff) {
 		markDownTableDiff += `
-</p>
 </details>`;
 		return markDownTableDiff;
 	}
