@@ -28,6 +28,12 @@ inputs:
 runs:
   using: composite
   steps:
+      - name: Save Initial Dependencies
+        run: |
+          echo -e "\e[34mSaving Initial Dependencies"
+          npm ci
+          npm ls --json > ${{ runner.temp }}/dependencies-before.json
+        shell: bash
       - name: Install Dependencies
         run: |
           echo -e "\e[34mInstalling Dependencies"
@@ -71,6 +77,9 @@ runs:
           git add package-lock.json
           git commit -m '${{ inputs.COMMIT_MESSAGE }}'
           git push --force https://${GITHUB_TOKEN}@github.com/${{ github.repository }} ${{ inputs.BRANCH_NAME }}
+          
+          echo -e "\e[34mSaving New Dependencies"
+          npm ls --json > ${{ runner.temp }}/dependencies-after.json
         env:
           GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ inputs.NODE_AUTH_TOKEN }}
@@ -94,4 +103,5 @@ runs:
           FORCE_COLOR: 3
           GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
           PR_TITLE: ${{ inputs.PR_TITLE }}
+          TEMP_DIR: ${{ runner.temp }}
         shell: bash

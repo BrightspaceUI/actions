@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import chalk from 'chalk';
+import fs from 'fs';
 import { graphql } from '@octokit/graphql';
 
 const [owner, repo] = process.env['GITHUB_REPOSITORY'].split('/');
@@ -10,12 +11,47 @@ const branchName = process.env['BRANCH_NAME'];
 const defaultBranch = process.env['DEFAULT_BRANCH'];
 const prTitle = process.env['PR_TITLE'];
 const autoMergeMethod = process.env['AUTO_MERGE_METHOD'];
+const tempDir = process.env['TEMP_DIR'];
 
 const graphqlForPR = graphql.defaults({
 	headers: {
 		authorization: `token ${process.env['GITHUB_TOKEN']}`,
 	}
 });
+
+const loadPackageDependencies = (filePath) => {
+	let dependencies;
+
+	try {
+		const fileContents = fs.readFileSync(filePath, 'utf8');
+		const packages = JSON.parse(fileContents);
+		dependencies = packages?.dependencies ? packages.dependencies : {};
+	} catch {
+		return {};
+   }
+
+   return dependencies;
+};
+
+const getDependencyDiff = () => {
+	const beforeDependencies = loadPackageDependencies(`${tempDir}/dependencies-before.json`);
+	const afterDependencies = loadPackageDependencies(`${tempDir}/dependencies-after.json`);
+	let hasDiff = false;
+	let markDownTableDiff = `| Package | Old Version | New Version |
+| --- | --- | --- |`;
+
+	for (const [key, value] of Object.entries(afterDependencies)) {
+		const oldVersion = beforeDependencies[key]?.version;
+		const newVersion = value?.version;
+		if (oldVersion !== newVersion) {
+			hasDiff = true;
+			markDownTableDiff+=`
+| ${key} | ${oldVersion} | ${newVersion} |`;
+		}
+	}
+
+	return hasDiff ? markDownTableDiff : '';
+};
 
 async function handlePR() {
 	const existingPrResponse = await graphqlForPR(
@@ -71,7 +107,8 @@ async function handlePR() {
 				head: branchName,
 				base: defaultBranch,
 				title: prTitle,
-				body: 'Automatic update of the `package-lock.json` file.'
+				body: `Automatic update of the \`package-lock.json\` file.
+${getDependencyDiff()}`
 			}
 		);
 		newPrId = createPrResponse.createPullRequest.pullRequest.id;
