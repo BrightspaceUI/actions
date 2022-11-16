@@ -28,7 +28,7 @@ const loadPackageDependencies = (filePath) => {
 		dependencies = packages?.dependencies ? packages.dependencies : {};
 	} catch {
 		return {};
-   }
+   	}
 
    return dependencies;
 };
