@@ -49,6 +49,7 @@ runs:
       - name: Fresh Dependency Install
         run: |
           echo -e "\n\e[34mRunning Fresh Dependency Install"
+          rm -rf ./node_modules
           rm package-lock.json
           npm install
         env:

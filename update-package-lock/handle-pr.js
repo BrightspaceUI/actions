@@ -39,7 +39,7 @@ const flattenDependencies = (dependencies, flattenedList, flattenedKey = '') => 
 		if (rootKey === '') {
 			flattenedKey = key;
 		} else {
-			flattenedKey = rootKey + ` > ${key}`;
+			flattenedKey = `${rootKey} > ${key}`;
 		}
 
 		if (value?.version) {
@@ -62,17 +62,14 @@ const getDependencyDiff = () => {
 	flattenDependencies(afterDependencies, afterFlattenedMap);
 
 	let hasDiff = false;
-	let markDownTableDiff = `<details><summary>Dependency Changes</summary>
-| Package | Old Version | New Version |
-| --- | --- | --- |`;
+	let markDownTableDiff = `<details><summary>Dependency Changes</summary>\n| Package | Old Version | New Version |\n| --- | --- | --- |`;
 
 	for (const [key, value] of afterFlattenedMap.entries()) {
 		const oldVersion = beforeFlattenedMap.get(key);
 		const newVersion = value;
 		if (oldVersion !== newVersion) {
 			hasDiff = true;
-			markDownTableDiff+=`
-| ${key} | ${oldVersion} | ${newVersion} |`;
+			markDownTableDiff += `\n| ${key} | ${oldVersion} | ${newVersion} |`;
 		}
 	}
 	
