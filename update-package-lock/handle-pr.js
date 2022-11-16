@@ -62,6 +62,7 @@ async function handlePR() {
 					associatedPullRequests(baseRefName: $base, first: 1, states: OPEN) {
 						edges {
 							node {
+								id
 								number
 							}
 						}
@@ -95,14 +96,18 @@ async function handlePR() {
 			await graphqlForPR(
 				`mutation updatePR($pullRequestId: ID!,  $body: String!) {
 					updatePullRequest(input: {pullRequestId: $pullRequestId, body: $body}) {
+						pullRequest {
+							id
+							number
+						}
 					}
 				}`,
 				{
-					pullRequestId: existingPr.node.number,
+					pullRequestId: existingPr.node.id,
 					body: prBody
 				}
 			);
-			console.log(`PR ${existingPr.node.number} body updated.`);
+			console.log(`PR ${existingPr.node.id} body updated.`);
 		} catch (e) {
 			console.log(chalk.red('Failed to update the existing PR body.'));
 			return Promise.reject(e.message);
