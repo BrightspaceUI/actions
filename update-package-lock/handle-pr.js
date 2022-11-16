@@ -11,7 +11,7 @@ const branchName = process.env['BRANCH_NAME'];
 const defaultBranch = process.env['DEFAULT_BRANCH'];
 const prTitle = process.env['PR_TITLE'];
 const autoMergeMethod = process.env['AUTO_MERGE_METHOD'];
-const tempDir = process.env['TEMP_DIR'];
+const tempDir = process.env['RUNNER_TEMP'];
 
 const graphqlForPR = graphql.defaults({
 	headers: {
