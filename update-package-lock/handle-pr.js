@@ -66,7 +66,7 @@ async function handlePR() {
 							}
 						}
 					}
-			  	}
+				}
 			}
 		}`,
 		{
@@ -86,8 +86,27 @@ async function handlePR() {
 		process.exit(1);
 	}
 
+	const prBody = `Automatic update of the \`package-lock.json\` file.
+	${getDependencyDiff()}`;
+
 	if (existingPr) {
-		console.log(`PR for branch ${branchName} already exists: #${existingPr.node.number}`);
+		console.log(`PR for branch ${branchName} already exists: #${existingPr.node.number}.`);
+		try {
+			await graphqlForPR(
+				`mutation updatePR($pullRequestId: ID!,  $body: String!) {
+					updatePullRequest(input: {pullRequestId: $pullRequestId, body: $body}) {
+				}`,
+				{
+					pullRequestId: existingPr.node.number,
+					body: prBody
+				}
+			);
+			console.log(`PR ${existingPr.node.number} body updated.`);
+		} catch (e) {
+			console.log(chalk.red('Failed to update the existing PR body.'));
+			return Promise.reject(e.message);
+		}
+		
 		process.exit(0);
 	}
 
@@ -107,8 +126,7 @@ async function handlePR() {
 				head: branchName,
 				base: defaultBranch,
 				title: prTitle,
-				body: `Automatic update of the \`package-lock.json\` file.
-${getDependencyDiff()}`
+				body: prBody
 			}
 		);
 		newPrId = createPrResponse.createPullRequest.pullRequest.id;
