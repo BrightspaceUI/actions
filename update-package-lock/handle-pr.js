@@ -95,6 +95,7 @@ async function handlePR() {
 			await graphqlForPR(
 				`mutation updatePR($pullRequestId: ID!,  $body: String!) {
 					updatePullRequest(input: {pullRequestId: $pullRequestId, body: $body}) {
+					}
 				}`,
 				{
 					pullRequestId: existingPr.node.number,
