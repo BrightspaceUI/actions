@@ -65,11 +65,16 @@ const getDependencyDiff = () => {
 	let markDownTableDiff = `<details><summary>Dependency Changes</summary>\n| Package | Old Version | New Version |\n| --- | --- | --- |`;
 
 	for (const [key, value] of afterFlattenedMap.entries()) {
-		const oldVersion = beforeFlattenedMap.get(key);
+		let oldVersion = beforeFlattenedMap.get(key);
 		const newVersion = value;
+		let packageName = key;
 		if (oldVersion !== newVersion) {
 			hasDiff = true;
-			markDownTableDiff += `\n| ${key} | ${oldVersion} | ${newVersion} |`;
+			if (!oldVersion) {
+				oldVersion = 'N/A';
+				packageName = `(NEW) ${packageName}`;
+			}
+			markDownTableDiff += `\n| ${packageName} | ${oldVersion} | ${newVersion} |`;
 		}
 	}
 	
