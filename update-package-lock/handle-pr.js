@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import chalk from 'chalk';
+import fs from 'fs';
 import { graphql } from '@octokit/graphql';
 
 const [owner, repo] = process.env['GITHUB_REPOSITORY'].split('/');
@@ -10,12 +11,75 @@ const branchName = process.env['BRANCH_NAME'];
 const defaultBranch = process.env['DEFAULT_BRANCH'];
 const prTitle = process.env['PR_TITLE'];
 const autoMergeMethod = process.env['AUTO_MERGE_METHOD'];
+const tempDir = process.env['RUNNER_TEMP'];
 
 const graphqlForPR = graphql.defaults({
 	headers: {
 		authorization: `token ${process.env['GITHUB_TOKEN']}`,
 	}
 });
+
+const loadPackageDependencies = (filePath) => {
+	let dependencies;
+
+	try {
+		const fileContents = fs.readFileSync(filePath, 'utf8');
+		const packages = JSON.parse(fileContents);
+		dependencies = packages?.dependencies ? packages.dependencies : {};
+	} catch {
+		return {};
+   	}
+
+   return dependencies;
+};
+
+const flattenDependencies = (dependencies, flattenedList, flattenedKey = '') => {
+	const rootKey = flattenedKey;
+	for (const [key, value] of Object.entries(dependencies)) {
+		if (rootKey === '') {
+			flattenedKey = key;
+		} else {
+			flattenedKey = `${rootKey} > ${key}`;
+		}
+
+		if (value?.version) {
+			flattenedList.set(flattenedKey, value.version);
+		}
+
+		if (dependencies[key]?.dependencies) {
+			flattenDependencies(dependencies[key].dependencies, flattenedList, flattenedKey);
+		}
+	}
+};
+
+const getDependencyDiff = () => {
+	const beforeDependencies = loadPackageDependencies(`${tempDir}/dependencies-before.json`);
+	const afterDependencies = loadPackageDependencies(`${tempDir}/dependencies-after.json`);
+
+	const beforeFlattenedMap = new Map();
+	const afterFlattenedMap = new Map();
+	flattenDependencies(beforeDependencies, beforeFlattenedMap);
+	flattenDependencies(afterDependencies, afterFlattenedMap);
+
+	let hasDiff = false;
+	let markDownTableDiff = `<details><summary>Dependency Changes</summary>\n| Package | Old Version | New Version |\n| --- | --- | --- |`;
+
+	for (const [key, value] of afterFlattenedMap.entries()) {
+		const oldVersion = beforeFlattenedMap.get(key);
+		const newVersion = value;
+		if (oldVersion !== newVersion) {
+			hasDiff = true;
+			markDownTableDiff += `\n| ${key} | ${oldVersion} | ${newVersion} |`;
+		}
+	}
+	
+	if (hasDiff) {
+		markDownTableDiff += `\n</details>`;
+		return markDownTableDiff;
+	}
+
+	return '';
+};
 
 async function handlePR() {
 	const existingPrResponse = await graphqlForPR(
@@ -26,11 +90,12 @@ async function handlePR() {
 					associatedPullRequests(baseRefName: $base, first: 1, states: OPEN) {
 						edges {
 							node {
+								id
 								number
 							}
 						}
 					}
-			  	}
+				}
 			}
 		}`,
 		{
@@ -50,8 +115,29 @@ async function handlePR() {
 		process.exit(1);
 	}
 
+	const prBody = `Automatic update of the \`package-lock.json\` file.
+	${getDependencyDiff()}`;
+
 	if (existingPr) {
-		console.log(`PR for branch ${branchName} already exists: #${existingPr.node.number}`);
+		console.log(`PR for branch ${branchName} already exists: #${existingPr.node.number}.`);
+		try {
+			await graphqlForPR(
+				`mutation updatePR($pullRequestId: ID!,  $body: String!) {
+					updatePullRequest(input: {pullRequestId: $pullRequestId, body: $body}) {
+						clientMutationId
+					}
+				}`,
+				{
+					pullRequestId: existingPr.node.id,
+					body: prBody
+				}
+			);
+			console.log(`PR ${existingPr.node.number} body updated on branch ${branchName}.`);
+		} catch (e) {
+			console.log(chalk.red('Failed to update the existing PR body.'));
+			return Promise.reject(e.message);
+		}
+		
 		process.exit(0);
 	}
 
@@ -71,7 +157,7 @@ async function handlePR() {
 				head: branchName,
 				base: defaultBranch,
 				title: prTitle,
-				body: 'Automatic update of the `package-lock.json` file.'
+				body: prBody
 			}
 		);
 		newPrId = createPrResponse.createPullRequest.pullRequest.id;
