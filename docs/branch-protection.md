@@ -14,9 +14,9 @@ To set up this bypass:
 
 2. Configure access to the `brightspace-bot`
 
-    This is also a temporary step, but make sure that the `brightspace-bot` GitHub account has Admin access to your repo.
+    This is also a temporary step, but make sure that the `brightspace-bot` GitHub account has Admin access to your repo by going to Settings -> Collaborators and teams -> Add people.
 
-    Also double-check that your branch protection rules do not include "Do not allow bypassing the above settings", meaning admins are also forced to open pull requests and wait for status checks. This will cause the release job to fail.
+    Also double-check that your branch protection rules (in Branches -> main -> Edit) do not include "Do not allow bypassing the above settings", meaning admins are also forced to open pull requests and wait for status checks. This will cause the release job to fail.
 
 3. Set `persist-credentials` to `false` in the checkout step:
 
