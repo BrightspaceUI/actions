@@ -77,6 +77,15 @@ const getDependencyDiff = () => {
 			markDownTableDiff += `\n| ${packageName} | ${oldVersion} | ${newVersion} |`;
 		}
 	}
+
+	// check for removed dependencies
+	for (const [key, value] of beforeFlattenedMap.entries()) {
+		if (!afterFlattenedMap.has(key)) {
+			hasDiff = true;
+			const packageName = `(REMOVED) ${key}`;
+			markDownTableDiff += `\n| ${packageName} | ${value} | N/A |`;
+		}
+	}
 	
 	if (hasDiff) {
 		markDownTableDiff += `\n</details>`;
