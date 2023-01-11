@@ -45,7 +45,7 @@ Options:
 
 ## Setting GITHUB_TOKEN
 
-The `GITHUB_TOKEN` is used to open the PR with the `package-lock.json` updates. This token does not need admin privileges, so the standard `secrets.GITHUB_TOKEN` _can_ work.  However, that token [does not trigger additional workflows](https://docs.github.com/en/actions/reference/authentication-in-a-workflow#using-the-github_token-in-a-workflow).  If you use GitHub actions for your CI, you'll want to set up a rotating GitHub token with `contents: write` and `pull_requests: write` permissions in [`repo-settings`](https://github.com/Brightspace/repo-settings) to use instead.  You'll also need to make sure to set `token` in the `checkout` step to it, like in the example workflow above.
+The `GITHUB_TOKEN` is used to open the PR with the `package-lock.json` updates. This token does not need admin privileges, so the standard `secrets.GITHUB_TOKEN` _can_ work.  However, that token [does not trigger additional workflows](https://docs.github.com/en/actions/reference/authentication-in-a-workflow#using-the-github_token-in-a-workflow).  If you use GitHub actions for your CI, you'll want to set up a rotating GitHub token with `contents: write` and `pull_requests: write` permissions in [`repo-settings`](https://github.com/Brightspace/repo-settings) to use instead.  You'll also need to set `token` to your custom token in the `checkout` step, like in the example workflow above.
 
 [Learn more about setting up a token with `repo-settings`](https://github.com/Brightspace/repo-settings/blob/main/docs/github-api-tokens.md) and [see an example...](https://github.com/Brightspace/repo-settings/blob/ffc5ff046e6ccda7044e4c5ae7a60f1f290efb7f/repositories/github/BrightspaceUI/core.yaml#L7-L14)
 
