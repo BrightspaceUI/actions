@@ -22,14 +22,14 @@ jobs:
     steps:
       - uses: Brightspace/third-party-actions@actions/checkout
         with:
-          persist-credentials: false
+          token: ${{ secrets.MY_GITHUB_TOKEN }}
       - uses: Brightspace/third-party-actions@actions/setup-node
         with:
           node-version: '14'
       - name: Update package-lock.json
         uses: BrightspaceUI/actions/update-package-lock@main
         with:
-          GITHUB_TOKEN: ${{ secrets.D2L_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
 ```
 
 Options:
@@ -45,13 +45,13 @@ Options:
 
 ## Setting GITHUB_TOKEN
 
-The `GITHUB_TOKEN` is used to open the PR with the `package-lock.json` updates. This token does not need admin privileges, so the standard `secrets.GITHUB_TOKEN` _can_ work.  However, that token [does not trigger additional workflows](https://docs.github.com/en/actions/reference/authentication-in-a-workflow#using-the-github_token-in-a-workflow).  If you use GitHub actions for your CI, you probably want to use `D2L_GITHUB_TOKEN` here instead.  You'll also need to make sure `persist-credentials: false` is set like in the example workflow above.
+The `GITHUB_TOKEN` is used to open the PR with the `package-lock.json` updates. This token does not need admin privileges, so the standard `secrets.GITHUB_TOKEN` _can_ work.  However, that token [does not trigger additional workflows](https://docs.github.com/en/actions/reference/authentication-in-a-workflow#using-the-github_token-in-a-workflow).  If you use GitHub actions for your CI, you'll want to set up a rotating GitHub token with `contents: write` and `pull_requests: write` permissions in [`repo-settings`](https://github.com/Brightspace/repo-settings) to use instead.  You'll also need to make sure to set `token` in the `checkout` step to it, like in the example workflow above.
 
-[Learn more about the D2L_GITHUB_TOKEN...](../docs/branch-protection.md)
+[Learn more about setting up a token with `repo-settings`](https://github.com/Brightspace/repo-settings/blob/main/docs/github-api-tokens.md) and [see an example...](https://github.com/Brightspace/repo-settings/blob/ffc5ff046e6ccda7044e4c5ae7a60f1f290efb7f/repositories/github/BrightspaceUI/core.yaml#L7-L14)
 
 ## Setting Up Auto Approval
 
-Automatically approving the PR is an optional enhancement this action can handle for you by setting an `APPROVAL_TOKEN`. The `APPROVAL_TOKEN` needs to be _different_ than the `GITHUB_TOKEN` because a token cannot approve its own PR. If you used `D2L_GITHUB_TOKEN` to open the PR, you can use `GITHUB_TOKEN` to approve it, and vice versa.
+Automatically approving the PR is an optional enhancement this action can handle for you by setting an `APPROVAL_TOKEN`. The `APPROVAL_TOKEN` needs to be _different_ than the `GITHUB_TOKEN` because a token cannot approve its own PR. If you used a custom token from `repo-settings` to open the PR, you can use `GITHUB_TOKEN` to approve it, and vice versa.
 
 Note: This functionality may not be helpful to you if you require CODEOWNERS approval to merge.  You could consider removing CODEOWNERS for the `package-lock.json` file specifically.
 
@@ -62,7 +62,7 @@ Setting the PR to auto-merge is another optional enhancement of this action. Req
 * Branch protection needs to be on for the default release branch, and enforces "Require pull request reviews before merging" or "Require status checks to pass before merging" or something similar. This is because auto-merge only works for cases where PRs cannot be merged immediately after opening.
 * While not required, it's highly recommended to [enable "Automatically delete head branches"](https://docs.github.com/en/github/administering-a-repository/configuring-pull-request-merges/managing-the-automatic-deletion-of-branches) before using auto-merge, to help cleanup branches after they are automatically merged.
 
-Like with [setting the `GITHUB_TOKEN` above](#setting-github-token), setting `AUTO_MERGE_TOKEN` to `secrets.GITHUB_TOKEN` will work, but will not trigger any "push" workflows you've setup to run after a merge to your default branch.  If you _do_ need those triggered, you'll want to use `D2L_GITHUB_TOKEN`.
+Like with [setting the `GITHUB_TOKEN` above](#setting-github-token), setting `AUTO_MERGE_TOKEN` to `secrets.GITHUB_TOKEN` will work, but will not trigger any "push" workflows you've setup to run after a merge to your default branch.  If you _do_ need those triggered, you'll want to use your custom token.
 
 ### Auto-Merge Method
 
