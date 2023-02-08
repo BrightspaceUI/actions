@@ -73,7 +73,7 @@ runs:
         if [ ${{ inputs.DRY_RUN }} == false ]; then
           echo "Not a dry run, pushing..."
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          git push --follow-tags --repo=https://${{ inputs.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git push --follow-tags --repo=https://x-access-token:${{ inputs.GITHUB_TOKEN }}@github.com/${{ github.repository }}
         fi
       shell: bash
     - name: Create Release
