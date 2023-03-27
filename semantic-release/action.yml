@@ -30,7 +30,7 @@ runs:
     - name: Installing semantic-release
       run: |
         echo "Installing semantic-release..."
-        npm install semantic-release@17 @semantic-release/git@9 --no-save
+        npm install semantic-release@19 @semantic-release/git@10 --no-save
       shell: bash
     - name: Get maintenance version
       uses: BrightspaceUI/actions/get-maintenance-version@main
