@@ -51,6 +51,7 @@ Outputs:
 * `VERSION`: will contain the new version number if a release occurred, empty otherwise
 
 Notes:
+* This action currently requires Node v16+ or v14.17+ (Node v15 is not supported).
 * If you have additional release validation steps (e.g. build step, validation tests), run them after the "Setup Node" step and before the "Semantic Release" step.
 * This example will release only from `main` and maintenance branches (e.g. `1.15.x` or `2.x`) -- see more info about maintenance branches below.
 
