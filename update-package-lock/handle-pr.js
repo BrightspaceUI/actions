@@ -20,17 +20,14 @@ const graphqlForPR = graphql.defaults({
 });
 
 const loadPackageDependencies = (filePath) => {
-	let dependencies;
-
 	try {
 		const fileContents = fs.readFileSync(filePath, 'utf8');
 		const packages = JSON.parse(fileContents);
-		dependencies = packages?.dependencies ? packages.dependencies : {};
-	} catch {
-		return {};
-   	}
 
-   return dependencies;
+		return packages?.dependencies;
+	} catch {
+		return null;
+	}
 };
 
 const flattenDependencies = (dependencies, flattenedList, flattenedKey = '') => {
@@ -56,8 +53,14 @@ const getDependencyDiff = () => {
 	const beforeDependencies = loadPackageDependencies(`${tempDir}/dependencies-before.json`);
 	const afterDependencies = loadPackageDependencies(`${tempDir}/dependencies-after.json`);
 
+	// if failed to get dependencies before and after don't include comment
+	if (beforeDependencies == null || afterDependencies == null) {
+		return '';
+	}
+
 	const beforeFlattenedMap = new Map();
 	const afterFlattenedMap = new Map();
+
 	flattenDependencies(beforeDependencies, beforeFlattenedMap);
 	flattenDependencies(afterDependencies, afterFlattenedMap);
 
@@ -86,7 +89,7 @@ const getDependencyDiff = () => {
 			markDownTableDiff += `\n| ${packageName} | ${value} | N/A |`;
 		}
 	}
-	
+
 	if (hasDiff) {
 		markDownTableDiff += `\n</details>`;
 		return markDownTableDiff;
@@ -123,7 +126,7 @@ async function handlePR() {
 	const repositoryId = existingPrResponse.repository.id;
 	const existingPr = existingPrResponse.repository.ref.associatedPullRequests.edges[0];
 	const mergeMethod = autoMergeMethod.toUpperCase()
-	
+
 	if (!['MERGE', 'SQUASH', 'REBASE'].includes(mergeMethod)) {
 		console.log(chalk.red('Must use supported merge method, can be `merge`, `squash` or `rebase`'));
 		process.exit(1);
@@ -151,7 +154,7 @@ async function handlePR() {
 			console.log(chalk.red('Failed to update the existing PR body.'));
 			return Promise.reject(e.message);
 		}
-		
+
 		process.exit(0);
 	}
 

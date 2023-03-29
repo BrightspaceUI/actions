@@ -32,7 +32,7 @@ runs:
         run: |
           echo -e "\e[34mSaving Initial Dependencies"
           npm ci
-          npm ls --json --package-lock-only --all > "$RUNNER_TEMP/dependencies-before.json"
+          npm ls --json --package-lock-only --all > "$RUNNER_TEMP/dependencies-before.json" || true
         shell: bash
       - name: Install Dependencies
         run: |
@@ -78,9 +78,8 @@ runs:
           git add package-lock.json
           git commit -m '${{ inputs.COMMIT_MESSAGE }}'
           git push --force https://${GITHUB_TOKEN}@github.com/${{ github.repository }} ${{ inputs.BRANCH_NAME }}
-          
           echo -e "\e[34mSaving New Dependencies"
-          npm ls --json --package-lock-only --all > "$RUNNER_TEMP/dependencies-after.json"
+          npm ls --json --package-lock-only --all > "$RUNNER_TEMP/dependencies-after.json" || true
         env:
           GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ inputs.NODE_AUTH_TOKEN }}
