@@ -12,6 +12,7 @@ const defaultBranch = process.env['DEFAULT_BRANCH'];
 const prTitle = process.env['PR_TITLE'];
 const autoMergeMethod = process.env['AUTO_MERGE_METHOD'];
 const tempDir = process.env['RUNNER_TEMP'];
+const prDescriptionMaxSize = 65536;
 
 const graphqlForPR = graphql.defaults({
 	headers: {
@@ -86,7 +87,7 @@ const getDependencyDiff = () => {
 			markDownTableDiff += `\n| ${packageName} | ${value} | N/A |`;
 		}
 	}
-	
+
 	if (hasDiff) {
 		markDownTableDiff += `\n</details>`;
 		return markDownTableDiff;
@@ -123,14 +124,18 @@ async function handlePR() {
 	const repositoryId = existingPrResponse.repository.id;
 	const existingPr = existingPrResponse.repository.ref.associatedPullRequests.edges[0];
 	const mergeMethod = autoMergeMethod.toUpperCase()
-	
+
 	if (!['MERGE', 'SQUASH', 'REBASE'].includes(mergeMethod)) {
 		console.log(chalk.red('Must use supported merge method, can be `merge`, `squash` or `rebase`'));
 		process.exit(1);
 	}
 
-	const prBody = `Automatic update of the \`package-lock.json\` file.
-	${getDependencyDiff()}`;
+	let prBody = 'Automatic update of the \`package-lock.json\` file.';
+	const prDependencyDiff = getDependencyDiff();
+
+	if (prDependencyDiff !== '' && (prBody.length + prDependencyDiff.length) < prDescriptionMaxSize) {
+		prBody += `\n${prDependencyDiff}`;
+	}
 
 	if (existingPr) {
 		console.log(`PR for branch ${branchName} already exists: #${existingPr.node.number}.`);
@@ -151,7 +156,7 @@ async function handlePR() {
 			console.log(chalk.red('Failed to update the existing PR body.'));
 			return Promise.reject(e.message);
 		}
-		
+
 		process.exit(0);
 	}
 
