@@ -63,7 +63,7 @@ const getDependencyDiff = () => {
 	flattenDependencies(afterDependencies, afterFlattenedMap);
 
 	let hasDiff = false;
-	let markDownTableDiff = `<details><summary>Dependency Changes</summary>\n|Package|Old Version|New Version|\n|---|---|---|`;
+	let markDownTableDiff = `\n<details><summary>Dependency Changes</summary>\n\n|Package|Old Version|New Version|\n|---|---|---|`;
 
 	for (const [key, value] of afterFlattenedMap.entries()) {
 		let oldVersion = beforeFlattenedMap.get(key);
@@ -134,7 +134,7 @@ async function handlePR() {
 	const prDependencyDiff = getDependencyDiff();
 
 	if (prDependencyDiff !== '' && (prBody.length + prDependencyDiff.length) < prDescriptionMaxSize) {
-		prBody += `\n${prDependencyDiff}`;
+		prBody += prDependencyDiff;
 	}
 
 	if (existingPr) {
