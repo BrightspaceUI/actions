@@ -53,7 +53,12 @@ The `GITHUB_TOKEN` is used to open the PR with the `package-lock.json` updates. 
 
 Automatically approving the PR is an optional enhancement this action can handle for you by setting an `APPROVAL_TOKEN`. The `APPROVAL_TOKEN` needs to be _different_ than the `GITHUB_TOKEN` because a token cannot approve its own PR. If you used a custom token from `repo-settings` to open the PR, you can use `GITHUB_TOKEN` to approve it, and vice versa.
 
-Note: This functionality may not be helpful to you if you require CODEOWNERS approval to merge.  You could consider removing CODEOWNERS for the `package-lock.json` file specifically.
+Note: This functionality may not be helpful to you if you require CODEOWNERS approval to merge.  You could consider removing CODEOWNERS for the `package-lock.json` file specifically by adding `package-lock.json` to CODEOWNERS with no owner beside it:
+
+```
+* @Brightspace/your-team
+package-lock.json
+```
 
 ## Setting Up Auto-Merge
 
