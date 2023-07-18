@@ -6,7 +6,7 @@ inputs:
     required: true
   VDIFF_BRANCH_PREFIX:
     description: Prefix for vdiff branches
-    default: 'ghworkflow/vdiff-'
+    default: 'ghworkflow/vdiff'
 runs:
   using: composite
   steps:
