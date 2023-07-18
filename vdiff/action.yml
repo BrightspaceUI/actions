@@ -1,0 +1,66 @@
+name: vdiff
+description: Run your vdiff tests, upload a report and open a PR with the new goldens as necessary
+inputs:
+  GITHUB_TOKEN:
+    description: Token used to cleanup branches and open the goldens PR
+    required: true
+  VDIFF_BRANCH_PREFIX:
+    description: Prefix for vdiff branches
+    default: 'ghworkflow/vdiff-'
+runs:
+  using: composite
+  steps:
+    - name: vdiff Branch Cleanup
+      uses: Brightspace/third-party-actions@actions/github-script
+      with:
+        github-token: ${{ inputs.GITHUB_TOKEN }}
+        script: |
+          console.log('\x1b[34mCleaning Up Orphaned vdiff Branches');
+          const branchPrefix = `${process.env.PREFIX}-pr-`;
+
+          const vdiffBranches = await github.rest.git.listMatchingRefs({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: `heads/${branchPrefix}`
+          });
+
+          for (let i = 0; i < vdiffBranches.data.length; i++) {
+            const branch = vdiffBranches.data[i].ref;
+            const prNum = branch.slice(branch.lastIndexOf('-') + 1);
+
+            let prInfo,
+              prOpen = true;
+            try {
+              prInfo = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNum
+              });
+        
+              if (prInfo.data.state !== 'open') {
+                prOpen = false;
+              }
+            } catch (e) {
+              console.log(`\x1b[31m${e}`);
+              console.log(`\x1b[31mCould not get details for PR #${prNum} - skipping branch ${branch}.`);
+              continue;
+            }
+
+            if (!prOpen) {
+              console.log(`PR #${prNum} is no longer open - deleting branch ${branch}.\n`);
+              try {
+                await github.rest.git.deleteRef({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: branch.substring(5)
+                });
+              } catch (e) {
+                console.log(`\x1b[31m${e}`);
+                console.log(`\x1b[31mCould not delete branch ${branch}.`);
+              }
+            }
+          }
+          console.log('Done processing vdiff branches.\n');
+      env:
+        FORCE_COLOR: 3
+        PREFIX: ${{ inputs.VDIFF_BRANCH_PREFIX }}
