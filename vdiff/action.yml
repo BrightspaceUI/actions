@@ -132,7 +132,6 @@ runs:
         FORCE_COLOR: 3
       shell: bash
 
-
     - name: Move New Goldens
       run: |
         echo -e "\e[34mMoving New Goldens to Proper Directories"
