@@ -1,6 +1,15 @@
 name: vdiff
 description: Run your vdiff tests, upload a report and open a PR with the new goldens as necessary
 inputs:
+  AWS_ACCESS_KEY_ID:
+    description: Access key id for the role that will assume the vdiff role
+    required: true
+  AWS_SECRET_ACCESS_KEY:
+    description: Access key secret for the role that will assume the vdiff role
+    required: true
+  AWS_SESSION_TOKEN:
+    description: Session token for the role that will assume the vdiff role
+    required: true
   GITHUB_TOKEN:
     description: Token used to cleanup branches and open the goldens PR
     required: true
@@ -84,13 +93,45 @@ runs:
         FORCE_COLOR: 3
       shell: bash
 
-    - name: Run vdiff Tests and Upload Report
+    - name: Run vdiff Tests
+      id: test-run
       run: |
         echo -e "\e[34mRunning vdiff Tests"
-        echo To Do
+        npm run test:vdiff && echo "passed=true" >> ${GITHUB_OUTPUT} || echo "passed=false" >> ${GITHUB_OUTPUT}
       env:
         FORCE_COLOR: 3
       shell: bash
+
+    - name: Assume vdiff Role for Uploading Report
+      if: ${{ inputs.AWS_ACCESS_KEY_ID }}
+      continue-on-error: true
+      uses: Brightspace/third-party-actions@aws-actions/configure-aws-credentials
+      with:
+        aws-access-key-id: ${{ inputs.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ inputs.AWS_SECRET_ACCESS_KEY }}
+        aws-session-token: ${{ inputs.AWS_SESSION_TOKEN }}
+        role-to-assume: "arn:aws:iam::037018655140:role/visual-diff-githubactions-access"
+        role-duration-seconds: 3600
+        aws-region: ca-central-1
+
+    - name: Upload Report
+      id: upload-report
+      if: ${{ inputs.AWS_ACCESS_KEY_ID }}
+      continue-on-error: true
+      run: |
+        echo -e "\e[34mUpload vdiff Report"
+        mv "./.vdiff/.report/" "./.vdiff/report/"
+
+        DATE_TIME=$(date '+%Y-%m-%d_%H-%M-%S');
+        UPLOAD_PATH="${{ github.repository }}/${DATE_TIME}-${{ github.sha }}"
+        aws s3 sync --delete ./.vdiff/ s3://visual-diff.d2l.dev/reports/${UPLOAD_PATH}/
+        echo "report-path=https://vdiff.d2l.dev/${UPLOAD_PATH}/report/" >> ${GITHUB_OUTPUT}
+      env:
+        # cred variables set in the "Assume role" step
+        AWS_DEFAULT_REGION: ca-central-1
+        FORCE_COLOR: 3
+      shell: bash
+
 
     - name: Move New Goldens
       run: |
