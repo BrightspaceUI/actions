@@ -64,3 +64,69 @@ runs:
       env:
         FORCE_COLOR: 3
         PREFIX: ${{ inputs.VDIFF_BRANCH_PREFIX }}
+
+    - name: Move Current Goldens
+      run: |
+        echo -e "\e[34mMoving Current Goldens to .vdiff"
+        echo "Clearing .vdiff directory"
+        rm -rf .vdiff
+
+        echo "Moving current goldens to .vdiff directory"
+        find . -name golden -type d | while read GOLDEN_DIR; do
+          TEST_PATH=`dirname "${GOLDEN_DIR}"`
+          TEST_PATH=${TEST_PATH:2}
+          for TEST in `ls "${GOLDEN_DIR}"`; do
+            mkdir -p "./.vdiff/${TEST_PATH}/${TEST}/golden"
+            mv "${GOLDEN_DIR}/${TEST}/"* "./.vdiff/${TEST_PATH}/${TEST}/golden"
+          done
+        done
+      env:
+        FORCE_COLOR: 3
+      shell: bash
+
+    - name: Run vdiff Tests and Upload Report
+      run: |
+        echo -e "\e[34mRunning vdiff Tests"
+        echo To Do
+      env:
+        FORCE_COLOR: 3
+      shell: bash
+
+    - name: Move New Goldens
+      run: |
+        echo -e "\e[34mMoving New Goldens to Proper Directories"
+
+        echo "Moving passed screenshots back to golden directories"
+        find ./.vdiff -name pass -type d | while read PASS_DIR; do
+          DIR=`dirname "${PASS_DIR}"`
+          TEST_PATH=`dirname "${DIR}"`
+          TEST_PATH=${TEST_PATH:9}
+          TEST=`basename "${DIR}"`
+
+          mkdir -p "./${TEST_PATH}/golden/${TEST}"
+          mv "${PASS_DIR}/"* "./${TEST_PATH}/golden/${TEST}"    
+        done
+        
+        echo "Moving failed screenshots to golden directories"
+        find ./.vdiff -name fail -type d | while read FAIL_DIR; do
+          DIR=`dirname "${FAIL_DIR}"`
+          TEST_PATH=`dirname "${DIR}"`
+          TEST_PATH=${TEST_PATH:9}
+          TEST=`basename "${DIR}"`
+        
+          for BROWSER in `ls "${FAIL_DIR}"`; do
+            mkdir -p "./${TEST_PATH}/golden/${TEST}/${BROWSER}"
+            for PNG in `ls "${FAIL_DIR}/${BROWSER}"`; do
+              NAME=`basename "${PNG}"`
+              if  [[ ${NAME} != *"-diff.png" ]] && [[ ${NAME} != *"-resized-golden.png" ]] && [[ ${NAME} != *"-resized-screenshot.png" ]]; then
+                mv "${FAIL_DIR}/${BROWSER}/${PNG}" "./${TEST_PATH}/golden/${TEST}/${BROWSER}/${PNG}"
+              fi
+            done
+          done
+        done
+
+        echo "Clearing .vdiff directory"
+        rm -rf .vdiff
+      env:
+        FORCE_COLOR: 3
+      shell: bash
