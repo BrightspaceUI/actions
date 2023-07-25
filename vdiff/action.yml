@@ -65,9 +65,9 @@ runs:
         FORCE_COLOR: 3
         PREFIX: ${{ inputs.VDIFF_BRANCH_PREFIX }}
 
-    - name: Copy Current Goldens
+    - name: Move Current Goldens
       run: |
-        echo -e "\e[34mCopying Current Goldens to .vdiff"
+        echo -e "\e[34mMoving Current Goldens to .vdiff"
         echo "Clearing .vdiff directory"
         rm -rf .vdiff
 
@@ -92,9 +92,9 @@ runs:
         FORCE_COLOR: 3
       shell: bash
 
-    - name: Copy New Goldens
+    - name: Move New Goldens
       run: |
-        echo -e "\e[34mCopying New Goldens to Proper Directories"
+        echo -e "\e[34mMoving New Goldens to Proper Directories"
 
         echo "Moving passed screenshots back to golden directories"
         find ./.vdiff -name pass -type d | while read PASS_DIR; do
