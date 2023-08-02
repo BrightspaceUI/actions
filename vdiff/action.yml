@@ -102,6 +102,21 @@ runs:
         FORCE_COLOR: 3
       shell: bash
 
+    - name: Prepare Report
+      id: prepare-report
+      if: ${{ inputs.AWS_ACCESS_KEY_ID }}
+      continue-on-error: true
+      run: |
+        echo -e "\e[34mPreparing vdiff Report"
+        mv "./.vdiff/.report/" "./.vdiff/report/"
+
+        DATE_TIME=$(date '+%Y-%m-%d_%H-%M-%S');
+        UPLOAD_PATH="${{ github.repository }}/${{ github.sha }}/${DATE_TIME}"
+        echo "upload-path=${UPLOAD_PATH}" >> ${GITHUB_OUTPUT}
+      env:
+        FORCE_COLOR: 3
+      shell: bash
+
     - name: Assume vdiff Role for Uploading Report
       if: ${{ inputs.AWS_ACCESS_KEY_ID }}
       continue-on-error: true
@@ -118,19 +133,11 @@ runs:
       id: upload-report
       if: ${{ inputs.AWS_ACCESS_KEY_ID }}
       continue-on-error: true
-      run: |
-        echo -e "\e[34mUpload vdiff Report"
-        mv "./.vdiff/.report/" "./.vdiff/report/"
-
-        DATE_TIME=$(date '+%Y-%m-%d_%H-%M-%S');
-        UPLOAD_PATH="${{ github.repository }}/${DATE_TIME}-${{ github.sha }}"
-        aws s3 sync --delete ./.vdiff/ s3://visual-diff.d2l.dev/reports/${UPLOAD_PATH}/
-        echo "report-path=https://vdiff.d2l.dev/${UPLOAD_PATH}/report/" >> ${GITHUB_OUTPUT}
-      env:
-        # cred variables set in the "Assume role" step
-        AWS_DEFAULT_REGION: ca-central-1
-        FORCE_COLOR: 3
-      shell: bash
+      uses: BrightspaceUI/actions/publish-to-s3@main
+      with:
+        BUCKET_PATH: s3://visual-diff.d2l.dev/reports/${{ steps.prepare-report.outputs.upload-path }}/
+        CACHE_DEFAULT: "--cache-control max-age=120"
+        PUBLISH_DIRECTORY: ./.vdiff/
 
     - name: Move New Goldens
       run: |
