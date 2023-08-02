@@ -17,11 +17,6 @@ inputs:
     default: ""
     required: false
 
-outputs:
-  SUCCESSFUL:
-    description: Whether the publish was successful
-    value: ${{ steps.deploy.outputs.successful }}
-
 runs:
   using: composite
   steps:
@@ -67,7 +62,6 @@ runs:
       shell: bash
 
     - name: Deploy
-      id: deploy
       run: |
         # Disable globbing: We want arguments like '*.js' to be treated as string literals, without needing quotes
         # (Passing quotes in strings does not work as expected during shell expansion)
@@ -77,7 +71,6 @@ runs:
         [[ $FILES_COMPRESS_ONLY ]] && aws s3 sync --delete "$PUBLISH_DIRECTORY" "$BUCKET_PATH" $COMPRESS_ENCODING $CACHE_DEFAULT --exclude *.* $FILES_COMPRESS_ONLY
         [[ $FILES_CACHE_ONLY ]] && aws s3 sync --delete "$PUBLISH_DIRECTORY" "$BUCKET_PATH" $CACHE_POLICY --exclude *.* $FILES_CACHE_ONLY
         aws s3 sync --delete "$PUBLISH_DIRECTORY" "$BUCKET_PATH" $CACHE_DEFAULT $FILES_DEFAULT
-        echo "successful=true" >> $GITHUB_OUTPUT
       env:
         BUCKET_PATH: ${{ inputs.BUCKET_PATH }}
         PUBLISH_DIRECTORY: ${{ inputs.PUBLISH_DIRECTORY }}
