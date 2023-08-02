@@ -19,6 +19,20 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Get Run Info
+      id: run-info
+      run: |
+        echo -e "\e[34mGetting Run Info"
+        if [ ${{ github.event.number }} ]; then
+          ORIGINAL_SHA=${{ github.event.pull_request.head.sha }}
+        else
+          ORIGINAL_SHA=${GITHUB_SHA}
+        fi
+        echo "original-sha=${ORIGINAL_SHA}" >> ${GITHUB_OUTPUT}
+      env:
+        FORCE_COLOR: 3
+      shell: bash
+
     - name: vdiff Branch Cleanup
       uses: Brightspace/third-party-actions@actions/github-script
       with:
@@ -111,10 +125,11 @@ runs:
         mv "./.vdiff/.report/" "./.vdiff/report/"
 
         DATE_TIME=$(date '+%Y-%m-%d_%H-%M-%S');
-        UPLOAD_PATH="${{ github.repository }}/${{ github.sha }}/${DATE_TIME}"
+        UPLOAD_PATH="${{ github.repository }}/${ORIGINAL_SHA}/${DATE_TIME}"
         echo "upload-path=${UPLOAD_PATH}" >> ${GITHUB_OUTPUT}
       env:
         FORCE_COLOR: 3
+        ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
       shell: bash
 
     - name: Assume vdiff Role for Uploading Report
