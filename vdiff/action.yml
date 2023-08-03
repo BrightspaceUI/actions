@@ -1,34 +1,34 @@
 name: vdiff
 description: Run your vdiff tests, upload a report and open a PR with the new goldens as necessary
 inputs:
-  AWS_ACCESS_KEY_ID:
+  aws-access-key-id:
     description: Access key id for the role that will assume the vdiff role
     required: true
-  AWS_SECRET_ACCESS_KEY:
+  aws-secret-access-key:
     description: Access key secret for the role that will assume the vdiff role
     required: true
-  AWS_SESSION_TOKEN:
+  aws-session-token:
     description: Session token for the role that will assume the vdiff role
     required: true
-  GITHUB_TOKEN:
+  github-token:
     description: Token used to cleanup branches and open the goldens PR
     required: true
-  TEST_CHROME:
+  test-chrome:
     description: Run vdiff tests in Chromium
     default: true
-  TEST_FILES:
+  test-files:
     description: Pattern of vdiff tests to run
     default: './test/**/*.vdiff.js'
-  TEST_FIREFOX:
+  test-firefox:
     description: Run vdiff tests in Firefox
     default: false
-  TEST_SAFARI:
+  test-safari:
     description: Run vdiff tests in Webkit
     default: false
-  TEST_TIMEOUT:
+  test-timeout:
     description: Timeout threshold for vdiff tests (in ms)
     default: 40000
-  VDIFF_BRANCH_PREFIX:
+  vdiff-branch-prefix:
     description: Prefix for vdiff branches
     default: 'ghworkflow/vdiff'
 runs:
@@ -51,7 +51,7 @@ runs:
     - name: vdiff Branch Cleanup
       uses: Brightspace/third-party-actions@actions/github-script
       with:
-        github-token: ${{ inputs.GITHUB_TOKEN }}
+        github-token: ${{ inputs.github-token }}
         script: |
           console.log('\x1b[34mCleaning Up Orphaned vdiff Branches');
           const branchPrefix = `${process.env.PREFIX}-pr-`;
@@ -101,7 +101,7 @@ runs:
           console.log('Done processing vdiff branches.\n');
       env:
         FORCE_COLOR: 3
-        PREFIX: ${{ inputs.VDIFF_BRANCH_PREFIX }}
+        PREFIX: ${{ inputs.vdiff-branch-prefix }}
 
     - name: Move Current Goldens
       run: |
@@ -133,17 +133,17 @@ runs:
         echo ${BROWSERS}
         npx d2l-test-runner vdiff --files ${FILES} --timeout ${TIMEOUT} ${BROWSERS} && echo "passed=true" >> ${GITHUB_OUTPUT} || echo "passed=false" >> ${GITHUB_OUTPUT}
       env:
-        CHROME: ${{ inputs.TEST_CHROME }}
-        FILES: ${{ inputs.TEST_FILES }}
-        FIREFOX: ${{ inputs.TEST_FIREFOX }}
+        CHROME: ${{ inputs.test-chrome }}
+        FILES: ${{ inputs.test-files }}
+        FIREFOX: ${{ inputs.test-firefox }}
         FORCE_COLOR: 3
-        SAFARI: ${{ inputs.TEST_SAFARI }}
-        TIMEOUT: ${{ inputs.TEST_TIMEOUT }}
+        SAFARI: ${{ inputs.test-safari }}
+        TIMEOUT: ${{ inputs.test-timeout }}
       shell: bash
 
     - name: Prepare Report
       id: prepare-report
-      if: ${{ inputs.AWS_ACCESS_KEY_ID }}
+      if: ${{ inputs.aws-access-key-id }}
       continue-on-error: true
       run: |
         echo -e "\e[34mPreparing vdiff Report"
@@ -158,20 +158,20 @@ runs:
       shell: bash
 
     - name: Assume vdiff Role for Uploading Report
-      if: ${{ inputs.AWS_ACCESS_KEY_ID }}
+      if: ${{ inputs.aws-access-key-id }}
       continue-on-error: true
       uses: Brightspace/third-party-actions@aws-actions/configure-aws-credentials
       with:
-        aws-access-key-id: ${{ inputs.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ inputs.AWS_SECRET_ACCESS_KEY }}
-        aws-session-token: ${{ inputs.AWS_SESSION_TOKEN }}
+        aws-access-key-id: ${{ inputs.aws-access-key-id }}
+        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
+        aws-session-token: ${{ inputs.aws-session-token }}
         role-to-assume: "arn:aws:iam::037018655140:role/visual-diff-githubactions-access"
         role-duration-seconds: 3600
         aws-region: ca-central-1
 
     - name: Upload Report
       id: upload-report
-      if: ${{ inputs.AWS_ACCESS_KEY_ID }}
+      if: ${{ inputs.aws-access-key-id }}
       continue-on-error: true
       uses: BrightspaceUI/actions/publish-to-s3@main
       with:
