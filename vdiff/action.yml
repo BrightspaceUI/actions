@@ -13,6 +13,21 @@ inputs:
   GITHUB_TOKEN:
     description: Token used to cleanup branches and open the goldens PR
     required: true
+  TEST_CHROME:
+    description: Run vdiff tests in Chromium
+    default: true
+  TEST_FILES:
+    description: Pattern of vdiff tests to run
+    default: './test/**/*.vdiff.js'
+  TEST_FIREFOX:
+    description: Run vdiff tests in Firefox
+    default: false
+  TEST_SAFARI:
+    description: Run vdiff tests in Webkit
+    default: false
+  TEST_TIMEOUT:
+    description: Timeout threshold for vdiff tests (in ms)
+    default: 40000
   VDIFF_BRANCH_PREFIX:
     description: Prefix for vdiff branches
     default: 'ghworkflow/vdiff'
@@ -111,9 +126,19 @@ runs:
       id: test-run
       run: |
         echo -e "\e[34mRunning vdiff Tests"
-        npm run test:vdiff && echo "passed=true" >> ${GITHUB_OUTPUT} || echo "passed=false" >> ${GITHUB_OUTPUT}
+        if [ ${CHROME} == true ]; then BROWSERS="--chrome "; fi
+        if [ ${FIREFOX} == true ]; then BROWSERS="${BROWSERS}--firefox "; fi
+        if [ ${SAFARI} == true ]; then BROWSERS="${BROWSERS}--safari"; fi
+
+        echo ${BROWSERS}
+        npx d2l-test-runner vdiff --files ${FILES} --timeout ${TIMEOUT} ${BROWSERS} && echo "passed=true" >> ${GITHUB_OUTPUT} || echo "passed=false" >> ${GITHUB_OUTPUT}
       env:
+        CHROME: ${{ inputs.TEST_CHROME }}
+        FILES: ${{ inputs.TEST_FILES }}
+        FIREFOX: ${{ inputs.TEST_FIREFOX }}
         FORCE_COLOR: 3
+        SAFARI: ${{ inputs.TEST_SAFARI }}
+        TIMEOUT: ${{ inputs.TEST_TIMEOUT }}
       shell: bash
 
     - name: Prepare Report
