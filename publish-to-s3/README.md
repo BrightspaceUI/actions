@@ -42,17 +42,17 @@ jobs:
       - name: Publish
         uses: BrightspaceUI/actions/publish-to-s3@main
         with:
-          BUCKET_PATH: s3://<your_bucket>/<path>
-          PUBLISH_DIRECTORY: ./build/
+          bucket-path: s3://<your_bucket>/<path>
+          publish-directory: ./build/
 ```
 
 Options:
 
-* `BUCKET_PATH` (required): The full path of your bucket, including subdirectories, to which to publish
-* `PUBLISH_DIRECTORY` (required): The directory within your repo to publish to S3 (e.g. `"./build/"`)
-* `CACHE` (default: `""`): An optional comma-separated list of all file extensions you wish to have cached for 1 year (e.g. `"js,css"`)
-* `CACHE_DEFAULT` (default: `""`): An optional default caching policy to apply to all files (e.g. `"--cache-control max-age=120"`)
+* `bucket-path` (required): The full path of your bucket, including subdirectories, to which to publish
+* `publish-directory` (required): The directory within your repo to publish to S3 (e.g. `"./build/"`)
+* `cache` (default: `""`): An optional comma-separated list of all file extensions you wish to have cached for 1 year (e.g. `"js,css"`)
+* `cache-default` (default: `""`): An optional default caching policy to apply to all files (e.g. `"--cache-control max-age=120"`)
 
 ## Setting Up AWS Access Creds
 
-In order to have the `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_SESSION_TOKEN` available to you for the step to assume your publishing role, you will need to configure that for your repo in repo-settings.  [See the documentation](https://github.com/Brightspace/repo-settings/blob/main/docs/aws.md).
+In order to have the `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_SESSION_TOKEN` secrets available to you for the step to assume your publishing role, you will need to configure that for your repo in `repo-settings`.  [See the documentation](https://github.com/Brightspace/repo-settings/blob/main/docs/aws.md).
