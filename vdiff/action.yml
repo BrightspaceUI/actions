@@ -130,7 +130,6 @@ runs:
         if [ ${FIREFOX} == true ]; then BROWSERS="${BROWSERS}--firefox "; fi
         if [ ${SAFARI} == true ]; then BROWSERS="${BROWSERS}--safari"; fi
 
-        echo ${BROWSERS}
         npx d2l-test-runner vdiff --files ${FILES} --timeout ${TIMEOUT} ${BROWSERS} && echo "passed=true" >> ${GITHUB_OUTPUT} || echo "passed=false" >> ${GITHUB_OUTPUT}
       env:
         CHROME: ${{ inputs.test-chrome }}
