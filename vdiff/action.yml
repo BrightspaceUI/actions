@@ -175,9 +175,9 @@ runs:
       continue-on-error: true
       uses: BrightspaceUI/actions/publish-to-s3@main
       with:
-        BUCKET_PATH: s3://visual-diff.d2l.dev/reports/${{ steps.prepare-report.outputs.upload-path }}/
-        CACHE_DEFAULT: "--cache-control max-age=120"
-        PUBLISH_DIRECTORY: ./.vdiff/
+        bucket-path: s3://visual-diff.d2l.dev/reports/${{ steps.prepare-report.outputs.upload-path }}/
+        cache-default: --cache-control max-age=120
+        publish-directory: ./.vdiff/
 
     - name: Move New Goldens
       run: |
