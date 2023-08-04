@@ -15,10 +15,11 @@ inputs:
     required: true
   test-chrome:
     description: Run vdiff tests in Chromium
-    default: true
+    default: false
+  test-config:
+    description: d2l-test-runner config location
   test-files:
     description: Pattern of vdiff tests to run
-    default: './test/**/*.vdiff.js'
   test-firefox:
     description: Run vdiff tests in Firefox
     default: false
@@ -27,7 +28,6 @@ inputs:
     default: false
   test-timeout:
     description: Timeout threshold for vdiff tests (in ms)
-    default: 40000
   vdiff-branch-prefix:
     description: Prefix for vdiff branches
     default: 'ghworkflow/vdiff'
@@ -126,13 +126,17 @@ runs:
       id: test-run
       run: |
         echo -e "\e[34mRunning vdiff Tests"
-        if [ ${CHROME} == true ]; then BROWSERS="--chrome "; fi
-        if [ ${FIREFOX} == true ]; then BROWSERS="${BROWSERS}--firefox "; fi
-        if [ ${SAFARI} == true ]; then BROWSERS="${BROWSERS}--safari"; fi
+        if [[ ${FILES} != "" ]]; then FLAGS="--files ${FILES} "; fi
+        if [[ ${TIMEOUT} != "" ]]; then FLAGS="${FLAGS}--timeout ${TIMEOUT} "; fi
+        if [[ ${CHROME} == "true" ]]; then FLAGS="${FLAGS}--chrome "; fi
+        if [[ ${FIREFOX} == "true" ]]; then FLAGS="${FLAGS}--firefox "; fi
+        if [[ ${SAFARI} == "true" ]]; then FLAGS="${FLAGS}--safari "; fi
+        if [[ ${CONFIG} != "" ]]; then FLAGS="${FLAGS}--config ${CONFIG}"; fi
 
-        npx d2l-test-runner vdiff --files ${FILES} --timeout ${TIMEOUT} ${BROWSERS} && echo "passed=true" >> ${GITHUB_OUTPUT} || echo "passed=false" >> ${GITHUB_OUTPUT}
+        npx d2l-test-runner vdiff ${FLAGS} && echo "passed=true" >> ${GITHUB_OUTPUT} || echo "passed=false" >> ${GITHUB_OUTPUT}
       env:
         CHROME: ${{ inputs.test-chrome }}
+        CONFIG: ${{ inputs.test-config }}
         FILES: ${{ inputs.test-files }}
         FIREFOX: ${{ inputs.test-firefox }}
         FORCE_COLOR: 3
