@@ -1,19 +1,57 @@
 name: vdiff
 description: Run your vdiff tests, upload a report and open a PR with the new goldens as necessary
 inputs:
-  GITHUB_TOKEN:
+  aws-access-key-id:
+    description: Access key id for the role that will assume the vdiff role
+    required: true
+  aws-secret-access-key:
+    description: Access key secret for the role that will assume the vdiff role
+    required: true
+  aws-session-token:
+    description: Session token for the role that will assume the vdiff role
+    required: true
+  github-token:
     description: Token used to cleanup branches and open the goldens PR
     required: true
-  VDIFF_BRANCH_PREFIX:
+  test-chrome:
+    description: Run vdiff tests in Chromium
+    default: false
+  test-config:
+    description: d2l-test-runner config location
+  test-files:
+    description: Pattern of vdiff tests to run
+  test-firefox:
+    description: Run vdiff tests in Firefox
+    default: false
+  test-safari:
+    description: Run vdiff tests in Webkit
+    default: false
+  test-timeout:
+    description: Timeout threshold for vdiff tests (in ms)
+  vdiff-branch-prefix:
     description: Prefix for vdiff branches
     default: 'ghworkflow/vdiff'
 runs:
   using: composite
   steps:
+    - name: Get Run Info
+      id: run-info
+      run: |
+        echo -e "\e[34mGetting Run Info"
+        if [ ${{ github.event.number }} ]; then
+          ORIGINAL_SHA=${{ github.event.pull_request.head.sha }}
+        else
+          ORIGINAL_SHA=${GITHUB_SHA}
+        fi
+        echo "original-sha=${ORIGINAL_SHA}" >> ${GITHUB_OUTPUT}
+      env:
+        FORCE_COLOR: 3
+      shell: bash
+
     - name: vdiff Branch Cleanup
       uses: Brightspace/third-party-actions@actions/github-script
       with:
-        github-token: ${{ inputs.GITHUB_TOKEN }}
+        github-token: ${{ inputs.github-token }}
         script: |
           console.log('\x1b[34mCleaning Up Orphaned vdiff Branches');
           const branchPrefix = `${process.env.PREFIX}-pr-`;
@@ -63,7 +101,7 @@ runs:
           console.log('Done processing vdiff branches.\n');
       env:
         FORCE_COLOR: 3
-        PREFIX: ${{ inputs.VDIFF_BRANCH_PREFIX }}
+        PREFIX: ${{ inputs.vdiff-branch-prefix }}
 
     - name: Move Current Goldens
       run: |
@@ -84,13 +122,65 @@ runs:
         FORCE_COLOR: 3
       shell: bash
 
-    - name: Run vdiff Tests and Upload Report
+    - name: Run vdiff Tests
+      id: test-run
       run: |
         echo -e "\e[34mRunning vdiff Tests"
-        echo To Do
+        if [[ ${FILES} != "" ]]; then FLAGS="--files ${FILES} "; fi
+        if [[ ${TIMEOUT} != "" ]]; then FLAGS="${FLAGS}--timeout ${TIMEOUT} "; fi
+        if [[ ${CHROME} == "true" ]]; then FLAGS="${FLAGS}--chrome "; fi
+        if [[ ${FIREFOX} == "true" ]]; then FLAGS="${FLAGS}--firefox "; fi
+        if [[ ${SAFARI} == "true" ]]; then FLAGS="${FLAGS}--safari "; fi
+        if [[ ${CONFIG} != "" ]]; then FLAGS="${FLAGS}--config ${CONFIG}"; fi
+
+        npx d2l-test-runner vdiff ${FLAGS} && echo "passed=true" >> ${GITHUB_OUTPUT} || echo "passed=false" >> ${GITHUB_OUTPUT}
+      env:
+        CHROME: ${{ inputs.test-chrome }}
+        CONFIG: ${{ inputs.test-config }}
+        FILES: ${{ inputs.test-files }}
+        FIREFOX: ${{ inputs.test-firefox }}
+        FORCE_COLOR: 3
+        SAFARI: ${{ inputs.test-safari }}
+        TIMEOUT: ${{ inputs.test-timeout }}
+      shell: bash
+
+    - name: Prepare Report
+      id: prepare-report
+      if: ${{ inputs.aws-access-key-id }}
+      continue-on-error: true
+      run: |
+        echo -e "\e[34mPreparing vdiff Report"
+        mv "./.vdiff/.report/" "./.vdiff/report/"
+
+        DATE_TIME=$(date '+%Y-%m-%d_%H-%M-%S');
+        UPLOAD_PATH="${{ github.repository }}/${ORIGINAL_SHA}/${DATE_TIME}"
+        echo "upload-path=${UPLOAD_PATH}" >> ${GITHUB_OUTPUT}
       env:
         FORCE_COLOR: 3
+        ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
       shell: bash
+
+    - name: Assume vdiff Role for Uploading Report
+      if: ${{ inputs.aws-access-key-id }}
+      continue-on-error: true
+      uses: Brightspace/third-party-actions@aws-actions/configure-aws-credentials
+      with:
+        aws-access-key-id: ${{ inputs.aws-access-key-id }}
+        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
+        aws-session-token: ${{ inputs.aws-session-token }}
+        role-to-assume: "arn:aws:iam::037018655140:role/visual-diff-githubactions-access"
+        role-duration-seconds: 3600
+        aws-region: ca-central-1
+
+    - name: Upload Report
+      id: upload-report
+      if: ${{ inputs.aws-access-key-id }}
+      continue-on-error: true
+      uses: BrightspaceUI/actions/publish-to-s3@main
+      with:
+        bucket-path: s3://visual-diff.d2l.dev/reports/${{ steps.prepare-report.outputs.upload-path }}/
+        cache-default: --cache-control max-age=120
+        publish-directory: ./.vdiff/
 
     - name: Move New Goldens
       run: |
