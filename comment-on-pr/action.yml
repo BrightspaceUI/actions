@@ -2,35 +2,35 @@ name: Comment on PR
 description: Adds a comment on the current PR
 
 inputs:
-  MESSAGE:
+  message:
     description: The message to display
     required: true
-  ONLY_POST_ONCE:
+  only-post-once:
     description: Check whether the current message has already been posted before posting again
     default: false
     required: false
-  UNIQUE_KEY:
-    description: A unique key attached invisibly to the comment, for use with the ONLY_POST_ONCE option
-    default: gh-actions--comment-on-pr
+  unique-key:
+    description: A unique key attached invisibly to the comment, for use with the `only-post-once` option
+    default: gh-actions_comment-on-pr
     required: false
 
 runs:
   using: composite
   steps:
-    - name: Find Previous Comment
-      if: ${{ inputs.ONLY_POST_ONCE != 'false' }}
+    - name: Find previous comment
+      if: ${{ inputs.only-post-once != 'false' }}
       uses: Brightspace/third-party-actions@peter-evans/find-comment
       id: fc
       with:
         issue-number: ${{ github.event.pull_request.number }}
-        body-includes: ${{ inputs.UNIQUE_KEY }}
+        body-includes: ${{ inputs.unique-key }}
 
-    - name: PR Deployment URLs
-      if: ${{ inputs.ONLY_POST_ONCE == 'false' || steps.fc.outputs.comment-id == '' }}
+    - name: Create PR comment
+      if: ${{ inputs.only-post-once == 'false' || steps.fc.outputs.comment-id == '' }}
       uses: Brightspace/third-party-actions@actions/github-script
       env:
-        MESSAGE: ${{ inputs.MESSAGE }}
-        UNIQUE_KEY: ${{ inputs.UNIQUE_KEY }}
+        MESSAGE: ${{ inputs.message }}
+        UNIQUE_KEY: ${{ inputs.unique-key }}
       with:
         script: |
           github.rest.issues.createComment({
