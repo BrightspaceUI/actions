@@ -21,11 +21,11 @@ jobs:
       - name: Comment on PR
         uses: BrightspaceUI/actions/comment-on-pr@main
         with:
-          MESSAGE: |
+          message: |
             Thanks for the PR! 🎉
 
             This is a sample multiline comment.
-          ONLY_POST_ONCE: true
+          only-post-once: true
 ```
 
 Options:
