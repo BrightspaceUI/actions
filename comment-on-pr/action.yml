@@ -1,0 +1,41 @@
+name: Comment on PR
+description: Adds a comment on the current PR
+
+inputs:
+  message:
+    description: The message to display
+    required: true
+  only-post-once:
+    description: Check whether the current message has already been posted before posting again
+    default: false
+    required: false
+  unique-key:
+    description: A unique key attached invisibly to the comment, for use with the `only-post-once` option
+    default: gh-actions_comment-on-pr
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Find previous comment
+      if: ${{ inputs.only-post-once != 'false' }}
+      uses: Brightspace/third-party-actions@peter-evans/find-comment
+      id: fc
+      with:
+        issue-number: ${{ github.event.pull_request.number }}
+        body-includes: ${{ inputs.unique-key }}
+
+    - name: Create PR comment
+      if: ${{ inputs.only-post-once == 'false' || steps.fc.outputs.comment-id == '' }}
+      uses: Brightspace/third-party-actions@actions/github-script
+      env:
+        MESSAGE: ${{ inputs.message }}
+        UNIQUE_KEY: ${{ inputs.unique-key }}
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `<!-- ${process.env.UNIQUE_KEY} -->\n\n${process.env.MESSAGE}`
+          })
