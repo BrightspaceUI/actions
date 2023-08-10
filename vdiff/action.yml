@@ -39,13 +39,20 @@ runs:
       run: |
         echo -e "\e[34mGetting Run Info"
         if [ ${{ github.event.number }} ]; then
+          SOURCE_BRANCH='${{ github.event.pull_request.head.ref }}'
+          VDIFF_BRANCH=${PREFIX}-pr-${{ github.event.number }}
           ORIGINAL_SHA=${{ github.event.pull_request.head.sha }}
         else
+          SOURCE_BRANCH=${GITHUB_REF#refs/heads/}
+          VDIFF_BRANCH=${PREFIX}-${GITHUB_REF#refs/heads/}
           ORIGINAL_SHA=${GITHUB_SHA}
         fi
+        echo "source-branch=${SOURCE_BRANCH}" >> ${GITHUB_OUTPUT}
+        echo "vdiff-branch=${VDIFF_BRANCH}" >> ${GITHUB_OUTPUT}
         echo "original-sha=${ORIGINAL_SHA}" >> ${GITHUB_OUTPUT}
       env:
         FORCE_COLOR: 3
+        PREFIX: ${{ inputs.vdiff-branch-prefix }}
       shell: bash
 
     - name: vdiff Branch Cleanup
@@ -219,4 +226,69 @@ runs:
         rm -rf .vdiff
       env:
         FORCE_COLOR: 3
+      shell: bash
+
+    - name: Commit New Goldens (if necessary)
+      id: commit-goldens
+      run: |
+        echo -e "\e[34mCommitting New Goldens (if necessary)"
+        if [ ${TESTS_PASSED} == true ]; then
+          echo -e "\e[32mvdiff tests have passed - no new goldens needed.\n"
+          exit 0;
+        fi
+        echo -e "\e[31mvdiff tests failed - generating new goldens."
+
+        echo -e "\n\e[34mCreating the vdiff Branch"
+        git stash --include-untracked
+        git fetch origin +refs/heads/${SOURCE_BRANCH}:refs/heads/${SOURCE_BRANCH} -q -u || true
+        git checkout ${SOURCE_BRANCH}
+        git checkout -b ${VDIFF_BRANCH}
+        if [ $(git rev-parse HEAD) != ${ORIGINAL_SHA} ]; then
+          echo -e "\e[31mBranch out of date - more commits have been added to the '${SOURCE_BRANCH}' branch since this action started running.  Stopping this test run."
+          exit 1;
+        fi
+
+        echo "empty=false" >> ${GITHUB_OUTPUT}
+        echo "conflict=false" >> ${GITHUB_OUTPUT}
+        if [ $(git stash list | wc -l) == 0 ]; then
+          echo -e "\e[31mNo changes to apply - please see errors above."
+          echo "empty=true" >> ${GITHUB_OUTPUT}
+          exit 0;
+        fi
+        if ! git stash apply; then
+          echo -e "\e[31mCould not apply stash - merge conflicts with ${{ github.event.pull_request.base.ref }}."
+          echo "conflict=true" >> ${GITHUB_OUTPUT}
+          exit 0;
+        fi
+
+        echo -e "\n\e[34mCommitting new goldens"
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add .
+        git commit -m 'Updating vdiff Goldens'
+
+        echo -e "\n\e[34mPushing the vdiff Branch"
+        git push --force origin ${VDIFF_BRANCH}
+      env:
+        FORCE_COLOR: 3
+        ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
+        SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
+        TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
+        VDIFF_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
+      shell: bash
+
+    - name: Close Pull Request (if necessary)
+      run: |
+        echo -e "\e[34mClosing Pull Request (if necessary)"
+        if [ ${TESTS_PASSED} == true ] || [ ${GOLDENS_CONFLICT} == true ]; then
+          if git ls-remote --exit-code --heads origin ${VDIFF_BRANCH}; then
+            echo -e "\e[34mClosing Goldens PR and Deleting Branch"
+            git push -d origin ${VDIFF_BRANCH} || true
+          fi
+        fi
+      env:
+        FORCE_COLOR: 3
+        GOLDENS_CONFLICT: ${{ steps.commit-goldens.outputs.conflict }}
+        TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
+        VDIFF_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
       shell: bash
