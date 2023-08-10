@@ -10,6 +10,9 @@ inputs:
   aws-session-token:
     description: Session token for the role that will assume the vdiff role
     required: true
+  draft-pr:
+    description: Whether to open the goldens PR as a draft PR
+    default: true
   github-token:
     description: Token used to cleanup branches and open the goldens PR
     required: true
@@ -292,3 +295,129 @@ runs:
         TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
         VDIFF_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
       shell: bash
+
+    - name: Open Pull Request (if necessary)
+      id: pull-request
+      uses: Brightspace/third-party-actions@actions/github-script
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          console.log('\x1b[34mOpening Pull Request (if necessary)');
+          if (process.env.TEST_PASSED === 'true' || process.env.GOLDENS_EMPTY === 'true' || process.env.GOLDENS_CONFLICT === 'true') return;
+
+          const prNum = process.env.PULL_REQUEST_NUM;
+          const sourceBranchName = process.env.SOURCE_BRANCH;
+          const goldensBranchName = process.env.VDIFF_BRANCH;
+          if (prNum) {
+            console.log('\nTests triggered by PR - Verifying PR information');
+            let prInfo;
+            try {
+              prInfo = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNum
+              });
+            } catch (e) {
+              console.log(`\x1b[31mCould not find PR #${prNum} that triggered the vdiff test run`);
+              console.log(e);
+              return;
+            }
+
+            if (prInfo.data.head.ref !== sourceBranchName) {
+              console.log('\x1b[31mBranch name does not match what is expected.');
+              return;
+            } else if (prInfo.data.state !== 'open') {
+              console.log('\x1b[31mPR that triggered the vdiff test run is no longer open.');
+              return;
+            }
+            console.log(`New goldens are for PR #${prNum} (branch: ${sourceBranchName})`);
+          } else {
+            console.log('\nTests triggered by push to branch - Verifying branch information');
+            try {
+              await github.rest.repos.getBranch({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                branch: sourceBranchName
+              });
+            } catch (e) {
+              console.log(`\x1b[31mCould not find branch ${sourceBranchName} that triggered the vdiff test run.`);
+              console.log(e);
+              return;
+            }
+            console.log(`New goldens are for branch ${sourceBranchName}`);
+          }
+
+          console.log('\x1b[34m\nChecking For Existing Goldens PR');
+          const goldenPRs = await github.rest.pulls.list({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            head: `${context.repo.owner}:refs/heads/${goldensBranchName}`,
+            base: `refs/heads/${sourceBranchName}`,
+            state: 'open'
+          });
+
+          let prBody = `This pull request updates the vdiff goldens for ${prNum ? `the changes in pull request #${prNum}.` : `branch \`${sourceBranchName}\`.`}`;
+          if (process.env.REPORT_UPLOADED === 'success') {
+            prBody = `${prBody}\n\nPlease review the [resulting report](${process.env.REPORT_PATH}) closely before merging to ensure the visual differences are expected.`;
+          } else {
+            prBody = `${prBody}\n\n**Note:** The report could not be uploaded. Please review the ["Setting Up AWS Access Creds" section](https://github.com/BrightspaceUI/actions/tree/main/vdiff#setting-up-aws-access-creds) of the vdiff action's README.`;
+          }
+
+          let goldenPrNum;
+          if (goldenPRs.data.length === 0) {
+            console.log('Goldens PR does not exist');
+            console.log('\x1b[34m\nOpening new goldens PR');
+            const newPR = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: prNum ? `Updating vdiff goldens for PR ${prNum}` : `Updating vdiff goldens for Branch ${sourceBranchName}`,
+              head: `refs/heads/${goldensBranchName}`,
+              base: `refs/heads/${sourceBranchName}`,
+              draft: process.env['DRAFT_PR'].toLowerCase() === 'false' ? false : true,
+              body: prBody
+            });
+            goldenPrNum = newPR.data.number;
+            console.log(`PR #${goldenPrNum} opened: ${newPR.data.html_url}`);
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: goldenPrNum,
+              labels: ['auto-vdiff']
+            });
+          } else {
+            goldenPrNum = goldenPRs.data[0].number;
+            console.log(`Goldens PR already exists: ${goldenPRs.data[0].html_url}`);
+            console.log('Updating PR description');
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: goldenPrNum,
+              body: prBody
+            });
+          }
+          core.setOutput('num', goldenPrNum);
+
+          console.log('Adding PR Reviewers');
+          try {
+            await github.rest.pulls.requestReviewers({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: goldenPrNum,
+              reviewers: [process.env.GITHUB_ACTOR]
+            });
+          } catch (e) {
+            console.log('Could not add reviewer (expected for Dependabot and GitHub Action PRs):');
+            console.log(e);
+          }
+      env:
+        FORCE_COLOR: 3
+        DRAFT_PR: ${{ inputs.draft-pr }}
+        GOLDENS_EMPTY: ${{ steps.commit-goldens.outputs.empty }}
+        GOLDENS_CONFLICT: ${{ steps.commit-goldens.outputs.conflict }}
+        PULL_REQUEST_NUM: ${{ github.event.number }}
+        PULL_REQUEST_BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+        REPORT_PATH: https://vdiff.d2l.dev/${{ steps.prepare-report.outputs.upload-path }}/report/
+        REPORT_UPLOADED: ${{ steps.upload-report.outcome }}
+        SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
+        TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
+        VDIFF_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
