@@ -58,6 +58,25 @@ runs:
         PREFIX: ${{ inputs.vdiff-branch-prefix }}
       shell: bash
 
+    - name: Create Commit Status
+      uses: Brightspace/third-party-actions@actions/github-script
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          console.log('\x1b[34mCreating Pending Commit Status');
+          
+          await github.rest.repos.createCommitStatus({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            sha: process.env.ORIGINAL_SHA,
+            state: 'pending',
+            description: 'Run in progress',
+            context: `${context.workflow} / ${context.job} results (${context.eventName})`
+          });
+      env:
+        FORCE_COLOR: 3
+        ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
+
     - name: vdiff Branch Cleanup
       uses: Brightspace/third-party-actions@actions/github-script
       with:
@@ -421,3 +440,58 @@ runs:
         SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
         TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
         VDIFF_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
+
+    - name: Update Commit Status
+      uses: Brightspace/third-party-actions@actions/github-script
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          console.log('\x1b[34mUpdating Commit Status');
+
+          let state, description, targetUrl;
+          if (process.env.TESTS_PASSED === 'true') {
+            state = 'success';
+            description = 'Tests have passed.';
+            console.log('\x1b[32mCompleted - Build Passed.');
+          } else {
+            if (process.env.GOLDENS_EMPTY === 'true') {
+              state = 'error';
+              description = 'Could not generate new goldens: Check the vdiff workflow run log for errors. ->';
+              targetUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+              console.log('\x1b[31mCould not generate new goldens: See errors above.');
+            } else if (process.env.GOLDENS_CONFLICT === 'true') {
+              state = 'error';
+              description = 'Could not generate new goldens: Rebase or merge in the base branch. Your changes will update goldens you don\'t have the latest version of.';
+              console.log(`\x1b[31m${description}`);
+            } else {
+              state = 'failure';
+              if (process.env.PULL_REQUEST_NUM) {
+                description = `Tests failed: PR #${process.env.PULL_REQUEST_NUM} has been opened with the updated goldens. ->`;
+                targetUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/pull/${process.env.PULL_REQUEST_NUM}`;
+                console.log(`\x1b[31mTests failed: ${targetUrl} opened with the updated goldens.`);
+              } else {
+                description = 'Could not open goldens PR: Check the vdiff workflow run log for errors. ->';
+                targetUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+                console.log('\x1b[31mCould not open goldens PR: See errors above.');
+              }
+            }
+
+            core.setFailed('Completed - Build Failed.');
+          }
+
+          await github.rest.repos.createCommitStatus({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            sha: process.env.ORIGINAL_SHA,
+            state: state,
+            target_url: targetUrl,
+            description: description,
+            context: `${context.workflow} / ${context.job} results (${context.eventName})`
+          });
+      env:
+        FORCE_COLOR: 3
+        GOLDENS_EMPTY: ${{ steps.commit-goldens.outputs.empty }}
+        GOLDENS_CONFLICT: ${{ steps.commit-goldens.outputs.conflict }}
+        ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
+        PULL_REQUEST_NUM: ${{ steps.pull-request.outputs.num }}
+        TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
