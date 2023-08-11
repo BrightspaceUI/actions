@@ -16,6 +16,9 @@ inputs:
     description: An optional default caching policy to apply to all files (e.g. "--cache-control max-age=120")
     default: ""
     required: false
+  only-log-errors:
+    description: Only log the errors from aws s3 sync
+    default: false
 
 runs:
   using: composite
@@ -67,10 +70,14 @@ runs:
         # (Passing quotes in strings does not work as expected during shell expansion)
         set -f
 
-        [[ $FILES_COMPRESS_AND_CACHE ]] && aws s3 sync --delete "$PUBLISH_DIRECTORY" "$BUCKET_PATH" $COMPRESS_ENCODING $CACHE_POLICY --exclude *.* $FILES_COMPRESS_AND_CACHE
-        [[ $FILES_COMPRESS_ONLY ]] && aws s3 sync --delete "$PUBLISH_DIRECTORY" "$BUCKET_PATH" $COMPRESS_ENCODING $CACHE_DEFAULT --exclude *.* $FILES_COMPRESS_ONLY
-        [[ $FILES_CACHE_ONLY ]] && aws s3 sync --delete "$PUBLISH_DIRECTORY" "$BUCKET_PATH" $CACHE_POLICY --exclude *.* $FILES_CACHE_ONLY
-        aws s3 sync --delete "$PUBLISH_DIRECTORY" "$BUCKET_PATH" $CACHE_DEFAULT $FILES_DEFAULT
+        if [[ ${ONLY_LOG_ERRORS} == "true" ]]; then LOG_LEVEL="--only-show-errors "; fi
+
+        [[ $FILES_COMPRESS_AND_CACHE ]] && aws s3 sync --delete "$PUBLISH_DIRECTORY" "$BUCKET_PATH" $COMPRESS_ENCODING $CACHE_POLICY --exclude *.* $FILES_COMPRESS_AND_CACHE $LOG_LEVEL
+        [[ $FILES_COMPRESS_ONLY ]] && aws s3 sync --delete "$PUBLISH_DIRECTORY" "$BUCKET_PATH" $COMPRESS_ENCODING $CACHE_DEFAULT --exclude *.* $FILES_COMPRESS_ONLY $LOG_LEVEL
+        [[ $FILES_CACHE_ONLY ]] && aws s3 sync --delete "$PUBLISH_DIRECTORY" "$BUCKET_PATH" $CACHE_POLICY --exclude *.* $FILES_CACHE_ONLY $LOG_LEVEL
+        aws s3 sync --delete "$PUBLISH_DIRECTORY" "$BUCKET_PATH" $CACHE_DEFAULT $FILES_DEFAULT $LOG_LEVEL
+
+        echo -e "\e[32mPublish complete\n"
       env:
         BUCKET_PATH: ${{ inputs.bucket-path }}
         PUBLISH_DIRECTORY: ${{ inputs.publish-directory }}
@@ -81,4 +88,5 @@ runs:
         FILES_COMPRESS_AND_CACHE: ${{ steps.parse-files.outputs.compress-and-cache }}
         FILES_COMPRESS_ONLY: ${{ steps.parse-files.outputs.compress-only }}
         FILES_DEFAULT: ${{ steps.parse-files.outputs.default }}
+        ONLY_LOG_ERRORS: ${{ inputs.only-log-errors }}
       shell: bash

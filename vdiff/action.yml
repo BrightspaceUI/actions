@@ -210,6 +210,7 @@ runs:
         bucket-path: s3://visual-diff.d2l.dev/reports/${{ steps.prepare-report.outputs.upload-path }}/
         cache-default: --cache-control max-age=120
         publish-directory: ./.vdiff/
+        only-log-errors: true
 
     - name: Move New Goldens
       run: |
