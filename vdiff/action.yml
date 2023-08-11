@@ -322,7 +322,7 @@ runs:
         github-token: ${{ inputs.github-token }}
         script: |
           console.log('\x1b[34mOpening Pull Request (if necessary)');
-          if (process.env.TEST_PASSED === 'true' || process.env.GOLDENS_EMPTY === 'true' || process.env.GOLDENS_CONFLICT === 'true') return;
+          if (process.env.TESTS_PASSED === 'true' || process.env.GOLDENS_EMPTY === 'true' || process.env.GOLDENS_CONFLICT === 'true') return;
 
           const prNum = process.env.PULL_REQUEST_NUM;
           const sourceBranchName = process.env.SOURCE_BRANCH;
