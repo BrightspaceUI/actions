@@ -142,6 +142,9 @@ runs:
         find . -name golden -type d | while read GOLDEN_DIR; do
           TEST_PATH=`dirname "${GOLDEN_DIR}"`
           TEST_PATH=${TEST_PATH:2}
+
+          if [[ ${TEST_PATH} == *screenshots/ci ]]; then continue; fi
+
           for TEST in `ls "${GOLDEN_DIR}"`; do
             mkdir -p "./.vdiff/${TEST_PATH}/${TEST}/golden"
             mv "${GOLDEN_DIR}/${TEST}/"* "./.vdiff/${TEST_PATH}/${TEST}/golden"
