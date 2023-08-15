@@ -25,21 +25,27 @@ inputs:
   PR_TITLE:
     description: Title for the opened pull request
     default: 'Updating package-lock.json'
+  WORKING_DIRECTORY:
+    description: Path where you want to execute the update action
+    default: '.'
 runs:
   using: composite
   steps:
       - name: Save Initial Dependencies
+        working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\e[34mSaving Initial Dependencies"
           npm ci
           npm ls --json --package-lock-only --all > "$RUNNER_TEMP/dependencies-before.json"
         shell: bash
       - name: Install Dependencies
+        working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\e[34mInstalling Dependencies"
           npm install chalk@5 @octokit/graphql@4 --prefix ${{ github.action_path }} --no-save --loglevel error
         shell: bash
       - name: Checkout Branch
+        working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\e[34mFetching Branch"
           git fetch -n origin +refs/heads/${{ inputs.BRANCH_NAME }}:refs/heads/${{ inputs.BRANCH_NAME }} || true
@@ -47,6 +53,7 @@ runs:
           git checkout ${{ inputs.BRANCH_NAME }} || git checkout -b ${{ inputs.BRANCH_NAME }}
         shell: bash
       - name: Fresh Dependency Install
+        working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\n\e[34mRunning Fresh Dependency Install"
           rm -rf ./node_modules
@@ -57,11 +64,13 @@ runs:
         shell: bash
       - name: Check For Changes
         id: check-for-changes
+        working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\n\e[34mChecking For Changes"
           git diff --exit-code package-lock.json && echo "changes-exist=false" >> $GITHUB_OUTPUT || echo "changes-exist=true" >> $GITHUB_OUTPUT
         shell: bash
       - name: Create Commit
+        working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           if [ ${{ steps.check-for-changes.outputs.changes-exist }} == false ]; then
             echo -e "\n\e[32mNo changes to commit."
@@ -78,7 +87,7 @@ runs:
           git add package-lock.json
           git commit -m '${{ inputs.COMMIT_MESSAGE }}'
           git push --force https://${GITHUB_TOKEN}@github.com/${{ github.repository }} ${{ inputs.BRANCH_NAME }}
-          
+
           echo -e "\e[34mSaving New Dependencies"
           npm ls --json --package-lock-only --all > "$RUNNER_TEMP/dependencies-after.json"
         env:
@@ -86,6 +95,7 @@ runs:
           NODE_AUTH_TOKEN: ${{ inputs.NODE_AUTH_TOKEN }}
         shell: bash
       - name: Create PR (if necessary)
+        working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           if [ ${{ steps.check-for-changes.outputs.changes-exist }} == false ]; then
             echo -e "\n\e[32mBuild Complete."
