@@ -42,6 +42,7 @@ Options:
 * `DEFAULT_BRANCH` (default: `main`): Name of the default release branch for your repo.
 * `GITHUB_TOKEN` (required): Token for opening the updates PR. See [setup details](#setting-github-token) below.
 * `PR_TITLE` (default: `Updating package-lock.json`): Title for the opened pull request.
+* `WORKING_DIRECTORY` (default: `.`): The directory to perform all actions within. Useful for repositories with more then one `package-lock.json`.
 
 ## Setting GITHUB_TOKEN
 
