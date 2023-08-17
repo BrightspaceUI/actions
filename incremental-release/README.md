@@ -2,6 +2,8 @@
 
 This GitHub action looks for keywords in the latest commit to automatically increment the package version, create a GitHub release/tag, and optionally publish to NPM.
 
+> ⚠️ Where possible, use the [`semantic-release`](../semantic-release) instead! It offers similar functionality with a more standard versioning syntax.
+
 ## Using the Action
 
 Typically this action is triggered from a workflow that runs on your `main` branch after each commit or pull request merge.
