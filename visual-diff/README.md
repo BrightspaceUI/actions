@@ -53,7 +53,7 @@ Notes:
 
 ## Setting Up AWS Access Creds
 
-In order to have the `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_SESSION_TOKEN` available to you, you will need to add that info to your repo setup in repo-settings.  [See the documentation](https://github.com/Brightspace/repo-settings/blob/main/docs/visual-diff.md).
+In order to have the `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_SESSION_TOKEN` available to you, you will need to add that info to your repo setup in repo-settings.  [See the documentation](https://github.com/Brightspace/repo-settings/blob/main/docs/vdiff.md).
 
 ## Removing CODEOWNER Restrictions for Golden Update PRs
 
