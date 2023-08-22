@@ -6,12 +6,12 @@ More specifically, this action will:
 * Cleanup abandoned golden PRs
 * Grab your current golden images and set them up for the test run
 * Run your vdiff tests and display the results in a custom commit status (including error messages, a link to the golden PR, etc.)
-  * If failures occur, it will open/update the corresponding golden PR with the new goldens and link to the report stored in S3
+  * If failures occur, it will open/update the corresponding golden PR with the new goldens and link to the report
   * If the tests pass, it will close the corresponding golden PR if it exists
 
 ## Using the Action
 
-Typically this action is triggered from a workflow that runs on your pull requests, ensuring that your new code changes did not cause unexpected visual changes before they are merged.
+Typically this action is triggered from a workflow that runs on pull requests, ensuring that new code changes did not cause unexpected visual changes before they are merged.
 
 Here's a sample workflow:
 
@@ -55,11 +55,11 @@ General Inputs:
 * `test-safari`: Set `--safari` flag to run vdiff tests in Webkit. If no browser flags are set, the default `d2l-test-runner` browser(s) for `vdiff` will be used.
 * `test-timeout`: Set the `--timeout` flag with the timeout threshold for vdiff tests (in ms).
 
-See the [`testing` repo's README](https://github.com/BrightspaceUI/testing#running-tests) to learn more about these flags.
+See the [`@brightspace-ui/testing` repo's README](https://github.com/BrightspaceUI/testing#running-tests) to learn more about these flags.
 
 **Notes:**
 * You can also run this action in your release workflow to confirm the `main` branch is in a good state before releasing.  If there's a problem, a PR will be opened against `main` to get the goldens back in the expected state.  This mostly comes down to a time versus risk trade-off - the risk of things getting out of sync may be lower than the time taken to run your vdiff tests every release.
-* You can use the standard `GITHUB_TOKEN` that exists automatically, but will need to [setup the AWS secrets](#setting-up-aws-access-creds).
+* You can use the standard `GITHUB_TOKEN` that exists automatically, but will need to [set up the AWS secrets](#setting-up-aws-access-creds).
 
 ## Setting Up AWS Access Creds
 
@@ -77,7 +77,7 @@ golden/
 
 ## Writing Visual Diff Tests
 
-For more info on setting up and writing vdiff tests, you can checkout the [testing repo's README](https://github.com/BrightspaceUI/testing#vdiff-testing).
+For more info on setting up and writing vdiff tests, refer to the [@brightspace-ui/testing repo documentation](https://github.com/BrightspaceUI/testing#vdiff-testing).
 
 ## Using with `package-lock.json`
 
