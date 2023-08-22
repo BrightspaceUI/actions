@@ -1,11 +1,11 @@
 # vdiff Action
 
-This GitHub action runs your repo's [vdiff tests](https://github.com/BrightspaceUI/testing#vdiff-testing). If the tests fail, a draft PR will be opened with the new goldens against the branch/PR that triggered the action. If they pass, any open golden PRs for that branch/PR will be closed for you.
+This GitHub action runs a repo's [vdiff tests](https://github.com/BrightspaceUI/testing#vdiff-testing). If the tests fail, a draft PR will be opened with the new goldens against the branch/PR that triggered the action. If they pass, any open golden PRs for that branch/PR will be closed.
 
 More specifically, this action will:
 * Cleanup abandoned golden PRs
-* Grab your current golden images and set them up for the test run
-* Run your vdiff tests and display the results in a custom commit status (including error messages, a link to the golden PR, etc.)
+* Grab the current golden images and set them up for the test run
+* Run the vdiff tests and display the results in a custom commit status (including error messages, a link to the golden PR, etc.)
   * If failures occur, it will open/update the corresponding golden PR with the new goldens and link to the report
   * If the tests pass, it will close the corresponding golden PR if it exists
 
@@ -44,7 +44,7 @@ General Inputs:
 * `aws-secret-access-key`: Access key secret for the role that will assume the vdiff role - see [setup details](#setting-up-aws-access-creds) below.
 * `aws-session-token`: Session token for the role that will assume the vdiff role - see [setup details](#setting-up-aws-access-creds) below.
 * `draft-pr` (default: `true`): Whether to open the golden PR as a draft PR.
-* `github-token`: Token used to cleanup branches and open the golden PR. This does not need admin privileges, so you can use the standard `GITHUB_TOKEN` that exists automatically.
+* `github-token`: Token used to cleanup branches and open the golden PR. This does not need admin privileges, so the standard `GITHUB_TOKEN` that's available can be used.
 * `vdiff-branch-prefix` (default: `ghworkflow/vdiff`): Prefix for vdiff branches.
 
 `d2l-test-runner` Inputs:
@@ -58,19 +58,19 @@ General Inputs:
 See the [`@brightspace-ui/testing` repo's README](https://github.com/BrightspaceUI/testing#running-tests) to learn more about these flags.
 
 **Notes:**
-* You can also run this action in your release workflow to confirm the `main` branch is in a good state before releasing.  If there's a problem, a PR will be opened against `main` to get the goldens back in the expected state.  This mostly comes down to a time versus risk trade-off - the risk of things getting out of sync may be lower than the time taken to run your vdiff tests every release.
+* You can also run this action in the release workflow to confirm the `main` branch is in a good state before releasing.  If there's a problem, a PR will be opened against `main` to get the goldens back in the expected state.  This mostly comes down to a time versus risk trade-off - the risk of things getting out of sync may be lower than the time taken to run the vdiff tests every release.
 * You can use the standard `GITHUB_TOKEN` that exists automatically, but will need to [set up the AWS secrets](#setting-up-aws-access-creds).
 
 ## Setting Up AWS Access Creds
 
-In order to have the `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_SESSION_TOKEN` secrets available to you, you will need to [add that to your repo setup in repo-settings](https://github.com/Brightspace/repo-settings/blob/main/docs/vdiff.md).
+In order to have the `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_SESSION_TOKEN` secrets available in a repo, [add that to the repo's setup in repo-settings](https://github.com/Brightspace/repo-settings/blob/main/docs/vdiff.md).
 
 ## Removing CODEOWNER Restrictions for Golden PRs
 
-If you have a `CODEOWNERS` file for your repo, you may not want the vdiff pull requests to have the same restrictions as other PRs. Golden PRs are usually opened against a branch that will be reviewed later by a code owner anyways. To remove the code owner restriction on these golden PRs, you can add the following to your `CODEOWNERS` file:
+If the repo has a `CODEOWNERS` file, it may not be desirable to have the vdiff pull requests set up with the same restrictions as other PRs. Golden PRs are usually opened against a branch that will be reviewed later by a code owner anyways. To remove the code owner restriction on these golden PRs, add the following to the `CODEOWNERS` file:
 
 ```
-*       @<your_team> <some_username>
+*       @<some_team> <some_username>
 golden/
 .vdiff.json
 ```
@@ -83,4 +83,4 @@ For more info on setting up and writing vdiff tests, refer to the [@brightspace-
 
 New versions of `@brightspace-ui/testing` may include bumps to the browser versions running the tests. When those are updated, it often results in minor changes to the visual diff images.
 
-To avoid blocking all PRs when the library updates until the new goldens are investigated and merged, we recommend committing your `package-lock.json` and [setting up the `update-package-lock` workflow](../update-package-lock) to keep it up to date.
+To avoid blocking all PRs when the library updates until the new goldens are investigated and merged, we recommend committing the `package-lock.json` file and [setting up the `update-package-lock` workflow](../update-package-lock) to keep it up to date.
