@@ -53,6 +53,7 @@ Options:
 * `cache` (default: `""`): An optional comma-separated list of all file extensions you wish to have cached for 1 year (e.g. `"js,css"`)
 * `cache-default` (default: `""`): An optional default caching policy to apply to all files (e.g. `"--cache-control max-age=120"`)
 * `only-log-errors` (default: false): Only log the errors from aws s3 sync
+* `public-read` (default: false) Sets access permissions on all files to public-read
 
 ## Setting Up AWS Access Creds
 

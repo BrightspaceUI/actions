@@ -19,6 +19,9 @@ inputs:
   only-log-errors:
     description: Only log the errors from aws s3 sync
     default: false
+  public-read:
+    description: Sets the access permissions for all files to public-read
+    default: false
 
 runs:
   using: composite
@@ -71,11 +74,12 @@ runs:
         set -f
 
         if [[ ${ONLY_LOG_ERRORS} == "true" ]]; then LOG_LEVEL="--only-show-errors "; fi
+        if [[ ${PUBLIC_READ} == "true" ]]; then ACCESS_PERMISSIONS="--acl public-read ";fi
 
-        [[ $FILES_COMPRESS_AND_CACHE ]] && aws s3 sync --delete "$PUBLISH_DIRECTORY" "$BUCKET_PATH" $COMPRESS_ENCODING $CACHE_POLICY --exclude *.* $FILES_COMPRESS_AND_CACHE $LOG_LEVEL
-        [[ $FILES_COMPRESS_ONLY ]] && aws s3 sync --delete "$PUBLISH_DIRECTORY" "$BUCKET_PATH" $COMPRESS_ENCODING $CACHE_DEFAULT --exclude *.* $FILES_COMPRESS_ONLY $LOG_LEVEL
-        [[ $FILES_CACHE_ONLY ]] && aws s3 sync --delete "$PUBLISH_DIRECTORY" "$BUCKET_PATH" $CACHE_POLICY --exclude *.* $FILES_CACHE_ONLY $LOG_LEVEL
-        aws s3 sync --delete "$PUBLISH_DIRECTORY" "$BUCKET_PATH" $CACHE_DEFAULT $FILES_DEFAULT $LOG_LEVEL
+        [[ $FILES_COMPRESS_AND_CACHE ]] && aws s3 sync --delete "$PUBLISH_DIRECTORY" "$BUCKET_PATH" $COMPRESS_ENCODING $CACHE_POLICY --exclude *.* $FILES_COMPRESS_AND_CACHE $LOG_LEVEL $ACCESS_PERMISSIONS
+        [[ $FILES_COMPRESS_ONLY ]] && aws s3 sync --delete "$PUBLISH_DIRECTORY" "$BUCKET_PATH" $COMPRESS_ENCODING $CACHE_DEFAULT --exclude *.* $FILES_COMPRESS_ONLY $LOG_LEVEL $ACCESS_PERMISSIONS
+        [[ $FILES_CACHE_ONLY ]] && aws s3 sync --delete "$PUBLISH_DIRECTORY" "$BUCKET_PATH" $CACHE_POLICY --exclude *.* $FILES_CACHE_ONLY $LOG_LEVEL $ACCESS_PERMISSIONS
+        aws s3 sync --delete "$PUBLISH_DIRECTORY" "$BUCKET_PATH" $CACHE_DEFAULT $FILES_DEFAULT $LOG_LEVEL $ACCESS_PERMISSIONS
 
         echo -e "\e[32mPublish complete\n"
       env:
@@ -89,4 +93,5 @@ runs:
         FILES_COMPRESS_ONLY: ${{ steps.parse-files.outputs.compress-only }}
         FILES_DEFAULT: ${{ steps.parse-files.outputs.default }}
         ONLY_LOG_ERRORS: ${{ inputs.only-log-errors }}
+        PUBLIC_READ: ${{ inputs.public-read }}
       shell: bash
