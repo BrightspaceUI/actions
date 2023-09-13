@@ -74,7 +74,7 @@ runs:
         set -f
 
         if [[ ${ONLY_LOG_ERRORS} == "true" ]]; then LOG_LEVEL="--only-show-errors "; fi
-        if [[ ${PUBLIC_READ} == "true" ]]; then ACCESS_PERMISSIONS="--acl public-read ";fi
+        if [[ ${PUBLIC_READ} == "true" ]]; then ACCESS_PERMISSIONS="--acl public-read "; fi
 
         [[ $FILES_COMPRESS_AND_CACHE ]] && aws s3 sync --delete "$PUBLISH_DIRECTORY" "$BUCKET_PATH" $COMPRESS_ENCODING $CACHE_POLICY --exclude *.* $FILES_COMPRESS_AND_CACHE $LOG_LEVEL $ACCESS_PERMISSIONS
         [[ $FILES_COMPRESS_ONLY ]] && aws s3 sync --delete "$PUBLISH_DIRECTORY" "$BUCKET_PATH" $COMPRESS_ENCODING $CACHE_DEFAULT --exclude *.* $FILES_COMPRESS_ONLY $LOG_LEVEL $ACCESS_PERMISSIONS
