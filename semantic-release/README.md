@@ -118,7 +118,9 @@ Releases occur based on the commit messages since the previous release. Our sema
 
 To revert a change, add the `revert` prefix to the original commit message. This will cause the reverted change to not appear in release notes. Example: `revert: fix: validate input before using`.
 
-To trigger a MAJOR release, include `BREAKING CHANGE:` with a space or two newlines in the footer of the commit message.
+To trigger a MAJOR release, include `BREAKING CHANGE:` with a space or two newlines in the **footer** of the commit message. On GitHub, this can be done by including the message in the "optional extended description" field:
+
+![image](https://github.com/BrightspaceUI/actions/assets/8449639/f3d2afd2-1aab-40a9-ad8b-a17fcee7ec12)
 
 ## Releasing from Maintenance Branches
 
