@@ -58,14 +58,14 @@ runs:
         PREFIX: ${{ inputs.vdiff-branch-prefix }}
       shell: bash
 
-    - name: Get Job Name
-      id: job-name
+    - name: Generate Commit Status Name
+      id: commit-status-name
       uses: Brightspace/third-party-actions@actions/github-script
       with:
         github-token: ${{ inputs.github-token }}
         result-encoding: string
         script: |
-          console.log('\x1b[34mGetting Job Name');
+          console.log('\x1b[34mGenerating Commit Status Name');
 
           const { data: { jobs } = {} } = await github.rest.actions.listJobsForWorkflowRunAttempt({
             owner: context.repo.owner,
@@ -77,8 +77,10 @@ runs:
           const jobNames = jobs
             .filter(({runner_name}) => runner_name === runnerName)
             .map(({name}) => name);
+          const jobName = jobNames.length === 1 ? jobNames[0] : context.job;
+          const resultsText = jobName[0].toUpperCase() === jobName[0] ? 'Results' : 'results';
 
-          return jobNames.length === 1 ? jobNames[0] : context.job;
+          return `${context.workflow} / ${jobName} ${resultsText} (${context.eventName})`;
       env:
         FORCE_COLOR: 3
 
@@ -89,21 +91,18 @@ runs:
         script: |
           console.log('\x1b[34mCreating Pending Commit Status');
 
-          const jobName = process.env.JOB_NAME;
-          const resultsText = jobName[0].toUpperCase() === jobName[0] ? 'Results' : 'results'
-
           await github.rest.repos.createCommitStatus({
             owner: context.repo.owner,
             repo: context.repo.repo,
             sha: process.env.ORIGINAL_SHA,
             state: 'pending',
             description: 'Run in progress',
-            context: `${context.workflow} / ${jobName} ${resultsText} (${context.eventName})`
+            context: process.env.COMMIT_STATUS_NAME
           });
       env:
         FORCE_COLOR: 3
         ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
-        JOB_NAME: ${{ steps.job-name.outputs.result }}
+        COMMIT_STATUS_NAME: ${{ steps.commit-status-name.outputs.result }}
 
     - name: vdiff Branch Cleanup
       uses: Brightspace/third-party-actions@actions/github-script
@@ -511,9 +510,6 @@ runs:
             core.setFailed('Completed - Build Failed.');
           }
 
-          const jobName = process.env.JOB_NAME;
-          const resultsText = jobName[0].toUpperCase() === jobName[0] ? 'Results' : 'results'
-
           await github.rest.repos.createCommitStatus({
             owner: context.repo.owner,
             repo: context.repo.repo,
@@ -521,7 +517,7 @@ runs:
             state: state,
             target_url: targetUrl,
             description: description,
-            context: `${context.workflow} / ${jobName} ${resultsText} (${context.eventName})`
+            context: process.env.COMMIT_STATUS_NAME
           });
       env:
         FORCE_COLOR: 3
@@ -530,4 +526,4 @@ runs:
         ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
         PULL_REQUEST_NUM: ${{ steps.pull-request.outputs.num }}
         TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
-        JOB_NAME: ${{ steps.job-name.outputs.result }}
+        COMMIT_STATUS_NAME: ${{ steps.commit-status-name.outputs.result }}
