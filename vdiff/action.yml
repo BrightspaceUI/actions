@@ -58,24 +58,51 @@ runs:
         PREFIX: ${{ inputs.vdiff-branch-prefix }}
       shell: bash
 
+    - name: Generate Commit Status Name
+      id: commit-status-name
+      uses: Brightspace/third-party-actions@actions/github-script
+      with:
+        github-token: ${{ inputs.github-token }}
+        result-encoding: string
+        script: |
+          console.log('\x1b[34mGenerating Commit Status Name');
+
+          const { data: { jobs } = {} } = await github.rest.actions.listJobsForWorkflowRunAttempt({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            run_id: context.runId,
+            attempt_number: process.env.GITHUB_RUN_ATTEMPT
+          });
+          const runnerName = process.env.RUNNER_NAME;
+          const jobNames = jobs
+            .filter(({runner_name}) => runner_name === runnerName)
+            .map(({name}) => name);
+          const jobName = jobNames.length === 1 ? jobNames[0] : context.job;
+          const resultsText = jobName[0].toUpperCase() === jobName[0] ? 'Results' : 'results';
+
+          return `${context.workflow} / ${jobName} ${resultsText} (${context.eventName})`;
+      env:
+        FORCE_COLOR: 3
+
     - name: Create Commit Status
       uses: Brightspace/third-party-actions@actions/github-script
       with:
         github-token: ${{ inputs.github-token }}
         script: |
           console.log('\x1b[34mCreating Pending Commit Status');
-          
+
           await github.rest.repos.createCommitStatus({
             owner: context.repo.owner,
             repo: context.repo.repo,
             sha: process.env.ORIGINAL_SHA,
             state: 'pending',
             description: 'Run in progress',
-            context: `${context.workflow} / ${context.job} results (${context.eventName})`
+            context: process.env.COMMIT_STATUS_NAME
           });
       env:
         FORCE_COLOR: 3
         ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
+        COMMIT_STATUS_NAME: ${{ steps.commit-status-name.outputs.result }}
 
     - name: vdiff Branch Cleanup
       uses: Brightspace/third-party-actions@actions/github-script
@@ -103,7 +130,7 @@ runs:
                 repo: context.repo.repo,
                 pull_number: prNum
               });
-        
+
               if (prInfo.data.state !== 'open') {
                 prOpen = false;
               }
@@ -227,16 +254,16 @@ runs:
           TEST=`basename "${DIR}"`
 
           mkdir -p "./${TEST_PATH}/golden/${TEST}"
-          mv "${PASS_DIR}/"* "./${TEST_PATH}/golden/${TEST}"    
+          mv "${PASS_DIR}/"* "./${TEST_PATH}/golden/${TEST}"
         done
-        
+
         echo "Moving failed screenshots to golden directories"
         find ./.vdiff -name fail -type d | while read FAIL_DIR; do
           DIR=`dirname "${FAIL_DIR}"`
           TEST_PATH=`dirname "${DIR}"`
           TEST_PATH=${TEST_PATH:9}
           TEST=`basename "${DIR}"`
-        
+
           for BROWSER in `ls "${FAIL_DIR}"`; do
             mkdir -p "./${TEST_PATH}/golden/${TEST}/${BROWSER}"
             for PNG in `ls "${FAIL_DIR}/${BROWSER}"`; do
@@ -490,7 +517,7 @@ runs:
             state: state,
             target_url: targetUrl,
             description: description,
-            context: `${context.workflow} / ${context.job} results (${context.eventName})`
+            context: process.env.COMMIT_STATUS_NAME
           });
       env:
         FORCE_COLOR: 3
@@ -499,3 +526,4 @@ runs:
         ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
         PULL_REQUEST_NUM: ${{ steps.pull-request.outputs.num }}
         TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
+        COMMIT_STATUS_NAME: ${{ steps.commit-status-name.outputs.result }}
