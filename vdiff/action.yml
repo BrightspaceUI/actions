@@ -90,6 +90,10 @@ runs:
         github-token: ${{ inputs.github-token }}
         script: |
           console.log('\x1b[34mCreating Pending Commit Status');
+          if (context.actor === 'dependabot[bot]') {
+            console.log('\x1b[33mActor is dependabot - skipping custom commit status.');
+            return;
+          }
 
           await github.rest.repos.createCommitStatus({
             owner: context.repo.owner,
@@ -315,12 +319,15 @@ runs:
         fi
 
         echo -e "\n\e[34mCommitting new goldens"
-        git config user.name github-actions
-        git config user.email github-actions@github.com
+        git config user.name github-actions[bot]
+        git config user.email 41898282+github-actions[bot]@users.noreply.github.com
         git add .
         git commit -m 'Updating vdiff goldens'
 
         echo -e "\n\e[34mPushing the vdiff Branch"
+        if [ ${{ github.actor }} == 'dependabot[bot]' ]; then
+          echo -e "\e[33mThis will fail if Dependabot has a read-only token - push an empty commit or close and re-open the PR to change the actor."
+        fi
         git push --force origin ${VDIFF_BRANCH}
       env:
         FORCE_COLOR: 3
@@ -478,6 +485,10 @@ runs:
         github-token: ${{ inputs.github-token }}
         script: |
           console.log('\x1b[34mUpdating Commit Status');
+          if (context.actor === 'dependabot[bot]') {
+            console.log('\x1b[33mActor is dependabot - skipping custom commit status update.');
+            return;
+          }
 
           let state, description, targetUrl;
           if (process.env.TESTS_PASSED === 'true') {
