@@ -44,7 +44,7 @@ Options:
 * `GITHUB_TOKEN`: Token to use to update version in 'package.json' and create GitHub release -- see section below on branch protection for more details
 * `MINOR_RELEASE_WITH_LMS` (default: `false`): Automatically perform a minor release whenever the LMS release changes (requires `RALLY_API_KEY`)
 * `NPM` (default: `false`): Whether or not to release as an NPM package (see "NPM Package Deployment" below for more info)
-* `NPM_TOKEN` (optional if `NPM` is `false`): Token to publish to NPM (see "NPM Package Deployment" below for more info)
+* `NPM_TOKEN` (optional if `NPM` is `false` or publishing to CodeArtifact): Token to publish to NPM (see "NPM Package Deployment" below for more info)
 * `RALLY_API_KEY`: Key to access the Rally API, required for `MINOR_RELEASE_WITH_LMS`
 
 Outputs:
@@ -67,16 +67,15 @@ If you'd like the action to deploy your package to NPM, set the `NPM` option to 
 
 ### CodeArtifact
 
-To publish to CodeArtifact, ensure that prior to running the `semantic-release` step that the [add-registry](https://github.com/Brightspace/codeartifact-actions/tree/main/npm) and the [get-authorization-token](https://github.com/Brightspace/codeartifact-actions/tree/main/get-authorization-token) steps have been run.
+To publish to CodeArtifact, first [configure your repo's repo-settings](https://github.com/Brightspace/repo-settings/blob/main/docs/npm.md).
 
-Then, pass through the `CODEARTIFACT_AUTH_TOKEN` as `NPM_TOKEN`:
+In your release workflow, ensure that prior to running the `semantic-release` step that the [add-registry](https://github.com/Brightspace/codeartifact-actions/tree/main/npm) and the [get-authorization-token](https://github.com/Brightspace/codeartifact-actions/tree/main/get-authorization-token) steps have been run.
 
 ```yml
 - name: Semantic Release
   uses: BrightspaceUI/actions/semantic-release@main
   with:
     NPM: true
-    NPM_TOKEN: ${{ env.CODEARTIFACT_AUTH_TOKEN }}
 ```
 
 ### NPM

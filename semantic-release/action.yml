@@ -17,7 +17,7 @@ inputs:
     description: Whether or not to release as an NPM package
     default: false
   NPM_TOKEN:
-    description: Token to publish to NPM
+    description: Token to publish to NPM (not required for CodeArtifact)
   RALLY_API_KEY:
     description: Key to access the Rally API, required for MINOR_RELEASE_WITH_LMS
 outputs:
