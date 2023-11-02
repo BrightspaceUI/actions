@@ -224,7 +224,7 @@ runs:
       shell: bash
 
     - name: Assume vdiff Role for Uploading Report
-      if: ${{ inputs.aws-access-key-id }}
+      if: ${{ inputs.aws-access-key-id && steps.prepare-report.outputs.upload-path }}
       continue-on-error: true
       uses: Brightspace/third-party-actions@aws-actions/configure-aws-credentials
       with:
@@ -237,7 +237,7 @@ runs:
 
     - name: Upload Report
       id: upload-report
-      if: ${{ inputs.aws-access-key-id }}
+      if: ${{ inputs.aws-access-key-id && steps.prepare-report.outputs.upload-path }}
       continue-on-error: true
       uses: BrightspaceUI/actions/publish-to-s3@main
       with:
