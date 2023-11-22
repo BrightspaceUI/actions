@@ -4,7 +4,7 @@
 
 Included in the [semantic-release](../semantic-release/), [incremental-release](../incremental-release), and [match-lms-release](https://github.com/Brightspace/lms-version-actions/tree/main/match-lms-release) workflows is a step which updates the version in the repo's `package.json` file to match the newly released version. This step will fail with the built-in `GITHUB_TOKEN` because it cannot bypass the org-level ruleset requirement that all changes have a pull request before merging.
 
-To work around this, the repo needs to be setup with a special `D2L_RELEASE_TOKEN`. This uses a GitHub app allowed to bypass this restriction.
+To work around this, the repo needs to be setup with a special `D2L_RELEASE_TOKEN`. This uses a GitHub app allowed to bypass the restriction.
 
 To set up this bypass:
 
@@ -12,7 +12,7 @@ To set up this bypass:
 
     This should be configured in [`repo-settings`](https://github.com/Brightspace/repo-settings). [Here are `BrightspaceUI/core`'s rules](https://github.com/Brightspace/repo-settings/blob/main/repositories/github/BrightspaceUI/core.yaml#L14-L43) as an example.
     
-    Branch protection rules do not allow apps to bypass status checks, and GitHub is not adding any new features to them as they are replaced by rulesets. The old branch protection rules will need to be deleted for the release action to work.
+    Branch protection rules do not allow apps to bypass status checks, and GitHub is not adding any new features to them because rulesets is the replacement. The old branch protection rules will need to be deleted for the release action to work.
 
 2. Configure the repo to have access to a rotating `D2L_RELEASE_TOKEN`.
 
