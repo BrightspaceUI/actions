@@ -1,5 +1,7 @@
 # Branch Protection and Release Workflows
 
+**The below is how you should configure your release workflow in the `Brightspace` org - for now. The `BrightspaceUI`, `BrightspaceUILabs` and `BrightspaceHypermediaComponents` orgs should use the new [release token steps](./release-token).**
+
 Included in the [semantic-release](../semantic-release/), [incremental-release](../incremental-release), and [match-lms-release](https://github.com/Brightspace/lms-version-actions/tree/main/match-lms-release) workflows is a step which updates the version in your repo's `package.json` file to match the newly released version. This step will fail with the built-in `GITHUB_TOKEN` if your repo has branch protection rules that prevent commits outside of pull requests.
 
 To work around this, we use a special `D2L_GITHUB_TOKEN`.
