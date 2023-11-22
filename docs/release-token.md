@@ -34,7 +34,7 @@ To set up this bypass:
 4. Pass in `D2L_RELEASE_TOKEN` as the `GITHUB_TOKEN` environment variable to the release step:
 
     ```yml
-    - name: Semantic/Incremental/LMS Release
+    - name: Release
       uses: BrightspaceUI/actions/semantic-release@main (or incremental-release or match-lms-release)
       with:
         GITHUB_TOKEN: ${{ secrets.D2L_RELEASE_TOKEN }}
