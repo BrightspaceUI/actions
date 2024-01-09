@@ -8,7 +8,7 @@ To set up this bypass:
 
 1. Ensure the repo's protected branches are configured using a repository ruleset, not a branch protection rule.
 
-    This should be configured in [`repo-settings`](https://github.com/Brightspace/repo-settings). [Here are `BrightspaceUI/core`'s rules](https://github.com/Brightspace/repo-settings/blob/main/repositories/github/BrightspaceUI/core.yaml#L14-L43) as an example.
+    This should be configured in [`repo-settings`](https://github.com/Brightspace/repo-settings/blob/main/docs/github.md#repository_rulesets).
     
     Branch protection rules do not allow apps to bypass status checks, and GitHub is not adding any new features to them because rulesets is the replacement. The old branch protection rules will need to be deleted for the release action to work.
 
