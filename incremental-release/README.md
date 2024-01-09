@@ -31,13 +31,13 @@ jobs:
       - name: Incremental Release
         uses: BrightspaceUI/actions/incremental-release@main
         with:
-          GITHUB_TOKEN: ${{ secrets.D2L_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.D2L_RELEASE_TOKEN }}
 ```
 
 Options:
 * `DEFAULT_INCREMENT` (default: `skip`): If no release keyword is found in the latest commit message, this value will be used to trigger a release. Can be one of: `skip`, `patch`, `minor`, `major`.
 * `DRY_RUN` (default: `false`): Simulates a release but does not actually do one
-* `GITHUB_TOKEN`: Token to use to update version in 'package.json' and create the tag -- see section below on branch protection for more details
+* `GITHUB_TOKEN`: Token to use to update version in 'package.json' and create the tag -- see section below on the release token for more details
 * `NPM` (default: `false`): Whether or not to release as an NPM package (see "NPM Package Deployment" below for more info)
 * `NPM_TOKEN` (optional if `NPM` is `false` or publishing to CodeArtifact): Token to publish to NPM (see "NPM Package Deployment" below for more info)
 
@@ -47,11 +47,11 @@ Outputs:
 Notes:
 * If you have additional release validation steps (e.g. build step, validation tests), run them after the "Setup Node" step and before the "Incremental Release" step.
 
-### Branch Protection Rules and D2L_GITHUB_TOKEN
+### Rulesets and D2L_RELEASE_TOKEN
 
-The release step will fail to write to `package.json` if you have branch protection rules set up in your repository. To get around this, we use a special Admin `D2L_GITHUB_TOKEN`.
+The release step will fail to write to `package.json` because of the org-level rule requiring pull requests, as well as any rulesets you may have defined requiring PRs or status checks to pass. To get around this, we use a special rotating `D2L_RELEASE_TOKEN`.
 
-[Learn how to set up the D2L_GITHUB_TOKEN...](../docs/branch-protection.md)
+[Learn how to set up the D2L_RELEASE_TOKEN...](../docs/release-token.md)
 
 ## Maintenance Branches
 
@@ -95,7 +95,7 @@ Then pass through the `NPM_TOKEN` secret.
 - name: Incremental Release
   uses: BrightspaceUI/actions/incremental-release@main
   with:
-    GITHUB_TOKEN: ${{ secrets.D2L_GITHUB_TOKEN }}
+    GITHUB_TOKEN: ${{ secrets.D2L_RELEASE_TOKEN }}
     NPM: true
     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
@@ -166,7 +166,7 @@ jobs:
         id: release
         uses: BrightspaceUI/actions/incremental-release@main
         with:
-          GITHUB_TOKEN: ${{ secrets.D2L_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.D2L_RELEASE_TOKEN }}
       - name: Publish
         if: steps.release.outputs.VERSION != ''
         run: npx frau-publisher --devtag="$GIT_COMMIT" -v="${{ steps.release.outputs.VERSION }}" --f="./dist/**/*.*" --m="app" --t="my-fra"
