@@ -34,14 +34,14 @@ jobs:
       - name: Semantic Release
         uses: BrightspaceUI/actions/semantic-release@main
         with:
-          GITHUB_TOKEN: ${{ secrets.D2L_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.D2L_RELEASE_TOKEN }}
 ```
 
 Options:
 
 * `DEFAULT_BRANCH` (default: `"main"`): name of the default release branch
 * `DRY_RUN` (default: `false`): Runs semantic-release with the `--dry-run` flag to simulate a release but not actually do one
-* `GITHUB_TOKEN`: Token to use to update version in 'package.json' and create GitHub release -- see section below on branch protection for more details
+* `GITHUB_TOKEN`: Token to use to update version in 'package.json' and create GitHub release -- see section below on the release token for more details
 * `MINOR_RELEASE_WITH_LMS` (default: `false`): Automatically perform a minor release whenever the LMS release changes (requires `RALLY_API_KEY`)
 * `NPM` (default: `false`): Whether or not to release as an NPM package (see "NPM Package Deployment" below for more info)
 * `NPM_TOKEN` (optional if `NPM` is `false` or publishing to CodeArtifact): Token to publish to NPM (see "NPM Package Deployment" below for more info)
@@ -55,11 +55,11 @@ Notes:
 * If you have additional release validation steps (e.g. build step, validation tests), run them after the "Setup Node" step and before the "Semantic Release" step.
 * This example will release only from `main` and maintenance branches (e.g. `1.15.x` or `2.x`) -- see more info about maintenance branches below.
 
-### Branch Protection Rules and D2L_GITHUB_TOKEN
+### Rulesets and D2L_RELEASE_TOKEN
 
-The release step will fail to write to `package.json` if you have branch protection rules set up in your repository. To get around this, we use a special Admin `D2L_GITHUB_TOKEN`.
+The release step will fail to write to `package.json` because of the org-level rule requiring pull requests, as well as any rulesets you may have defined requiring PRs or status checks to pass. To get around this, we use a special rotating `D2L_RELEASE_TOKEN`.
 
-[Learn how to set up the D2L_GITHUB_TOKEN...](../docs/branch-protection.md)
+[Learn how to set up the D2L_RELEASE_TOKEN...](../docs/release-token.md)
 
 ## NPM Package Deployment
 
