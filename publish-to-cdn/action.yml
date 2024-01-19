@@ -27,5 +27,4 @@ runs:
         bucket-path: s3://d2lprodcdn/${{ inputs.cdn-path }}
         cache-default: --cache-control public,max-age=31536000,immutable
         publish-directory: ${{ inputs.publish-directory }}
-        only-log-errors: true
         public-read: true

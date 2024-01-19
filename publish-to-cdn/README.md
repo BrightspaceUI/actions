@@ -9,11 +9,11 @@ Features:
 - Prefixes `bucket-path` with `s3://d2lprodcdn/`
 
 > [!IMPORTANT]  
-> Published files will be cached indefinitely, so ensure a mechanism for cache invalidation is present, such as a version number in the `cdn-path`. For example: `my-lib/<version>`.
+> Published files will be cached indefinitely, so ensure a mechanism for cache invalidation is present, such as a version number in the `cdn-path`. For example: `<lib-name>/<version>`.
 
 ## Using the Action
 
-This action is typically triggered from a release workflow that runs on your `main` branch when a new release is created.
+This action is typically triggered from a release workflow that runs on a repo's `main` branch when a new release is created.
 
 To assume the correct role for publishing to the CDN and have the appropriate secrets available, set up the `cdn` capability [in repo-settings](https://github.com/Brightspace/repo-settings/blob/main/docs/cdn.md).
 
@@ -56,7 +56,7 @@ jobs:
         if: steps.release.outputs.VERSION != ''
         uses: BrightspaceUI/actions/publish-to-cdn@main
         with:
-          cdn-path: my-lib/${{ steps.release.outputs.VERSION }}
+          cdn-path: <lib-name>/${{ steps.release.outputs.VERSION }}
           publish-directory: ./build/
 ```
 
