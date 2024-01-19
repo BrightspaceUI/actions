@@ -1,0 +1,31 @@
+name: Publish to CDN
+description: Publishes the specified directory to the Brightspace CDN
+
+inputs:
+  cdn-path:
+    description: The path on the CDN beneath `s3://d2lprodcdn/`, to which to publish
+    required: true
+  publish-directory:
+    description: The directory within your repo to publish to the CDN
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Overwrite Protection
+      run: |
+        if [[ $(aws s3 ls "s3://d2lprodcdn/${CDN_PATH}/" | head) ]]; then
+           echo "ERROR: cdn-path "\""$CDN_PATH"\"" already exists, which would result in files being overwritten. Choose a unique publish path.";
+           exit 1;
+        fi
+      shell: bash
+      env:
+        CDN_PATH: ${{ inputs.cdn-path }}
+    - name: Deploy
+      uses: BrightspaceUI/actions/publish-to-s3@main
+      with:
+        bucket-path: s3://d2lprodcdn/${{ inputs.cdn-path }}
+        cache-default: --cache-control public,max-age=31536000,immutable
+        publish-directory: ${{ inputs.publish-directory }}
+        only-log-errors: true
+        public-read: true
