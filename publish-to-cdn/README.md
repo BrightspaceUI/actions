@@ -47,11 +47,15 @@ jobs:
         if: steps.release.outputs.VERSION != ''
         uses: BrightspaceUI/actions/publish-to-cdn@main
         with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           cdn-path: <lib-name>/${{ steps.release.outputs.VERSION }}
           publish-directory: ./build/
 ```
 
 Options:
 
+* `aws-access-key-id`, `aws-secret-access-key`, `aws-session-token` (required): Set these to the `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_SESSION_TOKEN` repository secrets
 * `cdn-path` (required): The path on the CDN beneath `s3://d2lprodcdn/`, to which to publish
 * `publish-directory` (required): The directory within your repo to publish to the CDN
