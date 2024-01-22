@@ -21,15 +21,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Overwrite Protection
-      run: |
-        if [[ $(aws s3 ls "s3://d2lprodcdn/${CDN_PATH}/" | head) ]]; then
-           echo "ERROR: cdn-path "\""$CDN_PATH"\"" already exists, which would result in files being overwritten. Choose a unique publish path.";
-           exit 1;
-        fi
-      shell: bash
-      env:
-        CDN_PATH: ${{ inputs.cdn-path }}
     - name: Determine Role Name
       id: role-name
       run: |
@@ -50,6 +41,15 @@ runs:
         role-to-assume: "${{ steps.role-name.outputs.value }}"
         role-duration-seconds: 3600
         aws-region: us-east-1
+    - name: Overwrite Protection
+      run: |
+        if [[ $(aws s3 ls "s3://d2lprodcdn/${CDN_PATH}/" | head) ]]; then
+           echo "ERROR: cdn-path "\""$CDN_PATH"\"" already exists, which would result in files being overwritten. Choose a unique publish path.";
+           exit 1;
+        fi
+      shell: bash
+      env:
+        CDN_PATH: ${{ inputs.cdn-path }}
     - name: Deploy
       uses: BrightspaceUI/actions/publish-to-s3@main
       with:
