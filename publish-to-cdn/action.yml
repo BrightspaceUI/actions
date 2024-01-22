@@ -30,13 +30,24 @@ runs:
       shell: bash
       env:
         CDN_PATH: ${{ inputs.cdn-path }}
+    - name: Determine Role Name
+      id: role-name
+      run: |
+        ORG_NAME="${{ github.repository_owner }}"
+        if [[ ${ORG_NAME} == "BrightspaceHypermediaComponents" ]]; then ORG_NAME="BHC"; fi
+
+        REPO_NAME="${{ github.repository }}"        
+        REPO_NAME="${REPO_NAME#*/}"
+
+        echo "value=arn:aws:iam::771734770799:role/r+$ORG_NAME+$REPO_NAME+repo" >> $GITHUB_OUTPUT
+      shell: bash
     - name: Assume role
       uses: Brightspace/third-party-actions@aws-actions/configure-aws-credentials
       with:
         aws-access-key-id: ${{ inputs.aws-access-key-id }}
         aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
         aws-session-token: ${{ inputs.aws-session-token }}
-        role-to-assume: "arn:aws:iam::771734770799:role/r+${{ github.repository }}+repo"
+        role-to-assume: "${{ steps.role-name.outputs.value }}"
         role-duration-seconds: 3600
         aws-region: us-east-1
     - name: Deploy
