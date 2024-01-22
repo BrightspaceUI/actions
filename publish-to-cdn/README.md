@@ -7,6 +7,7 @@ Features:
 - Caches all assets for 1 year
 - Enables `public-read` access
 - Prefixes `bucket-path` with `s3://d2lprodcdn/`
+- Automatically assumes the correct role for publishing
 
 > [!IMPORTANT]  
 > Published files will be cached indefinitely, so ensure a mechanism for cache invalidation is present, such as a version number in the `cdn-path`. For example: `<lib-name>/<version>`.
@@ -15,7 +16,7 @@ Features:
 
 This action is typically triggered from a release workflow that runs on a repo's `main` branch when a new release is created.
 
-To assume the correct role for publishing to the CDN and have the appropriate secrets available, set up the `cdn` capability [in repo-settings](https://github.com/Brightspace/repo-settings/blob/main/docs/cdn.md).
+To have the appropriate secrets available, set up the `cdn` capability [in repo-settings](https://github.com/Brightspace/repo-settings/blob/main/docs/cdn.md).
 
 Here's a sample workflow:
 
@@ -42,25 +43,19 @@ jobs:
       - name: Release
         id: release
         uses: <semantic/match-lms/incremental>
-      - name: Assume role
-        if: steps.release.outputs.VERSION != ''
-        uses: Brightspace/third-party-actions@aws-actions/configure-aws-credentials
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          role-to-assume: <role_that_can_upload_to_the_cdn>
-          role-duration-seconds: 3600
-          aws-region: ca-central-1
       - name: Publish
         if: steps.release.outputs.VERSION != ''
         uses: BrightspaceUI/actions/publish-to-cdn@main
         with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           cdn-path: <lib-name>/${{ steps.release.outputs.VERSION }}
           publish-directory: ./build/
 ```
 
 Options:
 
+* `aws-access-key-id`, `aws-secret-access-key`, `aws-session-token` (required): Set these to the `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_SESSION_TOKEN` repository secrets
 * `cdn-path` (required): The path on the CDN beneath `s3://d2lprodcdn/`, to which to publish
 * `publish-directory` (required): The directory within your repo to publish to the CDN
