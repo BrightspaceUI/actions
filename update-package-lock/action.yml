@@ -67,7 +67,7 @@ runs:
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\n\e[34mChecking For Changes"
-          git diff --exit-code package-lock.json && echo "changes-exist=false" >> $GITHUB_OUTPUT || echo "changes-exist=true" >> $GITHUB_OUTPUT
+          git diff --exit-code package-lock.json > /dev/null && echo "changes-exist=false" >> $GITHUB_OUTPUT || echo "changes-exist=true" >> $GITHUB_OUTPUT
         shell: bash
       - name: Create Commit
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
