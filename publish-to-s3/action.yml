@@ -62,7 +62,7 @@ runs:
       shell: bash
 
     - name: Compress
-      run: find $PUBLISH_DIRECTORY \( -iname '*.html' -o -iname '*.css' -o -iname '*.js' -o -iname '*.json' -o -iname '*.svg' -o -iname '*.xml' \) -exec brotli {} \; -exec mv {}.br {} \;
+      run: find $PUBLISH_DIRECTORY \( -iname '*.html' -o -iname '*.css' -o -iname '*.js' -o -iname '*.json' -o -iname '*.svg' -o -iname '*.xml' \) -exec gzip -9 -n {} \; -exec mv {}.gz {} \;
       env:
         PUBLISH_DIRECTORY: ${{ inputs.publish-directory }}
       shell: bash
@@ -87,7 +87,7 @@ runs:
         PUBLISH_DIRECTORY: ${{ inputs.publish-directory }}
         CACHE_POLICY: --cache-control public,max-age=31536000,immutable
         CACHE_DEFAULT: ${{ inputs.cache-default }}
-        COMPRESS_ENCODING: --content-encoding br
+        COMPRESS_ENCODING: --content-encoding gzip
         FILES_CACHE_ONLY: ${{ steps.parse-files.outputs.cache-only }}
         FILES_COMPRESS_AND_CACHE: ${{ steps.parse-files.outputs.compress-and-cache }}
         FILES_COMPRESS_ONLY: ${{ steps.parse-files.outputs.compress-only }}
