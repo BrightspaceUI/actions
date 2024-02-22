@@ -38,6 +38,7 @@ runs:
         npm install chalk@5 @octokit/rest@18 --prefix ${{ github.action_path }} --no-save --loglevel error
       env:
         FORCE_COLOR: 3
+        PUPPETEER_DOWNLOAD_BASE_URL: https://storage.googleapis.com/chrome-for-testing-public
       shell: bash
     - name: Visual Diff Branch Cleanup
       run: |
