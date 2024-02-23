@@ -62,7 +62,7 @@ runs:
       shell: bash
 
     - name: Compress
-      run: find $PUBLISH_DIRECTORY \( -iname '*.html' -o -iname '*.css' -o -iname '*.js' -o -iname '*.json' -o -iname '*.svg' -o -iname '*.xml' \) -exec gzip -9 -n {} \; -exec mv {}.gz {} \;
+      run: find $PUBLISH_DIRECTORY -type f \( -iname '*.html' -o -iname '*.css' -o -iname '*.js' -o -iname '*.json' -o -iname '*.svg' -o -iname '*.xml' \) -exec gzip -9 -n {} \; -exec mv {}.gz {} \;
       env:
         PUBLISH_DIRECTORY: ${{ inputs.publish-directory }}
       shell: bash
