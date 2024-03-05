@@ -9,8 +9,12 @@ inputs:
     description: Check whether the current message has already been posted before posting again
     default: false
     required: false
+  hide-previous:
+    description: Hide previous comment that matches the unique-key given and post new version of comment content
+    default: false
+    required: false
   unique-key:
-    description: A unique key attached invisibly to the comment, for use with the `only-post-once` option
+    description: A unique key attached invisibly to the comment, for use with the `only-post-once` or `hide-previous` option
     default: gh-actions_comment-on-pr
     required: false
 
@@ -18,15 +22,21 @@ runs:
   using: composite
   steps:
     - name: Find previous comment
-      if: ${{ inputs.only-post-once != 'false' }}
+      if: inputs.only-post-once != 'false'
       uses: Brightspace/third-party-actions@peter-evans/find-comment
       id: fc
       with:
         issue-number: ${{ github.event.pull_request.number }}
         body-includes: ${{ inputs.unique-key }}
 
+    - name: Hide previous comment
+      if: inputs.only-post-once == 'false' && inputs.hide-previous != false
+      uses: Brightspace/third-party-actions@int128/hide-comment-action
+      with:
+        starts-with: <!-- ${{ inputs.unique-key }} -->
+
     - name: Create PR comment
-      if: ${{ inputs.only-post-once == 'false' || steps.fc.outputs.comment-id == '' }}
+      if: inputs.only-post-once == 'false' || steps.fc.outputs.comment-id == ''
       uses: Brightspace/third-party-actions@actions/github-script
       env:
         MESSAGE: ${{ inputs.message }}
