@@ -8,7 +8,7 @@ inputs:
     description: Check whether the current message has already been posted before posting again
     default: false
     required: false
-    deprecationMessage: Please use the input `post-mode: once` instead, this input will be going away in the future
+    deprecationMessage: Please use the input 'post-mode: once' instead, this input will be going away in the future
   post-mode:
     description: How posting of the comment will be handled. Options are 'always', 'once', 'hide-previous' or 'update'
     default: always
