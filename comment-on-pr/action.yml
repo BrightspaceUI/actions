@@ -10,7 +10,7 @@ inputs:
     required: false
     deprecationMessage: 'Please use the input `post-mode: once` instead, this input will be going away in the future'
   post-mode:
-    description: Indicate how you want to handle posting of the comment.
+    description: How posting of the comment will be handled. Options are 'always', 'once', 'hide-previous' or 'update'
     default: always
     required: false
   unique-key:
