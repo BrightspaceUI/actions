@@ -1,6 +1,5 @@
 name: Comment on PR
 description: Adds a comment on the current PR
-
 inputs:
   message:
     description: The message to display
@@ -9,33 +8,72 @@ inputs:
     description: Check whether the current message has already been posted before posting again
     default: false
     required: false
+    deprecationMessage: 'Please use the input `post-mode: once` instead, this input will be going away in the future'
+  post-mode:
+    description: Indicate how you want to handle posting of the comment.
+    default: always
+    required: false
   unique-key:
     description: A unique key attached invisibly to the comment, for use with the `only-post-once` option
     default: gh-actions_comment-on-pr
     required: false
-
 runs:
   using: composite
   steps:
+    - name: Gather inputs
+      id: in
+      shell: bash
+      run: |
+        if [ "$POST_MODE" != 'always' && "$POST_MODE" != 'once' && "$POST_MODE" != 'hide-previous' && "$POST_MODE" != 'update' ]; then
+          echo "::error::Invalid input for 'post-mode', must be one of 'always', 'once', 'hide-previous' or 'update'. Was '$POST_MODE'"
+          exit 1
+        elif [ "$ONLY_POST_ONCE" == 'true' ]; then
+          echo 'post-mode=once' >> $GITHUB_OUTPUT
+        else
+          echo "post-mode=$POST_MODE" >> $GITHUB_OUTPUT
+        fi
+        echo "unique-key=$UNIQUE_KEY" >> $GITHUB_OUTPUT
+      env:
+        ONLY_POST_ONCE: ${{ inputs.only-post-once }}
+        POST_MODE: ${{ inputs.post-mode }}
+        UNIQUE_KEY: <!-- ${{ inputs.unique-key }} -->
     - name: Find previous comment
-      if: ${{ inputs.only-post-once != 'false' }}
-      uses: Brightspace/third-party-actions@peter-evans/find-comment
       id: fc
+      if: steps.in.outputs.post-mode != 'always'
+      uses: Brightspace/third-party-actions@peter-evans/find-comment
       with:
         issue-number: ${{ github.event.pull_request.number }}
-        body-includes: ${{ inputs.unique-key }}
-
-    - name: Create PR comment
-      if: ${{ inputs.only-post-once == 'false' || steps.fc.outputs.comment-id == '' }}
+        body-includes: ${{ steps.in.outputs.unique-key }}
+    - name: Hide previous comment
+      if: steps.fc.outputs.comment-id != '' && steps.in.outputs.post-mode == 'hide-previous'
+      uses: Brightspace/third-party-actions@int128/hide-comment-action
+      with:
+        issue-number: ${{ github.event.pull_request.number }}
+        starts-with: ${{ steps.in.outputs.unique-key }}
+    - name: Handle PR comment
+      if: steps.fc.outputs.comment-id == '' || steps.in.outputs.post-mode != 'once'
       uses: Brightspace/third-party-actions@actions/github-script
       env:
         MESSAGE: ${{ inputs.message }}
-        UNIQUE_KEY: ${{ inputs.unique-key }}
+        UNIQUE_KEY: ${{ steps.in.outputs.unique-key }}
+        POST_MODE: ${{ steps.in.outputs.post-mode }}
+        COMMENT_ID: ${{ steps.fc.outputs.comment-id }}
       with:
         script: |
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: `<!-- ${process.env.UNIQUE_KEY} -->\n\n${process.env.MESSAGE}`
-          })
+          const { MESSAGE, UNIQUE_KEY, POST_MODE, COMMENT_ID } = process.env;
+          const body = `${UNIQUE_KEY}\n\n${MESSAGE}`;
+          if (POST_MODE === 'update' && COMMENT_ID !== '') {
+            github.rest.issues.updateComment({
+              comment_id: COMMENT_ID,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+          } else {
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+          }
