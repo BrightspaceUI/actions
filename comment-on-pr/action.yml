@@ -24,10 +24,10 @@ runs:
       id: in
       shell: bash
       run: |
-        if [ "$POST_MODE" != 'always' && "$POST_MODE" != 'once' && "$POST_MODE" != 'hide-previous' && "$POST_MODE" != 'update' ]; then
+        if [[ "$POST_MODE" != 'always' && "$POST_MODE" != 'once' && "$POST_MODE" != 'hide-previous' && "$POST_MODE" != 'update' ]]; then
           echo "::error::Invalid input for 'post-mode', must be one of 'always', 'once', 'hide-previous' or 'update'. Was '$POST_MODE'"
           exit 1
-        elif [ "$ONLY_POST_ONCE" == 'true' ]; then
+        elif [[ "$ONLY_POST_ONCE" == 'true' ]]; then
           echo 'post-mode=once' >> $GITHUB_OUTPUT
         else
           echo "post-mode=$POST_MODE" >> $GITHUB_OUTPUT
