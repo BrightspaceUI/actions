@@ -6,8 +6,6 @@ This GitHub action uses the [GitHub REST API](https://octokit.github.io/rest.js/
 
 This action **can only be used on `pull_request` event types**, since it posts to the PR that triggers the action. It can be used to write any comment, and can be combined with other steps in your workflow to convey information from your CI process.
 
-In situations where you only want to post once on a given PR, use `only-post-once: true`. Every comment from this action includes a hidden key in an HTML comment, which is used by `only-post-once` to detect if a post has already been created. Use `unique-key` to specify your own unique key, which can be useful e.g. if you want to uniquely post two different comments.
-
 Here's a sample workflow:
 
 ```yml
@@ -24,12 +22,22 @@ jobs:
           message: |
             Thanks for the PR! 🎉
 
-            This is a sample multiline comment.
-          only-post-once: true
+            This is a sample multi-line comment.
+          post-mode: once
 ```
 
-Options:
+### Options
 
 * `message` (required): The message to display
-* `only-post-once` (default: `false`): Check whether the current message has already been posted before posting again
-* `unique-key` (default: `"gh-actions_comment-on-pr"`): A unique key attached invisibly to the comment, for use with the `only-post-once` option
+* `post-mode` (default: `always`): How posting of the comment will be handled. Options are `always`, `once`, `hide-previous` or `update`. See [below](#post-mode) for details
+* `only-post-once` (default: `false`): This option is deprecated and should not be used going forward. Kept for backward compatibility. Will be removed in the future
+* `unique-key` (default: `"gh-actions_comment-on-pr"`): A unique key attached invisibly to the comment, for use with the `post-mode` option
+
+#### Post Mode
+
+Every comment from this action includes a hidden key in an HTML comment, which is used by `post-mode` to detect if a post has already been created. Use `unique-key` to specify your own unique key, which can be useful e.g. if you want to uniquely post two different comments.
+
+* `always`: This will result in a comment always being posted to the pull request. This is the default mode
+* `once`: The first time the action is run it will post the comment but in subsequent runs it will not post anything
+* `hide-previous`: This will always look for a previous comment with the specified `unique-key` and hide it before posting a new comment with the most recent content
+* `update`: This will find a previous comment with the specified `unique-key` and update the contents of the comment
