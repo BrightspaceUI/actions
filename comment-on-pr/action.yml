@@ -7,16 +7,20 @@ inputs:
   only-post-once:
     description: Check whether the current message has already been posted before posting again
     default: false
-    required: false
+    required: true
     deprecationMessage: 'Please use the input `post-mode: once` instead, this input will be going away in the future'
   post-mode:
     description: 'How posting of the comment will be handled. Options are `always`, `once`, `hide-previous` or `update`'
     default: always
-    required: false
+    required: true
   unique-key:
     description: 'A unique key attached invisibly to the comment, for use with the `only-post-once` option'
     default: gh-actions_comment-on-pr
-    required: false
+    required: true
+  pull-request-number:
+    description: The number of the pull request to post the comment to
+    default: ${{ github.event.pull_request.number }}
+    required: true
 runs:
   using: composite
   steps:
@@ -42,13 +46,13 @@ runs:
       if: steps.in.outputs.post-mode != 'always'
       uses: Brightspace/third-party-actions@peter-evans/find-comment
       with:
-        issue-number: ${{ github.event.pull_request.number }}
+        issue-number: ${{ inputs.pull-request-number }}
         body-includes: ${{ steps.in.outputs.unique-key }}
     - name: Hide previous comment
       if: steps.fc.outputs.comment-id != '' && steps.in.outputs.post-mode == 'hide-previous'
       uses: Brightspace/third-party-actions@int128/hide-comment-action
       with:
-        issue-number: ${{ github.event.pull_request.number }}
+        issue-number: ${{ inputs.pull-request-number }}
         starts-with: ${{ steps.in.outputs.unique-key }}
     - name: Handle PR comment
       if: steps.fc.outputs.comment-id == '' || steps.in.outputs.post-mode != 'once'
