@@ -30,7 +30,7 @@ jobs:
 
 * `message` (required): The message to display
 * `post-mode` (default: `always`): How posting of the comment will be handled. Options are `always`, `once`, `hide-previous` or `update`. See [below](#post-mode) for details
-* `unique-key` (default: `"gh-actions_comment-on-pr"`): A unique key attached invisibly to the comment, for use with the `post-mode` option
+* `unique-key` (default: `gh-actions_comment-on-pr`): A unique key attached invisibly to the comment, for use with the `post-mode` option
 
 #### Post Mode
 
