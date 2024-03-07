@@ -17,6 +17,10 @@ inputs:
     description: 'A unique key attached invisibly to the comment, for use with the `only-post-once` option'
     default: gh-actions_comment-on-pr
     required: false
+  pull-request-number:
+    description: The number of the pull request to post the comment to
+    default: ${{ github.event.pull_request.number }}
+    required: true
 runs:
   using: composite
   steps:
@@ -42,13 +46,13 @@ runs:
       if: steps.in.outputs.post-mode != 'always'
       uses: Brightspace/third-party-actions@peter-evans/find-comment
       with:
-        issue-number: ${{ github.event.pull_request.number }}
+        issue-number: ${{ inputs.pull-request-number }}
         body-includes: ${{ steps.in.outputs.unique-key }}
     - name: Hide previous comment
       if: steps.fc.outputs.comment-id != '' && steps.in.outputs.post-mode == 'hide-previous'
       uses: Brightspace/third-party-actions@int128/hide-comment-action
       with:
-        issue-number: ${{ github.event.pull_request.number }}
+        issue-number: ${{ inputs.pull-request-number }}
         starts-with: ${{ steps.in.outputs.unique-key }}
     - name: Handle PR comment
       if: steps.fc.outputs.comment-id == '' || steps.in.outputs.post-mode != 'once'
