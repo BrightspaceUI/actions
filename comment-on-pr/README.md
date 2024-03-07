@@ -4,9 +4,9 @@ This GitHub action uses the [GitHub REST API](https://octokit.github.io/rest.js/
 
 ## Using the Action
 
-This action **can only be used on `pull_request` event types**, since it posts to the PR that triggers the action. It can be used to write any comment, and can be combined with other steps in your workflow to convey information from your CI process.
+This action can be used to write any comment to any pull request, and can be combined with other steps in your workflow to convey information from your CI process.
 
-Here's a sample workflow:
+Here's a simple example of posting a comment onto a pull request.
 
 ```yml
 name: Comment
@@ -32,6 +32,7 @@ jobs:
 * `post-mode` (default: `always`): How posting of the comment will be handled. Options are `always`, `once`, `hide-previous` or `update`. See [below](#post-mode) for details
 * `only-post-once` (default: `false`): This option is deprecated and should not be used going forward. Kept for backward compatibility. Will be removed in the future
 * `unique-key` (default: `"gh-actions_comment-on-pr"`): A unique key attached invisibly to the comment, for use with the `post-mode` option
+* `pull-request-number` (default: `${{github.event.pull_request.number}}`): The number of the pull request to post the comment to. If running within a pull request context this does not need to be supplied. If running outside of this context it is required.
 
 #### Post Mode
 
