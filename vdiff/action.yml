@@ -169,8 +169,16 @@ runs:
         echo "Clearing .vdiff directory"
         rm -rf .vdiff
 
+        echo "Determine Starting Point"
+        STARTING_POINT="."
+        if [[ ${FILES} != "" ]]; then
+            TRIM_WILDCARDS=`echo ${FILES} | sed 's/\*.*//'`;
+            STARTING_POINT=`dirname "${TRIM_WILDCARDS}"`;
+        fi
+        echo ${STARTING_POINT}
+
         echo "Moving current goldens to .vdiff directory"
-        find . -name golden -type d | while read GOLDEN_DIR; do
+        find ${STARTING_POINT} -name golden -type d | while read GOLDEN_DIR; do
           TEST_PATH=`dirname "${GOLDEN_DIR}"`
           TEST_PATH=${TEST_PATH:2}
 
@@ -182,6 +190,7 @@ runs:
           done
         done
       env:
+        FILES: ${{ inputs.test-files }}
         FORCE_COLOR: 3
       shell: bash
 
