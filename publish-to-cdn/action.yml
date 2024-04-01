@@ -57,3 +57,9 @@ runs:
         cache-default: --cache-control public,max-age=31536000,immutable
         publish-directory: ${{ inputs.publish-directory }}
         public-read: true
+    - name: Publish Complete
+      run: |
+        echo -e "\e[32mFiles available at:\e[0m https://s.brightspace.com/${CDN_PATH}\n"
+      shell: bash
+      env:
+        CDN_PATH: ${{ inputs.cdn-path }}
