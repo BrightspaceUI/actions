@@ -3,6 +3,7 @@
 import chalk from 'chalk';
 import fs from 'fs';
 import { graphql } from '@octokit/graphql';
+import { setOutput } from '@actions/core';
 
 const [owner, repo] = process.env['GITHUB_REPOSITORY'].split('/');
 const approvalToken = process.env['APPROVAL_TOKEN'];
@@ -107,6 +108,7 @@ async function handlePR() {
 							node {
 								id
 								number
+								createdAt
 							}
 						}
 					}
@@ -139,6 +141,13 @@ async function handlePR() {
 
 	if (existingPr) {
 		console.log(`PR for branch ${branchName} already exists: #${existingPr.node.number}.`);
+		const threeDays = 1000 * 60 * 60 * 24 * 3;
+		if (new Date() - new Date(existingPr.node.createdAt) > threeDays) {
+			console.log('PR has been open for more than 3 days.');
+			core.setOutput('stale', 'true');
+			core.setOutput('pr-num', existingPr.node.number);
+		}
+
 		try {
 			await graphqlForPR(
 				`mutation updatePR($pullRequestId: ID!,  $body: String!) {
