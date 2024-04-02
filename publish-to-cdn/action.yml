@@ -59,6 +59,7 @@ runs:
         public-read: true
     - name: Publish Complete
       run: |
+        # Display CDN location
         echo -e "\e[32mFiles available at:\e[0m https://s.brightspace.com/${CDN_PATH}\n"
       shell: bash
       env:
