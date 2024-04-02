@@ -129,7 +129,7 @@ runs:
           channel-id: ${{ env.CHANNEL }}
           payload: >
             {
-              "username": "Stale update-package-lock PR",
+              "username": "${{ github.repository }} Stale update-package-lock PR",
               "icon_emoji": ":update-package-lock:",
               "unfurl_media": false,
               "unfurl_links": false,
@@ -155,7 +155,7 @@ runs:
           channel-id: ${{ env.CHANNEL }}
           payload: >
             {
-              "username": "update-package-lock Issue",
+              "username": "${{ github.repository }} update-package-lock Issue",
               "icon_emoji": ":update-package-lock:",
               "unfurl_media": false,
               "unfurl_links": false,
