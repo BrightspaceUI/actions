@@ -147,7 +147,7 @@ runs:
         env:
           CHANNEL: ${{ inputs.SLACK_CHANNEL_STALE_PR }}
           PR_NUM: ${{ steps.create-pr.outputs.pr-num }}
-          SLACK_BOT_TOKEN: ${{ inputs.D2L_SLACK_TOKEN }}
+          SLACK_BOT_TOKEN: ${{ inputs.SLACK_TOKEN }}
       - name: Notify Slack About Workflow Failure
         if: ${{ failure() && inputs.SLACK_CHANNEL_FAILURE != '' && inputs.SLACK_TOKEN != '' }}
         uses: Brightspace/third-party-actions@slackapi/slack-github-action
@@ -172,4 +172,4 @@ runs:
             }
         env:
           CHANNEL: ${{ inputs.SLACK_CHANNEL_FAILURE }}
-          SLACK_BOT_TOKEN: ${{ inputs.D2L_SLACK_TOKEN }}
+          SLACK_BOT_TOKEN: ${{ inputs.SLACK_TOKEN }}
