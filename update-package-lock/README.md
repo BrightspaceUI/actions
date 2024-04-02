@@ -84,8 +84,8 @@ You can receive slack notifications if the `update-package-lock` action fails (b
 If you set either of these inputs, you'll need to pass the `D2L_SLACK_TOKEN` secret to the `SLACK_TOKEN` input:
 ```
         with:
-          SLACK_CHANNEL_FAILURE: #my-channel
-          SLACK_CHANNEL_STALE_PR: #my-other-channel
+          SLACK_CHANNEL_FAILURE: '#my-channel'
+          SLACK_CHANNEL_STALE_PR: '#my-other-channel'
           SLACK_TOKEN: ${{ secrets.D2L_SLACK_TOKEN }}
 ```
 
