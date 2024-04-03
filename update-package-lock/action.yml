@@ -159,13 +159,13 @@ runs:
               "icon_emoji": ":update-package-lock:",
               "unfurl_media": false,
               "unfurl_links": false,
-              "text": ":fire: ${{ github.repository }} -> Update failed (trigger: ${{ github.event_name }}, run attempt: ${{ github.run_attempt }}).\nSee ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} for details.",
+              "text": ":fire: ${{ github.repository }} -> Update run failed.\nSee ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} for details (trigger: ${{ github.event_name }}, run attempt: ${{ github.run_attempt }})",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ":fire: `${{ github.repository }}` -> Update failed (trigger: `${{ github.event_name }}`, run attempt: ${{ github.run_attempt }}).\nSee the <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|run logs> for details."
+                    "text": ":fire: `${{ github.repository }}` -> Update run failed.\nSee the <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|run logs> for details (trigger: `${{ github.event_name }}`, run attempt: ${{ github.run_attempt }})"
                   }
                 }
               ]
