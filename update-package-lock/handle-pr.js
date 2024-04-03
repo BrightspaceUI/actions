@@ -144,8 +144,8 @@ async function handlePR() {
 		const threeDays = 1000 * 60 * 60; // 1000 * 60 * 60 * 24 * 3
 		if (new Date() - new Date(existingPr.node.createdAt) > threeDays) {
 			console.log('PR has been open for more than 3 days.');
-			core.setOutput('stale', 'true');
-			core.setOutput('pr-num', existingPr.node.number);
+			setOutput('stale', 'true');
+			setOutput('pr-num', existingPr.node.number);
 		}
 
 		try {
