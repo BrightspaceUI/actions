@@ -25,6 +25,12 @@ inputs:
   PR_TITLE:
     description: Title for the opened pull request
     default: 'Updating package-lock.json'
+  SLACK_CHANNEL_FAILURE:
+    description: Slack channel to send action failures to (will skip if not provided)
+  SLACK_CHANNEL_STALE_PR:
+    description: Slack channel to send stale PR warnings to (will skip if not provided)
+  SLACK_TOKEN:
+    description: Slack token for enabling slack notifications (will skip if not provided)
   WORKING_DIRECTORY:
     description: Path where you want to execute the update action
     default: '.'
@@ -42,7 +48,7 @@ runs:
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\e[34mInstalling Dependencies"
-          npm install chalk@5 @octokit/graphql@4 --prefix ${{ github.action_path }} --no-save --loglevel error
+          npm install chalk@5 @octokit/graphql@4 @actions/core@1 --prefix ${{ github.action_path }} --no-save --loglevel error
         shell: bash
       - name: Checkout Branch
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
@@ -95,6 +101,7 @@ runs:
           NODE_AUTH_TOKEN: ${{ inputs.NODE_AUTH_TOKEN }}
         shell: bash
       - name: Create PR (if necessary)
+        id: create-pr
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           if [ ${{ steps.check-for-changes.outputs.changes-exist }} == false ]; then
@@ -115,3 +122,54 @@ runs:
           GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
           PR_TITLE: ${{ inputs.PR_TITLE }}
         shell: bash
+      - name: Notify Slack About Stale PR (if necessary)
+        if: ${{ steps.create-pr.outputs.stale == 'true' && inputs.SLACK_CHANNEL_STALE_PR != '' && inputs.SLACK_TOKEN != '' }}
+        uses: Brightspace/third-party-actions@slackapi/slack-github-action
+        with:
+          channel-id: ${{ env.CHANNEL }}
+          payload: >
+            {
+              "username": "Stale update-package-lock PR",
+              "icon_emoji": ":update-package-lock:",
+              "unfurl_media": false,
+              "unfurl_links": false,
+              "text": ":warning: ${{ github.repository }} -> PR #${{ env.PR_NUM }} (${{ github.server_url }}/${{ github.repository }}/pull/${{ env.PR_NUM }}) to update package-lock.json has been open for more than 3 days.",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": ":warning: `${{ github.repository }}` -> <${{ github.server_url }}/${{ github.repository }}/pull/${{ env.PR_NUM }}|PR #${{ env.PR_NUM }}> to update `package-lock.json` has been open for more than 3 days."
+                  }
+                }
+              ]
+            }
+        env:
+          CHANNEL: ${{ inputs.SLACK_CHANNEL_STALE_PR }}
+          PR_NUM: ${{ steps.create-pr.outputs.pr-num }}
+          SLACK_BOT_TOKEN: ${{ inputs.SLACK_TOKEN }}
+      - name: Notify Slack About Workflow Failure
+        if: ${{ failure() && inputs.SLACK_CHANNEL_FAILURE != '' && inputs.SLACK_TOKEN != '' }}
+        uses: Brightspace/third-party-actions@slackapi/slack-github-action
+        with:
+          channel-id: ${{ env.CHANNEL }}
+          payload: >
+            {
+              "username": "update-package-lock Issue",
+              "icon_emoji": ":update-package-lock:",
+              "unfurl_media": false,
+              "unfurl_links": false,
+              "text": ":fire: ${{ github.repository }} -> Update run failed.\nSee ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} for details (trigger: ${{ github.event_name }}, run attempt: ${{ github.run_attempt }})",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": ":fire: `${{ github.repository }}` -> Update run failed.\nSee the <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|run logs> for details (trigger: `${{ github.event_name }}`, run attempt: ${{ github.run_attempt }})"
+                  }
+                }
+              ]
+            }
+        env:
+          CHANNEL: ${{ inputs.SLACK_CHANNEL_FAILURE }}
+          SLACK_BOT_TOKEN: ${{ inputs.SLACK_TOKEN }}

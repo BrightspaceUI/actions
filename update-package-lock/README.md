@@ -25,7 +25,7 @@ jobs:
           token: ${{ secrets.MY_GITHUB_TOKEN }}
       - uses: Brightspace/third-party-actions@actions/setup-node
         with:
-          node-version: '14'
+          node-version-file: .nvmrc
       - name: Update package-lock.json
         uses: BrightspaceUI/actions/update-package-lock@main
         with:
@@ -42,6 +42,9 @@ Options:
 * `DEFAULT_BRANCH` (default: `main`): Name of the default release branch for your repo.
 * `GITHUB_TOKEN` (required): Token for opening the updates PR. See [setup details](#setting-github-token) below.
 * `PR_TITLE` (default: `Updating package-lock.json`): Title for the opened pull request.
+* `SLACK_CHANNEL_FAILURE`: Optional slack channel to send action failures to
+* `SLACK_CHANNEL_STALE_PR`: Optional slack channel to send stale PR warnings to. A message will be sent if the action updates a PR that has been open for more than 3 days.
+* `SLACK_TOKEN`: Slack token for enabling slack notifications. Only needed if `SLACK_CHANNEL_FAILURE` and/or `SLACK_CHANNEL_STALE_PR` is set. See [setup details](#setting-slack-token) below.
 * `WORKING_DIRECTORY` (default: `.`): The directory to perform all actions within. Useful for repositories with more then one `package-lock.json`.
 
 ## Setting GITHUB_TOKEN
@@ -73,3 +76,17 @@ Like with [setting the `GITHUB_TOKEN` above](#setting-github-token), setting `AU
 ### Auto-Merge Method
 
 When using `AUTO_MERGE_METHOD` you must make sure the repository allows the method of merge selected, otherwise enabling auto merge will fail. By default all new repositories allow `merge` as the merge method hence the default for `AUTO_MERGE_METHOD`. For the merge method `squash` the commit message will be determined by the [squash commit message setting](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/configuring-commit-squashing-for-pull-requests) you have selected.
+
+## Setting SLACK_TOKEN
+
+You can receive slack notifications if the `update-package-lock` action fails (by setting `SLACK_CHANNEL_FAILURE`) or if the update PR is getting stale (by setting `SLACK_CHANNEL_STALE_PR`). This can be helpful if you are using auto-approval and auto-merge, and CODEOWNERS are not added to these PRs.
+
+If you set either of these inputs, you'll need to pass the `D2L_SLACK_TOKEN` secret to the `SLACK_TOKEN` input:
+```
+        with:
+          SLACK_CHANNEL_FAILURE: '#my-channel'
+          SLACK_CHANNEL_STALE_PR: '#my-other-channel'
+          SLACK_TOKEN: ${{ secrets.D2L_SLACK_TOKEN }}
+```
+
+For your repo to have access to `D2L_SLACK_TOKEN`, you'll need to set this up in [`repo-settings`](https://github.com/Brightspace/repo-settings/blob/main/docs/slack.md).
