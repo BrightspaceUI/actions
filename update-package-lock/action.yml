@@ -129,17 +129,17 @@ runs:
           channel-id: ${{ env.CHANNEL }}
           payload: >
             {
-              "username": "${{ github.repository }} -> Stale update-package-lock PR",
+              "username": "Stale update-package-lock PR",
               "icon_emoji": ":update-package-lock:",
               "unfurl_media": false,
               "unfurl_links": false,
-              "text": ":warning: PR #${{ env.PR_NUM }} (${{ github.server_url }}/${{ github.repository }}/pull/${{ env.PR_NUM }}) to update the package-lock.json file has been open for more than 3 days.",
+              "text": ":warning: ${{ github.repository }} -> PR #${{ env.PR_NUM }} (${{ github.server_url }}/${{ github.repository }}/pull/${{ env.PR_NUM }}) to update the package-lock.json file has been open for more than 3 days.",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ":warning: <${{ github.server_url }}/${{ github.repository }}/pull/${{ env.PR_NUM }}|PR #${{ env.PR_NUM }}> to update the `package-lock.json` file has been open for more than 3 days."
+                    "text": ":warning: `${{ github.repository }}` -> <${{ github.server_url }}/${{ github.repository }}/pull/${{ env.PR_NUM }}|PR #${{ env.PR_NUM }}> to update the `package-lock.json` file has been open for more than 3 days."
                   }
                 }
               ]
@@ -155,17 +155,17 @@ runs:
           channel-id: ${{ env.CHANNEL }}
           payload: >
             {
-              "username": "${{ github.repository }} -> update-package-lock Issue",
+              "username": "update-package-lock Issue",
               "icon_emoji": ":update-package-lock:",
               "unfurl_media": false,
               "unfurl_links": false,
-              "text": ":fire: Update failed for ${{ github.event_name }} trigger (run attempt ${{ github.run_attempt }}). See ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} for details.",
+              "text": ":fire: ${{ github.repository }} -> Update failed for ${{ github.event_name }} trigger (run attempt ${{ github.run_attempt }}). See ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} for details.",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ":fire: Update failed for `${{ github.event_name }}` trigger (run attempt ${{ github.run_attempt }}). See the <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|run logs> for details."
+                    "text": ":fire: `${{ github.repository }}` -> Update failed for `${{ github.event_name }}` trigger (run attempt ${{ github.run_attempt }}). See the <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|run logs> for details."
                   }
                 }
               ]
