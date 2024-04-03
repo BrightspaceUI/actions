@@ -21,6 +21,10 @@ inputs:
     description: The number of the pull request to post the comment to
     default: ${{ github.event.pull_request.number }}
     required: true
+outputs:
+  comment-id:
+    description: The ID of the comment that was created or updated
+    value: ${{steps.hc.outputs.id}}
 runs:
   using: composite
   steps:
@@ -55,6 +59,7 @@ runs:
         issue-number: ${{ inputs.pull-request-number }}
         starts-with: ${{ steps.in.outputs.unique-key }}
     - name: Handle PR comment
+      id: hc
       if: steps.fc.outputs.comment-id == '' || steps.in.outputs.post-mode != 'once'
       uses: Brightspace/third-party-actions@actions/github-script
       env:
@@ -73,11 +78,13 @@ runs:
               repo: context.repo.repo,
               body
             });
+            core.setOutput('id', COMMENT_ID);
           } else {
-            github.rest.issues.createComment({
+            const { data: { id } } = await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body
             });
+            core.setOutput('id', id);
           }
