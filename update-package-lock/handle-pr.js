@@ -141,7 +141,7 @@ async function handlePR() {
 
 	if (existingPr) {
 		console.log(`PR for branch ${branchName} already exists: #${existingPr.node.number}.`);
-		const threeDays = 1000 * 60 * 60; // 1000 * 60 * 60 * 24 * 3
+		const threeDays = 1000 * 60 * 60 * 24 * 3;
 		if (new Date() - new Date(existingPr.node.createdAt) > threeDays) {
 			console.log('PR has been open for more than 3 days.');
 			setOutput('stale', 'true');
