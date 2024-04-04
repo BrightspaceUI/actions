@@ -72,7 +72,7 @@ runs:
           const { MESSAGE, UNIQUE_KEY, POST_MODE, COMMENT_ID } = process.env;
           const body = `${UNIQUE_KEY}\n\n${MESSAGE}`;
           if (POST_MODE === 'update' && COMMENT_ID !== '') {
-            github.rest.issues.updateComment({
+            await github.rest.issues.updateComment({
               comment_id: COMMENT_ID,
               owner: context.repo.owner,
               repo: context.repo.repo,
