@@ -41,3 +41,7 @@ Every comment from this action includes a hidden key in an HTML comment, which i
 * `once`: The first time the action is run it will post the comment but in subsequent runs it will not post anything
 * `hide-previous`: This will always look for a previous comment with the specified `unique-key` and hide it before posting a new comment with the most recent content
 * `update`: This will find a previous comment with the specified `unique-key` and update the contents of the comment
+
+### Outputs
+
+* `comment-id`: This will be the ID of any comment that was created or updated. If no comment was created or updated this will be empty
