@@ -24,7 +24,7 @@ inputs:
 outputs:
   comment-id:
     description: The ID of the comment that was created or updated
-    value: ${{steps.hc.outputs.id}}
+    value: ${{ steps.hc.outputs.id }}
 runs:
   using: composite
   steps:
