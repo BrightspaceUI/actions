@@ -1,6 +1,12 @@
 name: Semantic Release
 description: Deploy using semantic-release
 inputs:
+  aws-access-key-id:
+    description: Access key id for the role that will read release info, required for MINOR_RELEASE_WITH_LMS
+  aws-secret-access-key:
+    description: Access key secret for the role that will read release info, required for MINOR_RELEASE_WITH_LMS
+  aws-session-token:
+    description: Session token for the role that will read release info, required for MINOR_RELEASE_WITH_LMS
   DEFAULT_BRANCH:
     description: name of the default release branch
     default: main
@@ -11,7 +17,7 @@ inputs:
     description: Token to use to update version in 'package.json' and create GitHub release
     required: true
   MINOR_RELEASE_WITH_LMS:
-    description: Automatically perform a minor release whenever the LMS release changes (requires RALLY_API_KEY)
+    description: Automatically perform a minor release whenever the LMS release changes
     default: false
   NPM:
     description: Whether or not to release as an NPM package
@@ -45,6 +51,9 @@ runs:
       id: get-lms-version
       uses: Brightspace/lms-version-actions/get-lms-release@main
       with:
+        aws-access-key-id: ${{ inputs.aws-access-key-id }}
+        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
+        aws-session-token: ${{ inputs.aws-session-token }}
         RALLY_API_KEY: ${{ inputs.RALLY_API_KEY }}
     - name: Update Repo's Last LMS Release
       if: ${{ inputs.MINOR_RELEASE_WITH_LMS == 'true' && steps.get-maintenance-version.outputs.IS_MAINTENANCE_BRANCH != 'true' && inputs.DRY_RUN == 'false' && steps.repo-lms-version.outputs.VALUE != steps.get-lms-version.outputs.LMS_VERSION }}

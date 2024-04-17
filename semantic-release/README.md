@@ -39,13 +39,15 @@ jobs:
 
 Options:
 
+* `aws-access-key-id`: Access key id for the role that will read release info, required for MINOR_RELEASE_WITH_LMS
+* `aws-secret-access-key`: Access key secret for the role that will read release info, required for MINOR_RELEASE_WITH_LMS
+* `aws-session-token`: Session token for the role that will read release info, required for MINOR_RELEASE_WITH_LMS
 * `DEFAULT_BRANCH` (default: `"main"`): name of the default release branch
 * `DRY_RUN` (default: `false`): Runs semantic-release with the `--dry-run` flag to simulate a release but not actually do one
 * `GITHUB_TOKEN`: Token to use to update version in 'package.json' and create GitHub release -- see section below on the release token for more details
-* `MINOR_RELEASE_WITH_LMS` (default: `false`): Automatically perform a minor release whenever the LMS release changes (requires `RALLY_API_KEY`)
+* `MINOR_RELEASE_WITH_LMS` (default: `false`): Automatically perform a minor release whenever the LMS release changes (requires `aws-access-key-id`, `aws-secret-access-key` and `aws-session-token` to be passed)
 * `NPM` (default: `false`): Whether or not to release as an NPM package (see "NPM Package Deployment" below for more info)
 * `NPM_TOKEN` (optional if `NPM` is `false` or publishing to CodeArtifact): Token to publish to NPM (see "NPM Package Deployment" below for more info)
-* `RALLY_API_KEY`: Key to access the Rally API, required for `MINOR_RELEASE_WITH_LMS`
 
 Outputs:
 * `VERSION`: will contain the new version number if a release occurred, empty otherwise
@@ -139,6 +141,6 @@ When the LMS version changes -- for example from `20.22.6` to `20.22.7` -- it ca
 
 This ensures that if a patch is required for the previous LMS version in the future, there's room in the version scheme to fit it in.
 
-To enable this feature, set the `MINOR_RELEASE_WITH_LMS` input to `true` and pass in `RALLY_API_KEY`, which will be set as an organization secret.
+To enable this feature, set the `MINOR_RELEASE_WITH_LMS` input to `true` and pass `aws-access-key-id`, `aws-secret-access-key` and `aws-session-token`.
 
 The workflow will then add a `.lmsrelease` file to source control. When the value in that file differs from the current active LMS release, a minor release will automaticaly occur.
