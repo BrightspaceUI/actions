@@ -24,8 +24,6 @@ inputs:
     default: false
   NPM_TOKEN:
     description: Token to publish to NPM (not required for CodeArtifact)
-  RALLY_API_KEY:
-    description: Key to access the Rally API, required for MINOR_RELEASE_WITH_LMS
 outputs:
   VERSION:
     description: Version of the new release
@@ -54,7 +52,6 @@ runs:
         aws-access-key-id: ${{ inputs.aws-access-key-id }}
         aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
         aws-session-token: ${{ inputs.aws-session-token }}
-        RALLY_API_KEY: ${{ inputs.RALLY_API_KEY }}
     - name: Update Repo's Last LMS Release
       if: ${{ inputs.MINOR_RELEASE_WITH_LMS == 'true' && steps.get-maintenance-version.outputs.IS_MAINTENANCE_BRANCH != 'true' && inputs.DRY_RUN == 'false' && steps.repo-lms-version.outputs.VALUE != steps.get-lms-version.outputs.LMS_VERSION }}
       run: |
