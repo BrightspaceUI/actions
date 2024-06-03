@@ -135,7 +135,12 @@ async function handlePR() {
 	let prBody = 'Automatic update of the \`package-lock.json\` file.';
 	const prDependencyDiff = getDependencyDiff();
 
-	if (prDependencyDiff !== '' && (prBody.length + prDependencyDiff.length) < prDescriptionMaxSize) {
+	if ((prBody.length + prDependencyDiff.length) > prDescriptionMaxSize) {
+		prBody += '\n> [!WARNING]\n> Dependency Changes exceed max description length and have been truncated.\n\n';
+		const maxLength = prDescriptionMaxSize - prBody.length;
+		const truncatedLength = prDependencyDiff.lastIndexOf('\n', maxLength);
+		prBody += prDependencyDiff.slice(0, truncatedLength !== -1 ? truncatedLength : maxLength);
+	} else if (prDependencyDiff !== '') {
 		prBody += prDependencyDiff;
 	}
 
