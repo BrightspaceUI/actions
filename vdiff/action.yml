@@ -331,7 +331,7 @@ runs:
         git config user.name github-actions[bot]
         git config user.email 41898282+github-actions[bot]@users.noreply.github.com
         git reset HEAD
-        git add *.png ./.vdiff.json
+        git add '*.png' './.vdiff.json'
         git commit -m 'Updating vdiff goldens'
 
         echo -e "\n\e[34mPushing the vdiff Branch"
