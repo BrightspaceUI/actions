@@ -267,9 +267,9 @@ runs:
           TEST=`basename "${DIR}"`
 
           echo "Passed test count:"
-          echo $(ls ${PASS_DIR} | wc -l | xargs)
+          echo $(find ${PASS_DIR} -type f | wc -l | xargs)
           echo "Existing golden count:"
-          echo $(ls ${PASS_DIR}/../golden | wc -l | xargs)
+          echo $(find ${PASS_DIR}/../golden -type f | wc -l | xargs)
 
           mkdir -p "./${TEST_PATH}/golden/${TEST}"
           mv "${PASS_DIR}/"* "./${TEST_PATH}/golden/${TEST}"
