@@ -280,8 +280,7 @@ runs:
           mv "${PASS_DIR}/"* "./${TEST_PATH}/golden/${TEST}"
         done
 
-        if [[ ${COUNT_MISMATCH} = true ]]; then
-        echo -e "\e[31mGolden count has changed."
+        if [[ ${COUNT_MISMATCH} = true ]]; then echo -e "\e[31mGolden count has changed."; fi
 
         echo "Moving failed screenshots to golden directories"
         find ./.vdiff -name fail -type d | while read FAIL_DIR; do
