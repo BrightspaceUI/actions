@@ -263,7 +263,7 @@ runs:
         echo "Moving passed screenshots back to golden directories"
         COUNT_MISMATCH=false
         echo "passed=true" >> ${GITHUB_OUTPUT}
-        find ./.vdiff -name pass -type d | while read PASS_DIR; do
+        while read PASS_DIR; do
           DIR=`dirname "${PASS_DIR}"`
           TEST_PATH=`dirname "${DIR}"`
           TEST_PATH=${TEST_PATH:9}
@@ -282,7 +282,7 @@ runs:
 
           mkdir -p "./${TEST_PATH}/golden/${TEST}"
           mv "${PASS_DIR}/"* "./${TEST_PATH}/golden/${TEST}"
-        done
+        done <<< "$(find ./.vdiff -name pass -type d)"
 
         echo $COUNT_MISMATCH
         if [[ $COUNT_MISMATCH = true ]]; then echo -e "\e[31mGolden count has changed"; fi
