@@ -276,15 +276,10 @@ runs:
             COUNT_MISMATCH=true
           fi
 
-          echo "passed: ${PASSED_COUNT}"
-          echo "original: ${GOLDEN_COUNT}"
-          echo $COUNT_MISMATCH
-
           mkdir -p "./${TEST_PATH}/golden/${TEST}"
           mv "${PASS_DIR}/"* "./${TEST_PATH}/golden/${TEST}"
         done <<< "$(find ./.vdiff -name pass -type d)"
 
-        echo $COUNT_MISMATCH
         if [[ $COUNT_MISMATCH = true ]]; then echo -e "\e[31mGolden count has changed"; fi
 
         echo "Moving failed screenshots to golden directories"
