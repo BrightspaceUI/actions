@@ -256,6 +256,7 @@ runs:
         only-log-errors: true
 
     - name: Move New Goldens
+      id: move-goldens
       run: |
         echo -e "\e[34mMoving New Goldens to Proper Directories"
 
@@ -266,10 +267,9 @@ runs:
           TEST_PATH=${TEST_PATH:9}
           TEST=`basename "${DIR}"`
 
-          echo "Passed test count:"
-          echo $(find ${PASS_DIR} -type f | wc -l | xargs)
-          echo "Existing golden count:"
-          echo $(find ${PASS_DIR}/../golden -type f | wc -l | xargs)
+          PASSED_COUNT=$(find ${PASS_DIR} -type f | wc -l | xargs)
+          GOLDEN_COUNT $(find ${PASS_DIR}/../golden -type f | wc -l | xargs)
+          if [[ PASSED_COUNT != GOLDEN_COUNT ]]; then echo "passed=true" >> ${GITHUB_OUTPUT} || echo "passed=false" >> ${GITHUB_OUTPUT}
 
           mkdir -p "./${TEST_PATH}/golden/${TEST}"
           mv "${PASS_DIR}/"* "./${TEST_PATH}/golden/${TEST}"
@@ -348,7 +348,7 @@ runs:
         FORCE_COLOR: 3
         ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
         SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
-        TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
+        TESTS_PASSED: ${{ steps.test-run.outputs.passed && steps.move-goldens.outputs.passed }}
         VDIFF_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
       shell: bash
 
@@ -364,7 +364,7 @@ runs:
       env:
         FORCE_COLOR: 3
         GOLDENS_CONFLICT: ${{ steps.commit-goldens.outputs.conflict }}
-        TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
+        TESTS_PASSED: ${{ steps.test-run.outputs.passed && steps.move-goldens.outputs.passed }}
         VDIFF_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
       shell: bash
 
@@ -491,7 +491,7 @@ runs:
         REPORT_PATH: https://vdiff.d2l.dev/${{ steps.prepare-report.outputs.upload-path }}/report/
         REPORT_UPLOADED: ${{ steps.upload-report.outcome }}
         SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
-        TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
+        TESTS_PASSED: ${{ steps.test-run.outputs.passed && steps.move-goldens.outputs.passed }}
         VDIFF_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
 
     - name: Update Commit Status
@@ -551,5 +551,5 @@ runs:
         GOLDENS_CONFLICT: ${{ steps.commit-goldens.outputs.conflict }}
         ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
         PULL_REQUEST_NUM: ${{ steps.pull-request.outputs.num }}
-        TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
+        TESTS_PASSED: ${{ steps.test-run.outputs.passed && steps.move-goldens.outputs.passed }}
         COMMIT_STATUS_NAME: ${{ steps.commit-status-name.outputs.result }}
