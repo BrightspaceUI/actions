@@ -269,7 +269,7 @@ runs:
           echo "Passed test count:"
           echo $(ls ${PASS_DIR} | wc -l | xargs)
           echo "Existing golden count:"
-          echo $(ls ${TEST_PATH}/golden/${TEST} | wc -l | xargs)
+          echo $(ls ${PASS_DIR}/../golden | wc -l | xargs)
 
           mkdir -p "./${TEST_PATH}/golden/${TEST}"
           mv "${PASS_DIR}/"* "./${TEST_PATH}/golden/${TEST}"
