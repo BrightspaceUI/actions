@@ -269,7 +269,7 @@ runs:
 
           PASSED_COUNT=$(find ${PASS_DIR} -type f | wc -l | xargs)
           GOLDEN_COUNT $(find ${PASS_DIR}/../golden -type f | wc -l | xargs)
-          if [[ PASSED_COUNT != GOLDEN_COUNT ]]; then echo "passed=true" >> ${GITHUB_OUTPUT} || echo "passed=false" >> ${GITHUB_OUTPUT}
+          if [[ PASSED_COUNT != GOLDEN_COUNT ]]; then echo "passed=true" >> ${GITHUB_OUTPUT} || echo "passed=false" >> ${GITHUB_OUTPUT}; fi
 
           mkdir -p "./${TEST_PATH}/golden/${TEST}"
           mv "${PASS_DIR}/"* "./${TEST_PATH}/golden/${TEST}"
