@@ -263,7 +263,13 @@ runs:
         echo "Moving passed screenshots back to golden directories"
         COUNT_MISMATCH=false
         echo "passed=true" >> ${GITHUB_OUTPUT}
+
+        echo $(find ./.vdiff -name pass -type d)
+
         while read PASS_DIR; do
+
+          echo $PASS_DIR
+
           DIR=`dirname "${PASS_DIR}"`
           TEST_PATH=`dirname "${DIR}"`
           TEST_PATH=${TEST_PATH:9}
