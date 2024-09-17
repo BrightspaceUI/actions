@@ -263,23 +263,28 @@ runs:
         echo "Moving passed screenshots back to golden directories"
         COUNT_MISMATCH=false
         echo "passed=true" >> ${GITHUB_OUTPUT}
-        while read PASS_DIR; do
-          DIR=`dirname "${PASS_DIR}"`
-          TEST_PATH=`dirname "${DIR}"`
-          TEST_PATH=${TEST_PATH:9}
-          TEST=`basename "${DIR}"`
 
-          if [ -d ${PASS_DIR}/../golden ]; then
-            PASSED_COUNT=$(find ${PASS_DIR} -type f | wc -l | xargs)
-            GOLDEN_COUNT=$(find ${PASS_DIR}/../golden -type f | wc -l | xargs)
-            if [[ ${PASSED_COUNT} != ${GOLDEN_COUNT} ]]; then
-              echo "passed=false" >> ${GITHUB_OUTPUT}
-              COUNT_MISMATCH=true
+        while read PASS_DIR; do
+
+          if [[ $PASS_DIR ]]; then
+            DIR=`dirname "${PASS_DIR}"`
+            TEST_PATH=`dirname "${DIR}"`
+            TEST_PATH=${TEST_PATH:9}
+            TEST=`basename "${DIR}"`
+
+            if [ -d ${PASS_DIR}/../golden ]; then
+              PASSED_COUNT=$(find ${PASS_DIR} -type f | wc -l | xargs)
+              GOLDEN_COUNT=$(find ${PASS_DIR}/../golden -type f | wc -l | xargs)
+              if [[ ${PASSED_COUNT} != ${GOLDEN_COUNT} ]]; then
+                echo "passed=false" >> ${GITHUB_OUTPUT}
+                COUNT_MISMATCH=true
+              fi
             fi
+
+            mkdir -p "./${TEST_PATH}/golden/${TEST}"
+            mv "${PASS_DIR}/"* "./${TEST_PATH}/golden/${TEST}"
           fi
 
-          mkdir -p "./${TEST_PATH}/golden/${TEST}"
-          mv "${PASS_DIR}/"* "./${TEST_PATH}/golden/${TEST}"
         done <<< "$(find ./.vdiff -name pass -type d)"
 
         if [[ $COUNT_MISMATCH = true ]]; then echo -e "\e[31mGolden count has changed"; fi
@@ -312,7 +317,7 @@ runs:
       id: commit-goldens
       run: |
         echo -e "\e[34mCommitting New Goldens (if necessary)"
-        if [ ${TESTS_PASSED} == true ]; then
+        if [ ${TESTS_PASSED} == true ] && [ ${FILES_MATCH} == true ]; then
           echo -e "\e[32mvdiff tests have passed - no new goldens needed.\n"
           exit 0;
         fi
@@ -357,14 +362,15 @@ runs:
         FORCE_COLOR: 3
         ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
         SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
-        TESTS_PASSED: ${{ steps.test-run.outputs.passed && steps.move-goldens.outputs.passed }}
+        TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
+        FILES_MATCH: ${{ steps.move-goldens.outputs.passed }}
         VDIFF_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
       shell: bash
 
     - name: Close Pull Request (if necessary)
       run: |
         echo -e "\e[34mClosing Pull Request (if necessary)"
-        if [ ${TESTS_PASSED} == true ] || [ ${GOLDENS_CONFLICT} == true ]; then
+        if ([ ${TESTS_PASSED} == true ] && [ ${FILES_MATCH} == true ]) || [ ${GOLDENS_CONFLICT} == true ]; then
           if git ls-remote --exit-code --heads origin ${VDIFF_BRANCH}; then
             echo -e "\e[34mClosing Goldens PR and Deleting Branch"
             git push -d origin ${VDIFF_BRANCH} || true
@@ -373,7 +379,8 @@ runs:
       env:
         FORCE_COLOR: 3
         GOLDENS_CONFLICT: ${{ steps.commit-goldens.outputs.conflict }}
-        TESTS_PASSED: ${{ steps.test-run.outputs.passed && steps.move-goldens.outputs.passed }}
+        TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
+        FILES_MATCH: ${{ steps.move-goldens.outputs.passed }}
         VDIFF_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
       shell: bash
 
@@ -384,7 +391,7 @@ runs:
         github-token: ${{ inputs.github-token }}
         script: |
           console.log('\x1b[34mOpening Pull Request (if necessary)');
-          if (process.env.TESTS_PASSED === 'true' || process.env.GOLDENS_EMPTY === 'true' || process.env.GOLDENS_CONFLICT === 'true') return;
+          if ((process.env.TESTS_PASSED === 'true' && process.env.FILES_MATCH === 'true') || process.env.GOLDENS_EMPTY === 'true' || process.env.GOLDENS_CONFLICT === 'true') return;
 
           const prNum = process.env.PULL_REQUEST_NUM;
           const sourceBranchName = process.env.SOURCE_BRANCH;
@@ -500,7 +507,8 @@ runs:
         REPORT_PATH: https://vdiff.d2l.dev/${{ steps.prepare-report.outputs.upload-path }}/report/
         REPORT_UPLOADED: ${{ steps.upload-report.outcome }}
         SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
-        TESTS_PASSED: ${{ steps.test-run.outputs.passed && steps.move-goldens.outputs.passed }}
+        TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
+        FILES_MATCH: ${{ steps.move-goldens.outputs.passed }}
         VDIFF_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
 
     - name: Update Commit Status
@@ -515,7 +523,7 @@ runs:
           }
 
           let state, description, targetUrl;
-          if (process.env.TESTS_PASSED === 'true') {
+          if (process.env.TESTS_PASSED === 'true' && process.env.FILES_MATCH === 'true') {
             state = 'success';
             description = 'Tests have passed.';
             console.log('\x1b[32mCompleted - Build Passed.');
@@ -560,5 +568,6 @@ runs:
         GOLDENS_CONFLICT: ${{ steps.commit-goldens.outputs.conflict }}
         ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
         PULL_REQUEST_NUM: ${{ steps.pull-request.outputs.num }}
-        TESTS_PASSED: ${{ steps.test-run.outputs.passed && steps.move-goldens.outputs.passed }}
+        TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
+        FILES_MATCH: ${{ steps.move-goldens.outputs.passed }}
         COMMIT_STATUS_NAME: ${{ steps.commit-status-name.outputs.result }}
