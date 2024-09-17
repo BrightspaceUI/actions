@@ -317,7 +317,7 @@ runs:
       id: commit-goldens
       run: |
         echo -e "\e[34mCommitting New Goldens (if necessary)"
-        if [ ${TESTS_PASSED} == true && ${FILES_MATCH} == true ]; then
+        if [ ${TESTS_PASSED} == true ] && [ ${FILES_MATCH} == true ]; then
           echo -e "\e[32mvdiff tests have passed - no new goldens needed.\n"
           exit 0;
         fi
@@ -370,7 +370,7 @@ runs:
     - name: Close Pull Request (if necessary)
       run: |
         echo -e "\e[34mClosing Pull Request (if necessary)"
-        if [ ${TESTS_PASSED} == true && ${FILES_MATCH} == true ] || [ ${GOLDENS_CONFLICT} == true ]; then
+        if ([ ${TESTS_PASSED} == true ] && [ ${FILES_MATCH} == true ]) || [ ${GOLDENS_CONFLICT} == true ]; then
           if git ls-remote --exit-code --heads origin ${VDIFF_BRANCH}; then
             echo -e "\e[34mClosing Goldens PR and Deleting Branch"
             git push -d origin ${VDIFF_BRANCH} || true
@@ -523,7 +523,7 @@ runs:
           }
 
           let state, description, targetUrl;
-          if (process.env.TESTS_PASSED === 'true' && process.env.FILES_MATCH) {
+          if (process.env.TESTS_PASSED === 'true' && process.env.FILES_MATCH === 'true') {
             state = 'success';
             description = 'Tests have passed.';
             console.log('\x1b[32mCompleted - Build Passed.');
