@@ -269,11 +269,13 @@ runs:
           TEST_PATH=${TEST_PATH:9}
           TEST=`basename "${DIR}"`
 
-          PASSED_COUNT=$(find ${PASS_DIR} -type f | wc -l | xargs)
-          GOLDEN_COUNT=$(find ${PASS_DIR}/../golden -type f | wc -l | xargs)
-          if [[ ${PASSED_COUNT} != ${GOLDEN_COUNT} ]]; then
-            echo "passed=false" >> ${GITHUB_OUTPUT}
-            COUNT_MISMATCH=true
+          if [ -d ${PASS_DIR}/../golden ]; then
+            PASSED_COUNT=$(find ${PASS_DIR} -type f | wc -l | xargs)
+            GOLDEN_COUNT=$(find ${PASS_DIR}/../golden -type f | wc -l | xargs)
+            if [[ ${PASSED_COUNT} != ${GOLDEN_COUNT} ]]; then
+              echo "passed=false" >> ${GITHUB_OUTPUT}
+              COUNT_MISMATCH=true
+            fi
           fi
 
           mkdir -p "./${TEST_PATH}/golden/${TEST}"
