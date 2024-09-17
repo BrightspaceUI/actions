@@ -363,7 +363,7 @@ runs:
         ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
         SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
         TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
-        FILES_MATCH: steps.move-goldens.outputs.passed }}
+        FILES_MATCH: ${{ steps.move-goldens.outputs.passed }}
         VDIFF_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
       shell: bash
 
@@ -380,7 +380,7 @@ runs:
         FORCE_COLOR: 3
         GOLDENS_CONFLICT: ${{ steps.commit-goldens.outputs.conflict }}
         TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
-        FILES_MATCH: steps.move-goldens.outputs.passed }}
+        FILES_MATCH: ${{ steps.move-goldens.outputs.passed }}
         VDIFF_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
       shell: bash
 
@@ -508,7 +508,7 @@ runs:
         REPORT_UPLOADED: ${{ steps.upload-report.outcome }}
         SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
         TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
-        FILES_MATCH: steps.move-goldens.outputs.passed }}
+        FILES_MATCH: ${{ steps.move-goldens.outputs.passed }}
         VDIFF_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
 
     - name: Update Commit Status
@@ -569,5 +569,5 @@ runs:
         ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
         PULL_REQUEST_NUM: ${{ steps.pull-request.outputs.num }}
         TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
-        FILES_MATCH: steps.move-goldens.outputs.passed }}
+        FILES_MATCH: ${{ steps.move-goldens.outputs.passed }}
         COMMIT_STATUS_NAME: ${{ steps.commit-status-name.outputs.result }}
