@@ -264,7 +264,9 @@ runs:
         COUNT_MISMATCH=false
         echo "passed=true" >> ${GITHUB_OUTPUT}
 
+        echo 'find vdiff'
         echo $(find ./.vdiff -name pass -type d)
+        echo 'after find vdiff'
 
         while read PASS_DIR; do
 
