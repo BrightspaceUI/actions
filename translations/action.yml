@@ -1,0 +1,577 @@
+name: translations
+description: Run translation formatting and open a PR with the changes as necessary
+inputs:
+  aws-access-key-id:
+    description: Access key id for the role that will assume the t9n role
+    required: true
+  aws-secret-access-key:
+    description: Access key secret for the role that will assume the t9n role
+    required: true
+  aws-session-token:
+    description: Session token for the role that will assume the vdiff role
+    required: true
+  t9n-newlines:
+    description: When formatting complex arguments, use newlines and indentation for readability
+    default: false
+  t9n-add:
+    description: Add cases for missing supported pural and selectordinal categories
+    default: false
+  t9n-remove:
+    description: Remove cases for unsupported pural and selectordinal categories
+    default: false
+  t9n-deupe:
+    description: Remove complex argument cases that duplicate the `other` case. Takes precedence over --add.
+    default: false
+  t9n-trim:
+    description: Trim whitespace from both ends of messages
+    default: true
+  t9n-quotes:
+    description: Replace quote characters with locale-appropriate characters ("source", "straight", or "both")
+    default: 'straight'
+  draft-pr:
+    description: Whether to open the translation formatting PR as a draft PR
+    default: true
+  github-token:
+    description: Token used to cleanup branches and open the goldens PR
+    required: true
+
+  t9n-branch-prefix:
+    description: Prefix for vdiff branches
+    default: 'ghworkflow/vdiff'
+runs:
+  using: composite
+  steps:
+    - name: Get Run Info
+      id: run-info
+      run: |
+        echo -e "\e[34mGetting Run Info"
+        if [ ${{ github.event.number }} ]; then
+          SOURCE_BRANCH='${{ github.event.pull_request.head.ref }}'
+          T9N_BRANCH=${PREFIX}-pr-${{ github.event.number }}
+          ORIGINAL_SHA=${{ github.event.pull_request.head.sha }}
+        else
+          SOURCE_BRANCH=${GITHUB_REF#refs/heads/}
+          T9N_BRANCH=${PREFIX}-${GITHUB_REF#refs/heads/}
+          ORIGINAL_SHA=${GITHUB_SHA}
+        fi
+        echo "source-branch=${SOURCE_BRANCH}" >> ${GITHUB_OUTPUT}
+        echo "t9n-branch=${VDIFF_BRANCH}" >> ${GITHUB_OUTPUT}
+        echo "original-sha=${ORIGINAL_SHA}" >> ${GITHUB_OUTPUT}
+      env:
+        FORCE_COLOR: 3
+        PREFIX: ${{ inputs.t9n-branch-prefix }}
+      shell: bash
+
+    - name: Generate Commit Status Name
+      id: commit-status-name
+      uses: Brightspace/third-party-actions@actions/github-script
+      with:
+        github-token: ${{ inputs.github-token }}
+        result-encoding: string
+        script: |
+          console.log('\x1b[34mGenerating Commit Status Name');
+
+          const { data: { jobs } = {} } = await github.rest.actions.listJobsForWorkflowRunAttempt({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            run_id: context.runId,
+            attempt_number: process.env.GITHUB_RUN_ATTEMPT
+          });
+          const runnerName = process.env.RUNNER_NAME;
+          const jobNames = jobs
+            .filter(({runner_name}) => runner_name === runnerName)
+            .map(({name}) => name);
+          const jobName = jobNames.length === 1 ? jobNames[0] : context.job;
+          const resultsText = jobName[0].toUpperCase() === jobName[0] ? 'Results' : 'results';
+
+          return `${context.workflow} / ${jobName} ${resultsText} (${context.eventName})`;
+      env:
+        FORCE_COLOR: 3
+
+    - name: Create Commit Status
+      uses: Brightspace/third-party-actions@actions/github-script
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          console.log('\x1b[34mCreating Pending Commit Status');
+          if (context.actor === 'dependabot[bot]') {
+            console.log('\x1b[33mActor is dependabot - skipping custom commit status.');
+            return;
+          }
+
+          await github.rest.repos.createCommitStatus({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            sha: process.env.ORIGINAL_SHA,
+            state: 'pending',
+            description: 'Run in progress',
+            context: process.env.COMMIT_STATUS_NAME
+          });
+      env:
+        FORCE_COLOR: 3
+        ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
+        COMMIT_STATUS_NAME: ${{ steps.commit-status-name.outputs.result }}
+
+    - name: vdiff Branch Cleanup
+      uses: Brightspace/third-party-actions@actions/github-script
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          console.log('\x1b[34mCleaning Up Orphaned vdiff Branches');
+          const branchPrefix = `${process.env.PREFIX}-pr-`;
+
+          const vdiffBranches = await github.rest.git.listMatchingRefs({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: `heads/${branchPrefix}`
+          });
+
+          for (let i = 0; i < vdiffBranches.data.length; i++) {
+            const branch = vdiffBranches.data[i].ref;
+            const prNum = branch.slice(branch.lastIndexOf('-') + 1);
+
+            let prInfo,
+              prOpen = true;
+            try {
+              prInfo = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNum
+              });
+
+              if (prInfo.data.state !== 'open') {
+                prOpen = false;
+              }
+            } catch (e) {
+              console.log(`\x1b[31m${e}`);
+              console.log(`\x1b[31mCould not get details for PR #${prNum} - skipping branch ${branch}.`);
+              continue;
+            }
+
+            if (!prOpen) {
+              console.log(`PR #${prNum} is no longer open - deleting branch ${branch}.\n`);
+              try {
+                await github.rest.git.deleteRef({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: branch.substring(5)
+                });
+              } catch (e) {
+                console.log(`\x1b[31m${e}`);
+                console.log(`\x1b[31mCould not delete branch ${branch}.`);
+              }
+            }
+          }
+          console.log('Done processing vdiff branches.\n');
+      env:
+        FORCE_COLOR: 3
+        PREFIX: ${{ inputs.vdiff-branch-prefix }}
+
+    - name: Move Current Goldens
+      run: |
+        echo -e "\e[34mMoving Current Goldens to .vdiff"
+        echo "Clearing .vdiff directory"
+        rm -rf .vdiff
+
+        echo "Determine Starting Point"
+        STARTING_POINT="."
+        if [[ ${FILES} != "" ]]; then
+            TRIM_WILDCARDS=`echo ${FILES} | sed 's/\*.*//'`;
+            STARTING_POINT=`dirname "${TRIM_WILDCARDS}"`;
+        fi
+        echo ${STARTING_POINT}
+
+        echo "Moving current goldens to .vdiff directory"
+        find ${STARTING_POINT} -name golden -type d | while read GOLDEN_DIR; do
+          TEST_PATH=`dirname "${GOLDEN_DIR}"`
+          TEST_PATH=${TEST_PATH:2}
+
+          if [[ ${TEST_PATH} == *screenshots/ci ]]; then continue; fi
+
+          for TEST in `ls "${GOLDEN_DIR}"`; do
+            mkdir -p "./.vdiff/${TEST_PATH}/${TEST}/golden"
+            mv "${GOLDEN_DIR}/${TEST}/"* "./.vdiff/${TEST_PATH}/${TEST}/golden"
+          done
+        done
+      env:
+        FILES: ${{ inputs.test-files }}
+        FORCE_COLOR: 3
+      shell: bash
+
+    - name: Run vdiff Tests
+      id: test-run
+      run: |
+        echo -e "\e[34mRunning vdiff Tests"
+        if [[ ${FILES} != "" ]]; then FLAGS="--files ${FILES} "; fi
+        if [[ ${TIMEOUT} != "" ]]; then FLAGS="${FLAGS}--timeout ${TIMEOUT} "; fi
+        if [[ ${CHROME} == "true" ]]; then FLAGS="${FLAGS}--chrome "; fi
+        if [[ ${FIREFOX} == "true" ]]; then FLAGS="${FLAGS}--firefox "; fi
+        if [[ ${SAFARI} == "true" ]]; then FLAGS="${FLAGS}--safari "; fi
+        if [[ ${CONFIG} != "" ]]; then FLAGS="${FLAGS}--config ${CONFIG}"; fi
+
+        npx d2l-test-runner vdiff ${FLAGS} && echo "passed=true" >> ${GITHUB_OUTPUT} || echo "passed=false" >> ${GITHUB_OUTPUT}
+      env:
+        CHROME: ${{ inputs.test-chrome }}
+        CONFIG: ${{ inputs.test-config }}
+        FILES: ${{ inputs.test-files }}
+        FIREFOX: ${{ inputs.test-firefox }}
+        FORCE_COLOR: 3
+        SAFARI: ${{ inputs.test-safari }}
+        TIMEOUT: ${{ inputs.test-timeout }}
+      shell: bash
+
+    - name: Prepare Report
+      id: prepare-report
+      if: ${{ inputs.aws-access-key-id }}
+      continue-on-error: true
+      run: |
+        echo -e "\e[34mPreparing vdiff Report"
+        mv "./.vdiff/.report/" "./.vdiff/report/"
+
+        DATE_TIME=$(date '+%Y-%m-%d_%H-%M-%S');
+        UPLOAD_PATH="${{ github.repository }}/${ORIGINAL_SHA}/${DATE_TIME}"
+        echo "upload-path=${UPLOAD_PATH}" >> ${GITHUB_OUTPUT}
+      env:
+        FORCE_COLOR: 3
+        ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
+      shell: bash
+
+    - name: Assume vdiff Role for Uploading Report
+      if: ${{ inputs.aws-access-key-id && steps.prepare-report.outputs.upload-path }}
+      continue-on-error: true
+      uses: Brightspace/third-party-actions@aws-actions/configure-aws-credentials
+      with:
+        aws-access-key-id: ${{ inputs.aws-access-key-id }}
+        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
+        aws-session-token: ${{ inputs.aws-session-token }}
+        role-to-assume: "arn:aws:iam::037018655140:role/visual-diff-githubactions-access"
+        role-duration-seconds: 3600
+        aws-region: ca-central-1
+
+    - name: Upload Report
+      id: upload-report
+      if: ${{ inputs.aws-access-key-id && steps.prepare-report.outputs.upload-path }}
+      continue-on-error: true
+      uses: BrightspaceUI/actions/publish-to-s3@main
+      with:
+        bucket-path: s3://visual-diff.d2l.dev/reports/${{ steps.prepare-report.outputs.upload-path }}/
+        cache-default: --cache-control max-age=120
+        publish-directory: ./.vdiff/
+        only-log-errors: true
+
+    - name: Move New Goldens
+      id: move-goldens
+      run: |
+        echo -e "\e[34mMoving New Goldens to Proper Directories"
+
+        echo "Moving passed screenshots back to golden directories"
+        COUNT_MISMATCH=false
+        echo "passed=true" >> ${GITHUB_OUTPUT}
+
+        while read PASS_DIR; do
+
+          if [[ $PASS_DIR ]]; then
+            DIR=`dirname "${PASS_DIR}"`
+            TEST_PATH=`dirname "${DIR}"`
+            TEST_PATH=${TEST_PATH:9}
+            TEST=`basename "${DIR}"`
+
+            if [ -d ${PASS_DIR}/../golden ]; then
+              PASSED_COUNT=$(find ${PASS_DIR} -type f | wc -l | xargs)
+              GOLDEN_COUNT=$(find ${PASS_DIR}/../golden -type f | wc -l | xargs)
+              if [[ ${PASSED_COUNT} != ${GOLDEN_COUNT} ]]; then
+                echo "passed=false" >> ${GITHUB_OUTPUT}
+                COUNT_MISMATCH=true
+              fi
+            fi
+
+            mkdir -p "./${TEST_PATH}/golden/${TEST}"
+            mv "${PASS_DIR}/"* "./${TEST_PATH}/golden/${TEST}"
+          fi
+
+        done <<< "$(find ./.vdiff -name pass -type d)"
+
+        if [[ $COUNT_MISMATCH = true ]]; then echo -e "\e[31mGolden count has changed"; fi
+
+        echo "Moving failed screenshots to golden directories"
+        find ./.vdiff -name fail -type d | while read FAIL_DIR; do
+          DIR=`dirname "${FAIL_DIR}"`
+          TEST_PATH=`dirname "${DIR}"`
+          TEST_PATH=${TEST_PATH:9}
+          TEST=`basename "${DIR}"`
+
+          for BROWSER in `ls "${FAIL_DIR}"`; do
+            mkdir -p "./${TEST_PATH}/golden/${TEST}/${BROWSER}"
+            for PNG in `ls "${FAIL_DIR}/${BROWSER}"`; do
+              NAME=`basename "${PNG}"`
+              if  [[ ${NAME} != *"-diff.png" ]] && [[ ${NAME} != *"-resized-golden.png" ]] && [[ ${NAME} != *"-resized-screenshot.png" ]]; then
+                mv "${FAIL_DIR}/${BROWSER}/${PNG}" "./${TEST_PATH}/golden/${TEST}/${BROWSER}/${PNG}"
+              fi
+            done
+          done
+        done
+
+        echo "Clearing .vdiff directory"
+        rm -rf .vdiff
+      env:
+        FORCE_COLOR: 3
+      shell: bash
+
+    - name: Commit New Goldens (if necessary)
+      id: commit-goldens
+      run: |
+        echo -e "\e[34mCommitting New Goldens (if necessary)"
+        if [ ${TESTS_PASSED} == true ] && [ ${FILES_MATCH} == true ]; then
+          echo -e "\e[32mvdiff tests have passed - no new goldens needed.\n"
+          exit 0;
+        fi
+        echo -e "\e[31mvdiff tests failed - generating new goldens."
+
+        echo -e "\n\e[34mCreating the vdiff Branch"
+        git stash --include-untracked
+        git fetch origin +refs/heads/${SOURCE_BRANCH}:refs/heads/${SOURCE_BRANCH} -q -u || true
+        git checkout ${SOURCE_BRANCH}
+        git checkout -b ${VDIFF_BRANCH}
+        if [ $(git rev-parse HEAD) != ${ORIGINAL_SHA} ]; then
+          echo -e "\e[31mBranch out of date - more commits have been added to the '${SOURCE_BRANCH}' branch since this action started running.  Stopping this test run."
+          exit 1;
+        fi
+
+        echo "empty=false" >> ${GITHUB_OUTPUT}
+        echo "conflict=false" >> ${GITHUB_OUTPUT}
+        if [ $(git stash list | wc -l) == 0 ]; then
+          echo -e "\e[31mNo changes to apply - please see errors above."
+          echo "empty=true" >> ${GITHUB_OUTPUT}
+          exit 0;
+        fi
+        if ! git stash apply; then
+          echo -e "\e[31mCould not apply stash - merge conflicts with ${{ github.event.pull_request.base.ref }}."
+          echo "conflict=true" >> ${GITHUB_OUTPUT}
+          exit 0;
+        fi
+
+        echo -e "\n\e[34mCommitting new goldens"
+        git config user.name github-actions[bot]
+        git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+        git reset HEAD
+        git add '*.png' './.vdiff.json'
+        git commit -m 'Updating vdiff goldens'
+
+        echo -e "\n\e[34mPushing the vdiff Branch"
+        if [ ${{ github.actor }} == 'dependabot[bot]' ]; then
+          echo -e "\e[33mThis will fail if Dependabot has a read-only token - push an empty commit or close and re-open the PR to change the actor."
+        fi
+        git push --force origin ${VDIFF_BRANCH}
+      env:
+        FORCE_COLOR: 3
+        ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
+        SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
+        TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
+        FILES_MATCH: ${{ steps.move-goldens.outputs.passed }}
+        VDIFF_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
+      shell: bash
+
+    - name: Close Pull Request (if necessary)
+      run: |
+        echo -e "\e[34mClosing Pull Request (if necessary)"
+        if ([ ${TESTS_PASSED} == true ] && [ ${FILES_MATCH} == true ]) || [ ${GOLDENS_CONFLICT} == true ]; then
+          if git ls-remote --exit-code --heads origin ${VDIFF_BRANCH}; then
+            echo -e "\e[34mClosing Goldens PR and Deleting Branch"
+            git push -d origin ${VDIFF_BRANCH} || true
+          fi
+        fi
+      env:
+        FORCE_COLOR: 3
+        GOLDENS_CONFLICT: ${{ steps.commit-goldens.outputs.conflict }}
+        TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
+        FILES_MATCH: ${{ steps.move-goldens.outputs.passed }}
+        VDIFF_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
+      shell: bash
+
+    - name: Open Pull Request (if necessary)
+      id: pull-request
+      uses: Brightspace/third-party-actions@actions/github-script
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          console.log('\x1b[34mOpening Pull Request (if necessary)');
+          if ((process.env.TESTS_PASSED === 'true' && process.env.FILES_MATCH === 'true') || process.env.GOLDENS_EMPTY === 'true' || process.env.GOLDENS_CONFLICT === 'true') return;
+
+          const prNum = process.env.PULL_REQUEST_NUM;
+          const sourceBranchName = process.env.SOURCE_BRANCH;
+          const goldensBranchName = process.env.VDIFF_BRANCH;
+          if (prNum) {
+            console.log('\nTests triggered by PR - Verifying PR information');
+            let prInfo;
+            try {
+              prInfo = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNum
+              });
+            } catch (e) {
+              console.log(`\x1b[31mCould not find PR #${prNum} that triggered the vdiff test run`);
+              console.log(e);
+              return;
+            }
+
+            if (prInfo.data.head.ref !== sourceBranchName) {
+              console.log('\x1b[31mBranch name does not match what is expected.');
+              return;
+            } else if (prInfo.data.state !== 'open') {
+              console.log('\x1b[31mPR that triggered the vdiff test run is no longer open.');
+              return;
+            }
+            console.log(`New goldens are for PR #${prNum} (branch: ${sourceBranchName})`);
+          } else {
+            console.log('\nTests triggered by push to branch - Verifying branch information');
+            try {
+              await github.rest.repos.getBranch({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                branch: sourceBranchName
+              });
+            } catch (e) {
+              console.log(`\x1b[31mCould not find branch ${sourceBranchName} that triggered the vdiff test run.`);
+              console.log(e);
+              return;
+            }
+            console.log(`New goldens are for branch ${sourceBranchName}`);
+          }
+
+          console.log('\x1b[34m\nChecking For Existing Goldens PR');
+          const goldenPRs = await github.rest.pulls.list({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            head: `${context.repo.owner}:refs/heads/${goldensBranchName}`,
+            base: `refs/heads/${sourceBranchName}`,
+            state: 'open'
+          });
+
+          let prBody = `This pull request updates the vdiff goldens for ${prNum ? `the changes in pull request #${prNum}.` : `branch \`${sourceBranchName}\`.`}`;
+          if (process.env.REPORT_UPLOADED === 'success') {
+            prBody = `${prBody}\n\nPlease review the [resulting report](${process.env.REPORT_PATH}) closely before merging to ensure the visual differences are expected.`;
+          } else {
+            prBody = `${prBody}\n\n**Note:** The report could not be uploaded. Please review the ["Setting Up AWS Access Creds" section](https://github.com/BrightspaceUI/actions/tree/main/vdiff#setting-up-aws-access-creds) of the vdiff action's README.`;
+          }
+
+          let goldenPrNum;
+          if (goldenPRs.data.length === 0) {
+            console.log('Goldens PR does not exist');
+            console.log('\x1b[34m\nOpening new goldens PR');
+            const newPR = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: prNum ? `Updating vdiff goldens for PR ${prNum}` : `Updating vdiff goldens for Branch ${sourceBranchName}`,
+              head: `refs/heads/${goldensBranchName}`,
+              base: `refs/heads/${sourceBranchName}`,
+              draft: process.env['DRAFT_PR'].toLowerCase() === 'false' ? false : true,
+              body: prBody
+            });
+            goldenPrNum = newPR.data.number;
+            console.log(`PR #${goldenPrNum} opened: ${newPR.data.html_url}`);
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: goldenPrNum,
+              labels: ['auto-vdiff']
+            });
+          } else {
+            goldenPrNum = goldenPRs.data[0].number;
+            console.log(`Goldens PR already exists: ${goldenPRs.data[0].html_url}`);
+            console.log('Updating PR description');
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: goldenPrNum,
+              body: prBody
+            });
+          }
+          core.setOutput('num', goldenPrNum);
+
+          console.log('Adding PR Reviewers');
+          try {
+            await github.rest.pulls.requestReviewers({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: goldenPrNum,
+              reviewers: [process.env.GITHUB_ACTOR]
+            });
+          } catch (e) {
+            console.log('Could not add reviewer (expected for Dependabot and GitHub Action PRs):');
+            console.log(e);
+          }
+      env:
+        FORCE_COLOR: 3
+        DRAFT_PR: ${{ inputs.draft-pr }}
+        GOLDENS_EMPTY: ${{ steps.commit-goldens.outputs.empty }}
+        GOLDENS_CONFLICT: ${{ steps.commit-goldens.outputs.conflict }}
+        PULL_REQUEST_NUM: ${{ github.event.number }}
+        PULL_REQUEST_BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+        REPORT_PATH: https://vdiff.d2l.dev/${{ steps.prepare-report.outputs.upload-path }}/report/
+        REPORT_UPLOADED: ${{ steps.upload-report.outcome }}
+        SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
+        TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
+        FILES_MATCH: ${{ steps.move-goldens.outputs.passed }}
+        VDIFF_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
+
+    - name: Update Commit Status
+      uses: Brightspace/third-party-actions@actions/github-script
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          console.log('\x1b[34mUpdating Commit Status');
+          if (context.actor === 'dependabot[bot]') {
+            console.log('\x1b[33mActor is dependabot - skipping custom commit status update.');
+            return;
+          }
+
+          let state, description, targetUrl;
+          if (process.env.TESTS_PASSED === 'true' && process.env.FILES_MATCH === 'true') {
+            state = 'success';
+            description = 'Tests have passed.';
+            console.log('\x1b[32mCompleted - Build Passed.');
+          } else {
+            if (process.env.GOLDENS_EMPTY === 'true') {
+              state = 'error';
+              description = 'Could not generate new goldens: Check the vdiff workflow run log for errors. ->';
+              targetUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+              console.log('\x1b[31mCould not generate new goldens: See errors above.');
+            } else if (process.env.GOLDENS_CONFLICT === 'true') {
+              state = 'error';
+              description = 'Could not generate new goldens: Rebase or merge in the base branch. Your changes will update goldens you don\'t have the latest version of.';
+              console.log(`\x1b[31m${description}`);
+            } else {
+              state = 'failure';
+              if (process.env.PULL_REQUEST_NUM) {
+                description = `Tests failed: PR #${process.env.PULL_REQUEST_NUM} has been opened with the updated goldens. ->`;
+                targetUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/pull/${process.env.PULL_REQUEST_NUM}`;
+                console.log(`\x1b[31mTests failed: ${targetUrl} opened with the updated goldens.`);
+              } else {
+                description = 'Could not open goldens PR: Check the vdiff workflow run log for errors. ->';
+                targetUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+                console.log('\x1b[31mCould not open goldens PR: See errors above.');
+              }
+            }
+
+            core.setFailed('Completed - Build Failed.');
+          }
+
+          await github.rest.repos.createCommitStatus({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            sha: process.env.ORIGINAL_SHA,
+            state: state,
+            target_url: targetUrl,
+            description: description,
+            context: process.env.COMMIT_STATUS_NAME
+          });
+      env:
+        FORCE_COLOR: 3
+        GOLDENS_EMPTY: ${{ steps.commit-goldens.outputs.empty }}
+        GOLDENS_CONFLICT: ${{ steps.commit-goldens.outputs.conflict }}
+        ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
+        PULL_REQUEST_NUM: ${{ steps.pull-request.outputs.num }}
+        TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
+        FILES_MATCH: ${{ steps.move-goldens.outputs.passed }}
+        COMMIT_STATUS_NAME: ${{ steps.commit-status-name.outputs.result }}
