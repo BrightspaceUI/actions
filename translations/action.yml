@@ -15,12 +15,12 @@ inputs:
     description: When formatting complex arguments, use newlines and indentation for readability
     default: false
   t9n-add:
-    description: Add cases for missing supported pural and selectordinal categories
+    description: Add cases for missing supported plural and selectordinal categories
     default: false
   t9n-remove:
-    description: Remove cases for unsupported pural and selectordinal categories
+    description: Remove cases for unsupported plural and selectordinal categories
     default: false
-  t9n-deupe:
+  t9n-dedupe:
     description: Remove complex argument cases that duplicate the `other` case. Takes precedence over --add.
     default: false
   t9n-trim:
@@ -85,7 +85,7 @@ runs:
             .filter(({runner_name}) => runner_name === runnerName)
             .map(({name}) => name);
           const jobName = jobNames.length === 1 ? jobNames[0] : context.job;
-          console.log(jobNames)
+          console.log(jobNames);
           const resultsText = jobName[0].toUpperCase() === jobName[0] ? 'Results' : 'results';
 
           return `${context.workflow} / ${jobName} ${resultsText} (${context.eventName})`;
@@ -193,9 +193,9 @@ runs:
 
     - name: Format Translations - Remove
       run: |
-        echo -e "\e[34mFormatting translations - Add"
+        echo -e "\e[34mFormatting translations - Remove"
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
-        if [[ ${remove} != "" ]]; then FLAGS="${FLAGS}--remove "; fi
+        if [[ ${REMOVE} != "" ]]; then FLAGS="${FLAGS}--remove "; fi
 
         npx mfv format ${FLAGS}
         if git diff; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
@@ -247,7 +247,7 @@ runs:
       id: commit-changes
       run: |
         echo -e "\e[34mCommitting translation changes (if necessary)"
-        if [ /* no git diff */ ]; then
+        if git diff --quiet; then
           echo -e "\e[32m - no changes needed.\n"
           exit 0;
         fi
@@ -278,7 +278,7 @@ runs:
 
         echo -e "\n\e[34mCommitting translation changes"
         git config user.name github-actions[bot]
-        // what dis
+        # what dis
         git config user.email 41898282+github-actions[bot]@users.noreply.github.com
         git reset HEAD
         git add -u
@@ -304,7 +304,7 @@ runs:
         fi
       env:
         FORCE_COLOR: 3
-        FOTMAT_CONFLICT: ${{ steps.commit-changes.outputs.conflict }}
+        FORMAT_CONFLICT: ${{ steps.commit-changes.outputs.conflict }}
         FORMAT_DIFF: ${{ steps.move-goldens.outputs.passed }}
         T9N_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
       shell: bash
