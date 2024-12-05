@@ -1,16 +1,6 @@
 name: translations
 description: Run translation formatting and open a PR with the changes as necessary
 inputs:
-  aws-access-key-id:
-    description: Access key id for the role that will assume the t9n role
-    required: true
-  aws-secret-access-key:
-    description: Access key secret for the role that will assume the t9n role
-    required: true
-  aws-session-token:
-    description: Session token for the role that will assume the t9n role
-    required: true
-
   t9n-newlines:
     description: When formatting complex arguments, use newlines and indentation for readability
     default: false
