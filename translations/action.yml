@@ -8,8 +8,9 @@ inputs:
     description: Access key secret for the role that will assume the t9n role
     required: true
   aws-session-token:
-    description: Session token for the role that will assume the vdiff role
+    description: Session token for the role that will assume the t9n role
     required: true
+
   t9n-newlines:
     description: When formatting complex arguments, use newlines and indentation for readability
     default: false
@@ -28,6 +29,7 @@ inputs:
   t9n-quotes:
     description: Replace quote characters with locale-appropriate characters ("source", "straight", or "both")
     default: 'straight'
+
   draft-pr:
     description: Whether to open the translation formatting PR as a draft PR
     default: true
@@ -36,8 +38,9 @@ inputs:
     required: true
 
   t9n-branch-prefix:
-    description: Prefix for vdiff branches
-    default: 'ghworkflow/vdiff'
+    description: Prefix for translation branches
+    default: 'translation'
+
 runs:
   using: composite
   steps:
@@ -55,7 +58,7 @@ runs:
           ORIGINAL_SHA=${GITHUB_SHA}
         fi
         echo "source-branch=${SOURCE_BRANCH}" >> ${GITHUB_OUTPUT}
-        echo "t9n-branch=${VDIFF_BRANCH}" >> ${GITHUB_OUTPUT}
+        echo "t9n-branch=${T9N_BRANCH}" >> ${GITHUB_OUTPUT}
         echo "original-sha=${ORIGINAL_SHA}" >> ${GITHUB_OUTPUT}
       env:
         FORCE_COLOR: 3
@@ -82,6 +85,7 @@ runs:
             .filter(({runner_name}) => runner_name === runnerName)
             .map(({name}) => name);
           const jobName = jobNames.length === 1 ? jobNames[0] : context.job;
+          console.log(jobNames)
           const resultsText = jobName[0].toUpperCase() === jobName[0] ? 'Results' : 'results';
 
           return `${context.workflow} / ${jobName} ${resultsText} (${context.eventName})`;
@@ -94,17 +98,13 @@ runs:
         github-token: ${{ inputs.github-token }}
         script: |
           console.log('\x1b[34mCreating Pending Commit Status');
-          if (context.actor === 'dependabot[bot]') {
-            console.log('\x1b[33mActor is dependabot - skipping custom commit status.');
-            return;
-          }
 
           await github.rest.repos.createCommitStatus({
             owner: context.repo.owner,
             repo: context.repo.repo,
             sha: process.env.ORIGINAL_SHA,
             state: 'pending',
-            description: 'Run in progress',
+            description: 'Formatting in progress',
             context: process.env.COMMIT_STATUS_NAME
           });
       env:
@@ -112,22 +112,22 @@ runs:
         ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
         COMMIT_STATUS_NAME: ${{ steps.commit-status-name.outputs.result }}
 
-    - name: vdiff Branch Cleanup
+    - name: Translation Branch Cleanup
       uses: Brightspace/third-party-actions@actions/github-script
       with:
         github-token: ${{ inputs.github-token }}
         script: |
-          console.log('\x1b[34mCleaning Up Orphaned vdiff Branches');
+          console.log('\x1b[34mCleaning Up Orphaned Translation Branches');
           const branchPrefix = `${process.env.PREFIX}-pr-`;
 
-          const vdiffBranches = await github.rest.git.listMatchingRefs({
+          const t9nBranches = await github.rest.git.listMatchingRefs({
             owner: context.repo.owner,
             repo: context.repo.repo,
             ref: `heads/${branchPrefix}`
           });
 
-          for (let i = 0; i < vdiffBranches.data.length; i++) {
-            const branch = vdiffBranches.data[i].ref;
+          for (let i = 0; i < t9nBranches.data.length; i++) {
+            const branch = t9nBranches.data[i].ref;
             const prNum = branch.slice(branch.lastIndexOf('-') + 1);
 
             let prInfo,
@@ -162,178 +162,104 @@ runs:
               }
             }
           }
-          console.log('Done processing vdiff branches.\n');
+          console.log('Done processing translation branches.\n');
       env:
         FORCE_COLOR: 3
-        PREFIX: ${{ inputs.vdiff-branch-prefix }}
+        PREFIX: ${{ inputs.t9n-branch-prefix }}
 
-    - name: Move Current Goldens
+    - name: Format Translations - Newlines
       run: |
-        echo -e "\e[34mMoving Current Goldens to .vdiff"
-        echo "Clearing .vdiff directory"
-        rm -rf .vdiff
+        echo -e "\e[34mFormatting translations - Newlines"
+        if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
 
-        echo "Determine Starting Point"
-        STARTING_POINT="."
-        if [[ ${FILES} != "" ]]; then
-            TRIM_WILDCARDS=`echo ${FILES} | sed 's/\*.*//'`;
-            STARTING_POINT=`dirname "${TRIM_WILDCARDS}"`;
-        fi
-        echo ${STARTING_POINT}
-
-        echo "Moving current goldens to .vdiff directory"
-        find ${STARTING_POINT} -name golden -type d | while read GOLDEN_DIR; do
-          TEST_PATH=`dirname "${GOLDEN_DIR}"`
-          TEST_PATH=${TEST_PATH:2}
-
-          if [[ ${TEST_PATH} == *screenshots/ci ]]; then continue; fi
-
-          for TEST in `ls "${GOLDEN_DIR}"`; do
-            mkdir -p "./.vdiff/${TEST_PATH}/${TEST}/golden"
-            mv "${GOLDEN_DIR}/${TEST}/"* "./.vdiff/${TEST_PATH}/${TEST}/golden"
-          done
-        done
+        npx mfv format ${FLAGS}
+        if git diff; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
       env:
-        FILES: ${{ inputs.test-files }}
-        FORCE_COLOR: 3
+        NEWLINES: ${{ inputs.t9n-newlines }}
       shell: bash
 
-    - name: Run vdiff Tests
-      id: test-run
+    - name: Format Translations - Add
       run: |
-        echo -e "\e[34mRunning vdiff Tests"
-        if [[ ${FILES} != "" ]]; then FLAGS="--files ${FILES} "; fi
-        if [[ ${TIMEOUT} != "" ]]; then FLAGS="${FLAGS}--timeout ${TIMEOUT} "; fi
-        if [[ ${CHROME} == "true" ]]; then FLAGS="${FLAGS}--chrome "; fi
-        if [[ ${FIREFOX} == "true" ]]; then FLAGS="${FLAGS}--firefox "; fi
-        if [[ ${SAFARI} == "true" ]]; then FLAGS="${FLAGS}--safari "; fi
-        if [[ ${CONFIG} != "" ]]; then FLAGS="${FLAGS}--config ${CONFIG}"; fi
+        echo -e "\e[34mFormatting translations - Add"
+        if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
+        if [[ ${ADD} != "" ]]; then FLAGS="${FLAGS}--add "; fi
 
-        npx d2l-test-runner vdiff ${FLAGS} && echo "passed=true" >> ${GITHUB_OUTPUT} || echo "passed=false" >> ${GITHUB_OUTPUT}
+        npx mfv format ${FLAGS}
+        if git diff; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
       env:
-        CHROME: ${{ inputs.test-chrome }}
-        CONFIG: ${{ inputs.test-config }}
-        FILES: ${{ inputs.test-files }}
-        FIREFOX: ${{ inputs.test-firefox }}
-        FORCE_COLOR: 3
-        SAFARI: ${{ inputs.test-safari }}
-        TIMEOUT: ${{ inputs.test-timeout }}
+        NEWLINES: ${{ inputs.t9n-newlines }}
+        ADD: ${{ inputs.t9n-add }}
       shell: bash
 
-    - name: Prepare Report
-      id: prepare-report
-      if: ${{ inputs.aws-access-key-id }}
-      continue-on-error: true
+    - name: Format Translations - Remove
       run: |
-        echo -e "\e[34mPreparing vdiff Report"
-        mv "./.vdiff/.report/" "./.vdiff/report/"
+        echo -e "\e[34mFormatting translations - Add"
+        if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
+        if [[ ${remove} != "" ]]; then FLAGS="${FLAGS}--remove "; fi
 
-        DATE_TIME=$(date '+%Y-%m-%d_%H-%M-%S');
-        UPLOAD_PATH="${{ github.repository }}/${ORIGINAL_SHA}/${DATE_TIME}"
-        echo "upload-path=${UPLOAD_PATH}" >> ${GITHUB_OUTPUT}
+        npx mfv format ${FLAGS}
+        if git diff; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
       env:
-        FORCE_COLOR: 3
-        ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
+        NEWLINES: ${{ inputs.t9n-newlines }}
+        REMOVE: ${{ inputs.t9n-remove }}
       shell: bash
 
-    - name: Assume vdiff Role for Uploading Report
-      if: ${{ inputs.aws-access-key-id && steps.prepare-report.outputs.upload-path }}
-      continue-on-error: true
-      uses: Brightspace/third-party-actions@aws-actions/configure-aws-credentials
-      with:
-        aws-access-key-id: ${{ inputs.aws-access-key-id }}
-        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
-        aws-session-token: ${{ inputs.aws-session-token }}
-        role-to-assume: "arn:aws:iam::037018655140:role/visual-diff-githubactions-access"
-        role-duration-seconds: 3600
-        aws-region: ca-central-1
-
-    - name: Upload Report
-      id: upload-report
-      if: ${{ inputs.aws-access-key-id && steps.prepare-report.outputs.upload-path }}
-      continue-on-error: true
-      uses: BrightspaceUI/actions/publish-to-s3@main
-      with:
-        bucket-path: s3://visual-diff.d2l.dev/reports/${{ steps.prepare-report.outputs.upload-path }}/
-        cache-default: --cache-control max-age=120
-        publish-directory: ./.vdiff/
-        only-log-errors: true
-
-    - name: Move New Goldens
-      id: move-goldens
+    - name: Format Translations - Dedupe
       run: |
-        echo -e "\e[34mMoving New Goldens to Proper Directories"
+        echo -e "\e[34mFormatting translations - Dedupe"
+        if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
+        if [[ ${DEDUPE} != "" ]]; then FLAGS="${FLAGS}--dedupe "; fi
 
-        echo "Moving passed screenshots back to golden directories"
-        COUNT_MISMATCH=false
-        echo "passed=true" >> ${GITHUB_OUTPUT}
-
-        while read PASS_DIR; do
-
-          if [[ $PASS_DIR ]]; then
-            DIR=`dirname "${PASS_DIR}"`
-            TEST_PATH=`dirname "${DIR}"`
-            TEST_PATH=${TEST_PATH:9}
-            TEST=`basename "${DIR}"`
-
-            if [ -d ${PASS_DIR}/../golden ]; then
-              PASSED_COUNT=$(find ${PASS_DIR} -type f | wc -l | xargs)
-              GOLDEN_COUNT=$(find ${PASS_DIR}/../golden -type f | wc -l | xargs)
-              if [[ ${PASSED_COUNT} != ${GOLDEN_COUNT} ]]; then
-                echo "passed=false" >> ${GITHUB_OUTPUT}
-                COUNT_MISMATCH=true
-              fi
-            fi
-
-            mkdir -p "./${TEST_PATH}/golden/${TEST}"
-            mv "${PASS_DIR}/"* "./${TEST_PATH}/golden/${TEST}"
-          fi
-
-        done <<< "$(find ./.vdiff -name pass -type d)"
-
-        if [[ $COUNT_MISMATCH = true ]]; then echo -e "\e[31mGolden count has changed"; fi
-
-        echo "Moving failed screenshots to golden directories"
-        find ./.vdiff -name fail -type d | while read FAIL_DIR; do
-          DIR=`dirname "${FAIL_DIR}"`
-          TEST_PATH=`dirname "${DIR}"`
-          TEST_PATH=${TEST_PATH:9}
-          TEST=`basename "${DIR}"`
-
-          for BROWSER in `ls "${FAIL_DIR}"`; do
-            mkdir -p "./${TEST_PATH}/golden/${TEST}/${BROWSER}"
-            for PNG in `ls "${FAIL_DIR}/${BROWSER}"`; do
-              NAME=`basename "${PNG}"`
-              if  [[ ${NAME} != *"-diff.png" ]] && [[ ${NAME} != *"-resized-golden.png" ]] && [[ ${NAME} != *"-resized-screenshot.png" ]]; then
-                mv "${FAIL_DIR}/${BROWSER}/${PNG}" "./${TEST_PATH}/golden/${TEST}/${BROWSER}/${PNG}"
-              fi
-            done
-          done
-        done
-
-        echo "Clearing .vdiff directory"
-        rm -rf .vdiff
+        npx mfv format ${FLAGS}
+        if git diff; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
       env:
-        FORCE_COLOR: 3
+        NEWLINES: ${{ inputs.t9n-newlines }}
+        DEDUPE: ${{ inputs.t9n-dedupe }}
       shell: bash
 
-    - name: Commit New Goldens (if necessary)
-      id: commit-goldens
+    - name: Format Translations - Trim
       run: |
-        echo -e "\e[34mCommitting New Goldens (if necessary)"
-        if [ ${TESTS_PASSED} == true ] && [ ${FILES_MATCH} == true ]; then
-          echo -e "\e[32mvdiff tests have passed - no new goldens needed.\n"
+        echo -e "\e[34mFormatting translations - Trim"
+        if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
+        if [[ ${TRIM} != "" ]]; then FLAGS="${FLAGS}--trim "; fi
+
+        npx mfv format ${FLAGS}
+        if git diff; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
+      env:
+        NEWLINES: ${{ inputs.t9n-newlines }}
+        TRIM: ${{ inputs.t9n-trim }}
+      shell: bash
+
+    - name: Format Translations - Quotes
+      run: |
+        echo -e "\e[34mFormatting translations - Quotes"
+        if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
+        if [[ ${QUOTES} != "" ]]; then FLAGS="${FLAGS}--quotes ${QUOTES} "; fi
+
+        npx mfv format ${FLAGS}
+        if git diff; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
+      env:
+        NEWLINES: ${{ inputs.t9n-newlines }}
+        QUOTES: ${{ inputs.t9n-quotes }}
+      shell: bash
+
+    - name: Commit Changes (if necessary)
+      id: commit-changes
+      run: |
+        echo -e "\e[34mCommitting translation changes (if necessary)"
+        if [ /* no git diff */ ]; then
+          echo -e "\e[32m - no changes needed.\n"
           exit 0;
         fi
-        echo -e "\e[31mvdiff tests failed - generating new goldens."
+        echo -e "\e[31mChanges made - committing"
 
-        echo -e "\n\e[34mCreating the vdiff Branch"
+        echo -e "\n\e[34mCreating the Translation Branch"
         git stash --include-untracked
         git fetch origin +refs/heads/${SOURCE_BRANCH}:refs/heads/${SOURCE_BRANCH} -q -u || true
         git checkout ${SOURCE_BRANCH}
-        git checkout -b ${VDIFF_BRANCH}
+        git checkout -b ${T9N_BRANCH}
         if [ $(git rev-parse HEAD) != ${ORIGINAL_SHA} ]; then
-          echo -e "\e[31mBranch out of date - more commits have been added to the '${SOURCE_BRANCH}' branch since this action started running.  Stopping this test run."
+          echo -e "\e[31mBranch out of date - more commits have been added to the '${SOURCE_BRANCH}' branch since this action started running.  Stopping this formatting run."
           exit 1;
         fi
 
@@ -350,42 +276,37 @@ runs:
           exit 0;
         fi
 
-        echo -e "\n\e[34mCommitting new goldens"
+        echo -e "\n\e[34mCommitting translation changes"
         git config user.name github-actions[bot]
+        // what dis
         git config user.email 41898282+github-actions[bot]@users.noreply.github.com
         git reset HEAD
-        git add '*.png' './.vdiff.json'
-        git commit -m 'Updating vdiff goldens'
+        git add -u
+        git commit -m 'Updating translations'
 
-        echo -e "\n\e[34mPushing the vdiff Branch"
-        if [ ${{ github.actor }} == 'dependabot[bot]' ]; then
-          echo -e "\e[33mThis will fail if Dependabot has a read-only token - push an empty commit or close and re-open the PR to change the actor."
-        fi
-        git push --force origin ${VDIFF_BRANCH}
+        echo -e "\n\e[34mPushing the Translation Branch"
+        git push --force origin ${T9N_BRANCH}
       env:
         FORCE_COLOR: 3
         ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
         SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
-        TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
-        FILES_MATCH: ${{ steps.move-goldens.outputs.passed }}
-        VDIFF_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
+        T9N_BRANCH: ${{ steps.run-info.outputs.t9n-branch }}
       shell: bash
 
     - name: Close Pull Request (if necessary)
       run: |
         echo -e "\e[34mClosing Pull Request (if necessary)"
-        if ([ ${TESTS_PASSED} == true ] && [ ${FILES_MATCH} == true ]) || [ ${GOLDENS_CONFLICT} == true ]; then
-          if git ls-remote --exit-code --heads origin ${VDIFF_BRANCH}; then
-            echo -e "\e[34mClosing Goldens PR and Deleting Branch"
-            git push -d origin ${VDIFF_BRANCH} || true
+        if [ ${FORMAT_DIFF} == true ] || [ ${FORMAT_CONFLICT} == true ]; then
+          if git ls-remote --exit-code --heads origin ${T9N_BRANCH}; then
+            echo -e "\e[34mClosing Translation Format PR and Deleting Branch"
+            git push -d origin ${T9N_BRANCH} || true
           fi
         fi
       env:
         FORCE_COLOR: 3
-        GOLDENS_CONFLICT: ${{ steps.commit-goldens.outputs.conflict }}
-        TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
-        FILES_MATCH: ${{ steps.move-goldens.outputs.passed }}
-        VDIFF_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
+        FOTMAT_CONFLICT: ${{ steps.commit-changes.outputs.conflict }}
+        FORMAT_DIFF: ${{ steps.move-goldens.outputs.passed }}
+        T9N_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
       shell: bash
 
     - name: Open Pull Request (if necessary)
