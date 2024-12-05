@@ -173,7 +173,7 @@ runs:
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
 
         npx mfv format ${FLAGS}
-        if git diff; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
+        if git diff --quiet; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
       shell: bash
@@ -185,7 +185,7 @@ runs:
         if [[ ${ADD} != "" ]]; then FLAGS="${FLAGS}--add "; fi
 
         npx mfv format ${FLAGS}
-        if git diff; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
+        if git diff --quiet; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         ADD: ${{ inputs.t9n-add }}
@@ -198,7 +198,7 @@ runs:
         if [[ ${REMOVE} != "" ]]; then FLAGS="${FLAGS}--remove "; fi
 
         npx mfv format ${FLAGS}
-        if git diff; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
+        if git diff --quiet; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         REMOVE: ${{ inputs.t9n-remove }}
@@ -211,7 +211,7 @@ runs:
         if [[ ${DEDUPE} != "" ]]; then FLAGS="${FLAGS}--dedupe "; fi
 
         npx mfv format ${FLAGS}
-        if git diff; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
+        if git diff --quiet; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         DEDUPE: ${{ inputs.t9n-dedupe }}
@@ -224,7 +224,7 @@ runs:
         if [[ ${TRIM} != "" ]]; then FLAGS="${FLAGS}--trim "; fi
 
         npx mfv format ${FLAGS}
-        if git diff; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
+        if git diff --quiet; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         TRIM: ${{ inputs.t9n-trim }}
@@ -237,7 +237,7 @@ runs:
         if [[ ${QUOTES} != "" ]]; then FLAGS="${FLAGS}--quotes ${QUOTES} "; fi
 
         npx mfv format ${FLAGS}
-        if git diff; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
+        if git diff --quiet; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         QUOTES: ${{ inputs.t9n-quotes }}
@@ -247,7 +247,7 @@ runs:
       id: commit-changes
       run: |
         echo -e "\e[34mCommitting translation changes (if necessary)"
-        if git diff --quiet; then
+        if [[ ${FORMAT_DIFF} == "true" ]]; then
           echo -e "\e[32m - no changes needed.\n"
           exit 0;
         fi
@@ -291,6 +291,7 @@ runs:
         ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
         SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
         T9N_BRANCH: ${{ steps.run-info.outputs.t9n-branch }}
+        FORMAT_DIFF: ${{ env.FORMAT_DIFF }}
       shell: bash
 
     - name: Close Pull Request (if necessary)
@@ -305,7 +306,7 @@ runs:
       env:
         FORCE_COLOR: 3
         FORMAT_CONFLICT: ${{ steps.commit-changes.outputs.conflict }}
-        FORMAT_DIFF: ${{ steps.move-goldens.outputs.passed }}
+        FORMAT_DIFF: ${{ env.FORMAT_DIFF }}
         T9N_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
       shell: bash
 
