@@ -34,7 +34,7 @@ inputs:
     description: Whether to open the translation formatting PR as a draft PR
     default: true
   github-token:
-    description: Token used to cleanup branches and open the goldens PR
+    description: Token used to cleanup branches and open the translation formatting PR
     required: true
 
   t9n-branch-prefix:
@@ -173,7 +173,6 @@ runs:
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
 
         npx mfv format ${FLAGS}
-        if git diff --quiet; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
       shell: bash
@@ -185,7 +184,6 @@ runs:
         if [[ ${ADD} != "" ]]; then FLAGS="${FLAGS}--add "; fi
 
         npx mfv format ${FLAGS}
-        if git diff --quiet; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         ADD: ${{ inputs.t9n-add }}
@@ -198,7 +196,6 @@ runs:
         if [[ ${REMOVE} != "" ]]; then FLAGS="${FLAGS}--remove "; fi
 
         npx mfv format ${FLAGS}
-        if git diff --quiet; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         REMOVE: ${{ inputs.t9n-remove }}
@@ -211,7 +208,6 @@ runs:
         if [[ ${DEDUPE} != "" ]]; then FLAGS="${FLAGS}--dedupe "; fi
 
         npx mfv format ${FLAGS}
-        if git diff --quiet; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         DEDUPE: ${{ inputs.t9n-dedupe }}
@@ -224,7 +220,6 @@ runs:
         if [[ ${TRIM} != "" ]]; then FLAGS="${FLAGS}--trim "; fi
 
         npx mfv format ${FLAGS}
-        if git diff --quiet; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         TRIM: ${{ inputs.t9n-trim }}
@@ -237,7 +232,6 @@ runs:
         if [[ ${QUOTES} != "" ]]; then FLAGS="${FLAGS}--quotes ${QUOTES} "; fi
 
         npx mfv format ${FLAGS}
-        if git diff --quiet; then echo "FORMAT_DIFF=true" >> $GITHUB_ENV; fi
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         QUOTES: ${{ inputs.t9n-quotes }}
@@ -247,7 +241,7 @@ runs:
       id: commit-changes
       run: |
         echo -e "\e[34mCommitting translation changes (if necessary)"
-        if [[ ${FORMAT_DIFF} == "true" ]]; then
+        if ! git diff --quiet; then
           echo -e "\e[32m - no changes needed.\n"
           exit 0;
         fi
@@ -307,7 +301,7 @@ runs:
         FORCE_COLOR: 3
         FORMAT_CONFLICT: ${{ steps.commit-changes.outputs.conflict }}
         FORMAT_DIFF: ${{ env.FORMAT_DIFF }}
-        T9N_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
+        T9N_BRANCH: ${{ steps.run-info.outputs.t9n-branch }}
       shell: bash
 
     - name: Open Pull Request (if necessary)
@@ -317,13 +311,13 @@ runs:
         github-token: ${{ inputs.github-token }}
         script: |
           console.log('\x1b[34mOpening Pull Request (if necessary)');
-          if ((process.env.TESTS_PASSED === 'true' && process.env.FILES_MATCH === 'true') || process.env.GOLDENS_EMPTY === 'true' || process.env.GOLDENS_CONFLICT === 'true') return;
+          if (process.env.FORMAT_DIFF !== 'true' || process.env.FORMAT_CONFLICT === 'true') return;
 
           const prNum = process.env.PULL_REQUEST_NUM;
           const sourceBranchName = process.env.SOURCE_BRANCH;
-          const goldensBranchName = process.env.VDIFF_BRANCH;
+          const t9nBranchName = process.env.T9N_BRANCH;
           if (prNum) {
-            console.log('\nTests triggered by PR - Verifying PR information');
+            console.log('\nTranslation formatting triggered by PR - Verifying PR information');
             let prInfo;
             try {
               prInfo = await github.rest.pulls.get({
@@ -332,7 +326,7 @@ runs:
                 pull_number: prNum
               });
             } catch (e) {
-              console.log(`\x1b[31mCould not find PR #${prNum} that triggered the vdiff test run`);
+              console.log(`\x1b[31mCould not find PR #${prNum} that triggered the translation formatting run`);
               console.log(e);
               return;
             }
@@ -341,12 +335,12 @@ runs:
               console.log('\x1b[31mBranch name does not match what is expected.');
               return;
             } else if (prInfo.data.state !== 'open') {
-              console.log('\x1b[31mPR that triggered the vdiff test run is no longer open.');
+              console.log('\x1b[31mPR that triggered the translation formatting run is no longer open.');
               return;
             }
-            console.log(`New goldens are for PR #${prNum} (branch: ${sourceBranchName})`);
+            console.log(`Translation changes are for PR #${prNum} (branch: ${sourceBranchName})`);
           } else {
-            console.log('\nTests triggered by push to branch - Verifying branch information');
+            console.log('\nTranslation formatting triggered by push to branch - Verifying branch information');
             try {
               await github.rest.repos.getBranch({
                 owner: context.repo.owner,
@@ -354,88 +348,80 @@ runs:
                 branch: sourceBranchName
               });
             } catch (e) {
-              console.log(`\x1b[31mCould not find branch ${sourceBranchName} that triggered the vdiff test run.`);
+              console.log(`\x1b[31mCould not find branch ${sourceBranchName} that triggered the translation formatting run.`);
               console.log(e);
               return;
             }
-            console.log(`New goldens are for branch ${sourceBranchName}`);
+            console.log(`Translation changes are for branch ${sourceBranchName}`);
           }
 
-          console.log('\x1b[34m\nChecking For Existing Goldens PR');
-          const goldenPRs = await github.rest.pulls.list({
+          console.log('\x1b[34m\nChecking For Existing Translation Formatting PR');
+          const t9nPRs = await github.rest.pulls.list({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            head: `${context.repo.owner}:refs/heads/${goldensBranchName}`,
+            head: `${context.repo.owner}:refs/heads/${t9nBranchName}`,
             base: `refs/heads/${sourceBranchName}`,
             state: 'open'
           });
 
-          let prBody = `This pull request updates the vdiff goldens for ${prNum ? `the changes in pull request #${prNum}.` : `branch \`${sourceBranchName}\`.`}`;
-          if (process.env.REPORT_UPLOADED === 'success') {
-            prBody = `${prBody}\n\nPlease review the [resulting report](${process.env.REPORT_PATH}) closely before merging to ensure the visual differences are expected.`;
-          } else {
-            prBody = `${prBody}\n\n**Note:** The report could not be uploaded. Please review the ["Setting Up AWS Access Creds" section](https://github.com/BrightspaceUI/actions/tree/main/vdiff#setting-up-aws-access-creds) of the vdiff action's README.`;
-          }
+          let prBody = `This pull request formats translations for ${prNum ? `the changes in pull request #${prNum}.` : `branch \`${sourceBranchName}\`.`}`;
+          prBody = `${prBody}\n\nPlease review these changes carefully before merging to ensure they are as expected.`;
 
-          let goldenPrNum;
-          if (goldenPRs.data.length === 0) {
-            console.log('Goldens PR does not exist');
-            console.log('\x1b[34m\nOpening new goldens PR');
+          let t9nPrNum;
+          if (t9nPRs.data.length === 0) {
+            console.log('Translation formatting PR does not exist');
+            console.log('\x1b[34m\nOpening new translation formatting PR');
             const newPR = await github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: prNum ? `Updating vdiff goldens for PR ${prNum}` : `Updating vdiff goldens for Branch ${sourceBranchName}`,
-              head: `refs/heads/${goldensBranchName}`,
+              title: prNum ? `Updating translation formatting for PR ${prNum}` : `Updating translation formatting for Branch ${sourceBranchName}`,
+              head: `refs/heads/${t9nBranchName}`,
               base: `refs/heads/${sourceBranchName}`,
               draft: process.env['DRAFT_PR'].toLowerCase() === 'false' ? false : true,
               body: prBody
             });
-            goldenPrNum = newPR.data.number;
-            console.log(`PR #${goldenPrNum} opened: ${newPR.data.html_url}`);
+            t9nPrNum = newPR.data.number;
+            console.log(`PR #${t9nPrNum} opened: ${newPR.data.html_url}`);
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: goldenPrNum,
-              labels: ['auto-vdiff']
+              issue_number: t9nPrNum,
+              labels: ['auto-t9n']
             });
           } else {
-            goldenPrNum = goldenPRs.data[0].number;
-            console.log(`Goldens PR already exists: ${goldenPRs.data[0].html_url}`);
+            t9nPrNum = t9nPRs.data[0].number;
+            console.log(`Translation formatting PR already exists: ${t9nPRs.data[0].html_url}`);
             console.log('Updating PR description');
             await github.rest.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: goldenPrNum,
+              pull_number: t9nPrNum,
               body: prBody
             });
           }
-          core.setOutput('num', goldenPrNum);
+          core.setOutput('num', t9nPrNum);
 
           console.log('Adding PR Reviewers');
           try {
             await github.rest.pulls.requestReviewers({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: goldenPrNum,
+              pull_number: t9nPrNum,
               reviewers: [process.env.GITHUB_ACTOR]
             });
           } catch (e) {
-            console.log('Could not add reviewer (expected for Dependabot and GitHub Action PRs):');
+            console.log('Could not add reviewer');
             console.log(e);
           }
       env:
         FORCE_COLOR: 3
         DRAFT_PR: ${{ inputs.draft-pr }}
-        GOLDENS_EMPTY: ${{ steps.commit-goldens.outputs.empty }}
-        GOLDENS_CONFLICT: ${{ steps.commit-goldens.outputs.conflict }}
+        FORMAT_CONFLICT: ${{ steps.commit-changes.outputs.conflict }}
+        FORMAT_DIFF: ${{ env.FORMAT_DIFF }}
         PULL_REQUEST_NUM: ${{ github.event.number }}
         PULL_REQUEST_BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
-        REPORT_PATH: https://vdiff.d2l.dev/${{ steps.prepare-report.outputs.upload-path }}/report/
-        REPORT_UPLOADED: ${{ steps.upload-report.outcome }}
         SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
-        TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
-        FILES_MATCH: ${{ steps.move-goldens.outputs.passed }}
-        VDIFF_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
+        T9N_BRANCH: ${{ steps.run-info.outputs.t9n-branch }}
 
     - name: Update Commit Status
       uses: Brightspace/third-party-actions@actions/github-script
@@ -443,36 +429,27 @@ runs:
         github-token: ${{ inputs.github-token }}
         script: |
           console.log('\x1b[34mUpdating Commit Status');
-          if (context.actor === 'dependabot[bot]') {
-            console.log('\x1b[33mActor is dependabot - skipping custom commit status update.');
-            return;
-          }
 
           let state, description, targetUrl;
-          if (process.env.TESTS_PASSED === 'true' && process.env.FILES_MATCH === 'true') {
+          if (process.env.FORMAT_DIFF !== 'true') {
             state = 'success';
-            description = 'Tests have passed.';
+            description = 'No changes were made.';
             console.log('\x1b[32mCompleted - Build Passed.');
           } else {
-            if (process.env.GOLDENS_EMPTY === 'true') {
+            if (process.env.FORMAT_CONFLICT === 'true') {
               state = 'error';
-              description = 'Could not generate new goldens: Check the vdiff workflow run log for errors. ->';
-              targetUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
-              console.log('\x1b[31mCould not generate new goldens: See errors above.');
-            } else if (process.env.GOLDENS_CONFLICT === 'true') {
-              state = 'error';
-              description = 'Could not generate new goldens: Rebase or merge in the base branch. Your changes will update goldens you don\'t have the latest version of.';
+              description = 'Could not apply translation changes: Rebase or merge in the base branch. Your changes will update translations you don\'t have the latest version of.';
               console.log(`\x1b[31m${description}`);
             } else {
               state = 'failure';
               if (process.env.PULL_REQUEST_NUM) {
-                description = `Tests failed: PR #${process.env.PULL_REQUEST_NUM} has been opened with the updated goldens. ->`;
+                description = `Translations formatted: PR #${process.env.PULL_REQUEST_NUM} has been opened with the changes. ->`;
                 targetUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/pull/${process.env.PULL_REQUEST_NUM}`;
-                console.log(`\x1b[31mTests failed: ${targetUrl} opened with the updated goldens.`);
+                console.log(`\x1b[31mTranslations formatted: ${targetUrl} opened with the changes.`);
               } else {
-                description = 'Could not open goldens PR: Check the vdiff workflow run log for errors. ->';
+                description = 'Could not open translation formatting PR: Check the Translation Format workflow run log for errors. ->';
                 targetUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
-                console.log('\x1b[31mCould not open goldens PR: See errors above.');
+                console.log('\x1b[31mCould not open translation formatting PR: See errors above.');
               }
             }
 
@@ -490,10 +467,8 @@ runs:
           });
       env:
         FORCE_COLOR: 3
-        GOLDENS_EMPTY: ${{ steps.commit-goldens.outputs.empty }}
-        GOLDENS_CONFLICT: ${{ steps.commit-goldens.outputs.conflict }}
+        FORMAT_CONFLICT: ${{ steps.commit-changes.outputs.conflict }}
+        FORMAT_DIFF: ${{ env.FORMAT_DIFF }}
         ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
         PULL_REQUEST_NUM: ${{ steps.pull-request.outputs.num }}
-        TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
-        FILES_MATCH: ${{ steps.move-goldens.outputs.passed }}
         COMMIT_STATUS_NAME: ${{ steps.commit-status-name.outputs.result }}
