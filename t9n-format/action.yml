@@ -29,7 +29,7 @@ inputs:
 
   t9n-branch-prefix:
     description: Prefix for translation branches
-    default: 'translation'
+    default: 'ghworkflow/translation'
 
 runs:
   using: composite
