@@ -243,6 +243,8 @@ runs:
         fi
         echo -e "\e[31mChanges made - committing"
 
+        echo "FORMAT_DIFF = true" >> ${GITHUB_ENV}
+
         echo -e "\n\e[34mCreating the Translation Branch"
         git stash --include-untracked
         git fetch origin +refs/heads/${SOURCE_BRANCH}:refs/heads/${SOURCE_BRANCH} -q -u || true
