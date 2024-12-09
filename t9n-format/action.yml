@@ -237,7 +237,7 @@ runs:
       id: commit-changes
       run: |
         echo -e "\e[34mCommitting translation changes (if necessary)"
-        if ! git diff --quiet; then
+        if git diff --quiet; then
           echo -e "\e[32m - no changes needed.\n"
           exit 0;
         fi
