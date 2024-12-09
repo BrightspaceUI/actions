@@ -9,7 +9,7 @@ inputs:
     default: false
   t9n-remove:
     description: Remove cases for unsupported plural and selectordinal categories
-    default: false
+    default: true
   t9n-dedupe:
     description: Remove complex argument cases that duplicate the `other` case. Takes precedence over --add.
     default: false
