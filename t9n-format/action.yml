@@ -243,7 +243,9 @@ runs:
         fi
         echo -e "\e[31mChanges made - committing"
 
-        echo "diff=true" >> ${GITHUB_OUTPUT}
+        if ! git diff --quiet ${ORIGINAL_SHA}; then
+          echo "diff=true" >> ${GITHUB_OUTPUT}
+        fi
 
         echo -e "\n\e[34mCreating the Translation Branch"
         git stash --include-untracked
@@ -288,7 +290,7 @@ runs:
     - name: Close Pull Request (if necessary)
       run: |
         echo -e "\e[34mClosing Pull Request (if necessary)"
-        if [ ${FORMAT_DIFF} == true ] || [ ${FORMAT_CONFLICT} == true ]; then
+        if [ ${FORMAT_DIFF} != true ] || [ ${FORMAT_CONFLICT} == true ]; then
           if git ls-remote --exit-code --heads origin ${T9N_BRANCH}; then
             echo -e "\e[34mClosing Translation Format PR and Deleting Branch"
             git push -d origin ${T9N_BRANCH} || true
