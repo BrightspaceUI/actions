@@ -158,6 +158,7 @@ runs:
         PREFIX: ${{ inputs.t9n-branch-prefix }}
 
     - name: Format Translations - Newlines
+      if: ${{ inputs.t9n-newlines != 'false' }}
       run: |
         echo -e "\e[34mFormatting translations - Newlines"
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
@@ -168,6 +169,7 @@ runs:
       shell: bash
 
     - name: Format Translations - Add
+      if: ${{ inputs.t9n-add != 'false' }}
       run: |
         echo -e "\e[34mFormatting translations - Add"
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
@@ -180,6 +182,7 @@ runs:
       shell: bash
 
     - name: Format Translations - Remove
+      if: ${{ inputs.t9n-remove != 'false' }}
       run: |
         echo -e "\e[34mFormatting translations - Remove"
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
@@ -192,6 +195,7 @@ runs:
       shell: bash
 
     - name: Format Translations - Dedupe
+      if: ${{ inputs.t9n-dedupe != 'false' }}
       run: |
         echo -e "\e[34mFormatting translations - Dedupe"
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
@@ -204,6 +208,7 @@ runs:
       shell: bash
 
     - name: Format Translations - Trim
+      if: ${{ inputs.t9n-trim != 'false' }}
       run: |
         echo -e "\e[34mFormatting translations - Trim"
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
@@ -216,10 +221,11 @@ runs:
       shell: bash
 
     - name: Format Translations - Quotes
+      if: ${{ inputs.t9n-quotes != 'false' }}
       run: |
         echo -e "\e[34mFormatting translations - Quotes"
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
-        if [[ ${QUOTES} != "" ]]; then FLAGS="${FLAGS}--quotes ${QUOTES} "; fi
+        if [[ ${QUOTES} != "false" ]]; then FLAGS="${FLAGS}--quotes ${QUOTES} "; fi
 
         npx mfv format ${FLAGS}
       env:
