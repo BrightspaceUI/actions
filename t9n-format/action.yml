@@ -243,7 +243,7 @@ runs:
         fi
         echo -e "\e[31mChanges made - committing"
 
-        echo "FORMAT_DIFF = true" >> ${GITHUB_ENV}
+        echo "diff=true" >> ${GITHUB_OUTPUT}
 
         echo -e "\n\e[34mCreating the Translation Branch"
         git stash --include-untracked
@@ -283,7 +283,6 @@ runs:
         ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
         SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
         T9N_BRANCH: ${{ steps.run-info.outputs.t9n-branch }}
-        FORMAT_DIFF: ${{ env.FORMAT_DIFF }}
       shell: bash
 
     - name: Close Pull Request (if necessary)
@@ -298,7 +297,7 @@ runs:
       env:
         FORCE_COLOR: 3
         FORMAT_CONFLICT: ${{ steps.commit-changes.outputs.conflict }}
-        FORMAT_DIFF: ${{ env.FORMAT_DIFF }}
+        FORMAT_DIFF: ${{ steps.commit-changes.outputs.diff }}
         T9N_BRANCH: ${{ steps.run-info.outputs.t9n-branch }}
       shell: bash
 
@@ -415,7 +414,7 @@ runs:
         FORCE_COLOR: 3
         DRAFT_PR: ${{ inputs.draft-pr }}
         FORMAT_CONFLICT: ${{ steps.commit-changes.outputs.conflict }}
-        FORMAT_DIFF: ${{ env.FORMAT_DIFF }}
+        FORMAT_DIFF: ${{ steps.commit-changes.outputs.diff }}
         PULL_REQUEST_NUM: ${{ github.event.number }}
         PULL_REQUEST_BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
         SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
@@ -466,7 +465,7 @@ runs:
       env:
         FORCE_COLOR: 3
         FORMAT_CONFLICT: ${{ steps.commit-changes.outputs.conflict }}
-        FORMAT_DIFF: ${{ env.FORMAT_DIFF }}
+        FORMAT_DIFF: ${{ steps.commit-changes.outputs.diff }}
         ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
         PULL_REQUEST_NUM: ${{ steps.pull-request.outputs.num }}
         COMMIT_STATUS_NAME: ${{ steps.commit-status-name.outputs.result }}
