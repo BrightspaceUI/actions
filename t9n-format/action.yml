@@ -166,6 +166,11 @@ runs:
         npx mfv format ${FLAGS}
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
+      uses: ./commit-changes.yml
+      with:
+        original-sha: ${{ steps.run-info.outputs.original-sha }}
+        source-sha: ${{ steps.run-info.outputs.source-sha }}
+        t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
       shell: bash
 
     - name: Format Translations - Add
@@ -179,6 +184,11 @@ runs:
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         ADD: ${{ inputs.t9n-add }}
+      uses: ./commit-changes.yml
+      with:
+        original-sha: ${{ steps.run-info.outputs.original-sha }}
+        source-sha: ${{ steps.run-info.outputs.source-sha }}
+        t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
       shell: bash
 
     - name: Format Translations - Remove
@@ -192,6 +202,11 @@ runs:
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         REMOVE: ${{ inputs.t9n-remove }}
+      uses: ./commit-changes.yml
+      with:
+        original-sha: ${{ steps.run-info.outputs.original-sha }}
+        source-sha: ${{ steps.run-info.outputs.source-sha }}
+        t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
       shell: bash
 
     - name: Format Translations - Dedupe
@@ -205,6 +220,11 @@ runs:
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         DEDUPE: ${{ inputs.t9n-dedupe }}
+      uses: ./commit-changes.yml
+      with:
+        original-sha: ${{ steps.run-info.outputs.original-sha }}
+        source-sha: ${{ steps.run-info.outputs.source-sha }}
+        t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
       shell: bash
 
     - name: Format Translations - Trim
@@ -218,6 +238,11 @@ runs:
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         TRIM: ${{ inputs.t9n-trim }}
+      uses: ./commit-changes.yml
+      with:
+        original-sha: ${{ steps.run-info.outputs.original-sha }}
+        source-sha: ${{ steps.run-info.outputs.source-sha }}
+        t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
       shell: bash
 
     - name: Format Translations - Quotes
@@ -231,60 +256,11 @@ runs:
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         QUOTES: ${{ inputs.t9n-quotes }}
-      shell: bash
-
-    - name: Commit Changes (if necessary)
-      id: commit-changes
-      run: |
-        echo -e "\e[34mCommitting translation changes (if necessary)"
-        if git diff --quiet; then
-          echo -e "\e[32m - no changes needed.\n"
-          exit 0;
-        fi
-        echo -e "\e[31mChanges made - committing"
-
-        if ! git diff --quiet ${ORIGINAL_SHA}; then
-          echo "diff=true" >> ${GITHUB_OUTPUT}
-        fi
-
-        echo -e "\n\e[34mCreating the Translation Branch"
-        git stash --include-untracked
-        git fetch origin +refs/heads/${SOURCE_BRANCH}:refs/heads/${SOURCE_BRANCH} -q -u || true
-        git checkout ${SOURCE_BRANCH}
-        git checkout -b ${T9N_BRANCH}
-        if [ $(git rev-parse HEAD) != ${ORIGINAL_SHA} ]; then
-          echo -e "\e[31mBranch out of date - more commits have been added to the '${SOURCE_BRANCH}' branch since this action started running.  Stopping this formatting run."
-          exit 1;
-        fi
-
-        echo "empty=false" >> ${GITHUB_OUTPUT}
-        echo "conflict=false" >> ${GITHUB_OUTPUT}
-        if [ $(git stash list | wc -l) == 0 ]; then
-          echo -e "\e[31mNo changes to apply - please see errors above."
-          echo "empty=true" >> ${GITHUB_OUTPUT}
-          exit 0;
-        fi
-        if ! git stash apply; then
-          echo -e "\e[31mCould not apply stash - merge conflicts with ${{ github.event.pull_request.base.ref }}."
-          echo "conflict=true" >> ${GITHUB_OUTPUT}
-          exit 0;
-        fi
-
-        echo -e "\n\e[34mCommitting translation changes"
-        git config user.name github-actions[bot]
-        # what dis
-        git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-        git reset HEAD
-        git add -u
-        git commit -m 'Updating translations'
-
-        echo -e "\n\e[34mPushing the Translation Branch"
-        git push --force origin ${T9N_BRANCH}
-      env:
-        FORCE_COLOR: 3
-        ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
-        SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
-        T9N_BRANCH: ${{ steps.run-info.outputs.t9n-branch }}
+      uses: ./commit-changes.yml
+      with:
+        original-sha: ${{ steps.run-info.outputs.original-sha }}
+        source-sha: ${{ steps.run-info.outputs.source-sha }}
+        t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
       shell: bash
 
     - name: Close Pull Request (if necessary)
