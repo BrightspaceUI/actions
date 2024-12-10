@@ -171,6 +171,7 @@ runs:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
+        change-type: 'Newlines'
       shell: bash
 
     - name: Format Translations - Add
@@ -189,6 +190,7 @@ runs:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
+        change-type: 'Add'
       shell: bash
 
     - name: Format Translations - Remove
@@ -207,6 +209,7 @@ runs:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
+        change-type: 'Remove'
       shell: bash
 
     - name: Format Translations - Dedupe
@@ -225,6 +228,7 @@ runs:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
+        change-type: 'Dedupe'
       shell: bash
 
     - name: Format Translations - Trim
@@ -243,6 +247,7 @@ runs:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
+        change-type: 'Trim'
       shell: bash
 
     - name: Format Translations - Quotes
@@ -261,6 +266,7 @@ runs:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
+        change-type: 'Quotes'
       shell: bash
 
     - name: Close Pull Request (if necessary)
