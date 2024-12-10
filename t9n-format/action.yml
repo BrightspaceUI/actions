@@ -75,7 +75,6 @@ runs:
             .filter(({runner_name}) => runner_name === runnerName)
             .map(({name}) => name);
           const jobName = jobNames.length === 1 ? jobNames[0] : context.job;
-          console.log(jobNames);
           const resultsText = jobName[0].toUpperCase() === jobName[0] ? 'Results' : 'results';
 
           return `${context.workflow} / ${jobName} ${resultsText} (${context.eventName})`;
@@ -167,6 +166,14 @@ runs:
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
       shell: bash
+    - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
+      if: ${{ inputs.t9n-newlines != 'false' }}
+      id: commit-newlines
+      with:
+        original-sha: ${{ steps.run-info.outputs.original-sha }}
+        source-branch: ${{ steps.run-info.outputs.source-branch }}
+        t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
+        change-type: 'Newlines'
 
     - name: Format Translations - Add
       if: ${{ inputs.t9n-add != 'false' }}
@@ -180,6 +187,14 @@ runs:
         NEWLINES: ${{ inputs.t9n-newlines }}
         ADD: ${{ inputs.t9n-add }}
       shell: bash
+    - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
+      if: ${{ inputs.t9n-add != 'false' }}
+      id: commit-add
+      with:
+        original-sha: ${{ steps.run-info.outputs.original-sha }}
+        source-branch: ${{ steps.run-info.outputs.source-branch }}
+        t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
+        change-type: 'Add'
 
     - name: Format Translations - Remove
       if: ${{ inputs.t9n-remove != 'false' }}
@@ -193,6 +208,14 @@ runs:
         NEWLINES: ${{ inputs.t9n-newlines }}
         REMOVE: ${{ inputs.t9n-remove }}
       shell: bash
+    - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
+      if: ${{ inputs.t9n-remove != 'false' }}
+      id: format-remove
+      with:
+        original-sha: ${{ steps.run-info.outputs.original-sha }}
+        source-branch: ${{ steps.run-info.outputs.source-branch }}
+        t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
+        change-type: 'Remove'
 
     - name: Format Translations - Dedupe
       if: ${{ inputs.t9n-dedupe != 'false' }}
@@ -206,6 +229,14 @@ runs:
         NEWLINES: ${{ inputs.t9n-newlines }}
         DEDUPE: ${{ inputs.t9n-dedupe }}
       shell: bash
+    - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
+      if: ${{ inputs.t9n-dedupe != 'false' }}
+      id: commit-dedupe
+      with:
+        original-sha: ${{ steps.run-info.outputs.original-sha }}
+        source-branch: ${{ steps.run-info.outputs.source-branch }}
+        t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
+        change-type: 'Dedupe'
 
     - name: Format Translations - Trim
       if: ${{ inputs.t9n-trim != 'false' }}
@@ -219,6 +250,14 @@ runs:
         NEWLINES: ${{ inputs.t9n-newlines }}
         TRIM: ${{ inputs.t9n-trim }}
       shell: bash
+    - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
+      if: ${{ inputs.t9n-trim != 'false' }}
+      id: commit-trim
+      with:
+        original-sha: ${{ steps.run-info.outputs.original-sha }}
+        source-branch: ${{ steps.run-info.outputs.source-branch }}
+        t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
+        change-type: 'Trim'
 
     - name: Format Translations - Quotes
       if: ${{ inputs.t9n-quotes != 'false' }}
@@ -232,60 +271,14 @@ runs:
         NEWLINES: ${{ inputs.t9n-newlines }}
         QUOTES: ${{ inputs.t9n-quotes }}
       shell: bash
-
-    - name: Commit Changes (if necessary)
-      id: commit-changes
-      run: |
-        echo -e "\e[34mCommitting translation changes (if necessary)"
-        if git diff --quiet; then
-          echo -e "\e[32m - no changes needed.\n"
-          exit 0;
-        fi
-        echo -e "\e[31mChanges made - committing"
-
-        if ! git diff --quiet ${ORIGINAL_SHA}; then
-          echo "diff=true" >> ${GITHUB_OUTPUT}
-        fi
-
-        echo -e "\n\e[34mCreating the Translation Branch"
-        git stash --include-untracked
-        git fetch origin +refs/heads/${SOURCE_BRANCH}:refs/heads/${SOURCE_BRANCH} -q -u || true
-        git checkout ${SOURCE_BRANCH}
-        git checkout -b ${T9N_BRANCH}
-        if [ $(git rev-parse HEAD) != ${ORIGINAL_SHA} ]; then
-          echo -e "\e[31mBranch out of date - more commits have been added to the '${SOURCE_BRANCH}' branch since this action started running.  Stopping this formatting run."
-          exit 1;
-        fi
-
-        echo "empty=false" >> ${GITHUB_OUTPUT}
-        echo "conflict=false" >> ${GITHUB_OUTPUT}
-        if [ $(git stash list | wc -l) == 0 ]; then
-          echo -e "\e[31mNo changes to apply - please see errors above."
-          echo "empty=true" >> ${GITHUB_OUTPUT}
-          exit 0;
-        fi
-        if ! git stash apply; then
-          echo -e "\e[31mCould not apply stash - merge conflicts with ${{ github.event.pull_request.base.ref }}."
-          echo "conflict=true" >> ${GITHUB_OUTPUT}
-          exit 0;
-        fi
-
-        echo -e "\n\e[34mCommitting translation changes"
-        git config user.name github-actions[bot]
-        # what dis
-        git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-        git reset HEAD
-        git add -u
-        git commit -m 'Updating translations'
-
-        echo -e "\n\e[34mPushing the Translation Branch"
-        git push --force origin ${T9N_BRANCH}
-      env:
-        FORCE_COLOR: 3
-        ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
-        SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
-        T9N_BRANCH: ${{ steps.run-info.outputs.t9n-branch }}
-      shell: bash
+    - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
+      if: ${{ inputs.t9n-quotes != 'false' }}
+      id: commit-quote
+      with:
+        original-sha: ${{ steps.run-info.outputs.original-sha }}
+        source-branch: ${{ steps.run-info.outputs.source-branch }}
+        t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
+        change-type: 'Quotes'
 
     - name: Close Pull Request (if necessary)
       run: |
@@ -299,7 +292,7 @@ runs:
       env:
         FORCE_COLOR: 3
         FORMAT_CONFLICT: ${{ steps.commit-changes.outputs.conflict }}
-        FORMAT_DIFF: ${{ steps.commit-changes.outputs.diff }}
+        FORMAT_DIFF: ${{ contains(steps.*.outputs.diff, 'true') }}
         T9N_BRANCH: ${{ steps.run-info.outputs.t9n-branch }}
       shell: bash
 
@@ -416,7 +409,7 @@ runs:
         FORCE_COLOR: 3
         DRAFT_PR: ${{ inputs.draft-pr }}
         FORMAT_CONFLICT: ${{ steps.commit-changes.outputs.conflict }}
-        FORMAT_DIFF: ${{ steps.commit-changes.outputs.diff }}
+        FORMAT_DIFF: ${{ contains(steps.*.outputs.diff, 'true') }}
         PULL_REQUEST_NUM: ${{ github.event.number }}
         PULL_REQUEST_BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
         SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
@@ -467,7 +460,7 @@ runs:
       env:
         FORCE_COLOR: 3
         FORMAT_CONFLICT: ${{ steps.commit-changes.outputs.conflict }}
-        FORMAT_DIFF: ${{ steps.commit-changes.outputs.diff }}
+        FORMAT_DIFF: ${{ contains(steps.*.outputs.diff, 'true') }}
         ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
         PULL_REQUEST_NUM: ${{ steps.pull-request.outputs.num }}
         COMMIT_STATUS_NAME: ${{ steps.commit-status-name.outputs.result }}
