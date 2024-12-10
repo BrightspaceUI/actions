@@ -164,14 +164,14 @@ runs:
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
 
         npx mfv format ${FLAGS}
-      uses: ./commit-changes.yml
+      env:
+        NEWLINES: ${{ inputs.t9n-newlines }}
+    - uses: ./commit-changes.yml
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
         change-type: 'Newlines'
-      env:
-        NEWLINES: ${{ inputs.t9n-newlines }}
       shell: bash
 
     - name: Format Translations - Add
@@ -182,15 +182,15 @@ runs:
         if [[ ${ADD} != "" ]]; then FLAGS="${FLAGS}--add "; fi
 
         npx mfv format ${FLAGS}
-      uses: ./commit-changes.yml
+      env:
+        NEWLINES: ${{ inputs.t9n-newlines }}
+        ADD: ${{ inputs.t9n-add }}
+    - uses: ./commit-changes.yml
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
         change-type: 'Add'
-      env:
-        NEWLINES: ${{ inputs.t9n-newlines }}
-        ADD: ${{ inputs.t9n-add }}
       shell: bash
 
     - name: Format Translations - Remove
@@ -204,7 +204,7 @@ runs:
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         REMOVE: ${{ inputs.t9n-remove }}
-      uses: ./commit-changes.yml
+    - uses: ./commit-changes.yml
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
@@ -223,7 +223,7 @@ runs:
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         DEDUPE: ${{ inputs.t9n-dedupe }}
-      uses: ./commit-changes.yml
+    - uses: ./commit-changes.yml
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
@@ -242,7 +242,7 @@ runs:
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         TRIM: ${{ inputs.t9n-trim }}
-      uses: ./commit-changes.yml
+    - uses: ./commit-changes.yml
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
@@ -261,7 +261,7 @@ runs:
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         QUOTES: ${{ inputs.t9n-quotes }}
-      uses: ./commit-changes.yml
+    - uses: ./commit-changes.yml
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
