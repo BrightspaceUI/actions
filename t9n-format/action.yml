@@ -166,13 +166,13 @@ runs:
         npx mfv format ${FLAGS}
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
+      shell: bash
     - uses: ./commit-changes.yml
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
         change-type: 'Newlines'
-      shell: bash
 
     - name: Format Translations - Add
       if: ${{ inputs.t9n-add != 'false' }}
@@ -185,13 +185,13 @@ runs:
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         ADD: ${{ inputs.t9n-add }}
+      shell: bash
     - uses: ./commit-changes.yml
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
         change-type: 'Add'
-      shell: bash
 
     - name: Format Translations - Remove
       if: ${{ inputs.t9n-remove != 'false' }}
@@ -204,13 +204,13 @@ runs:
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         REMOVE: ${{ inputs.t9n-remove }}
+      shell: bash
     - uses: ./commit-changes.yml
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
         change-type: 'Remove'
-      shell: bash
 
     - name: Format Translations - Dedupe
       if: ${{ inputs.t9n-dedupe != 'false' }}
@@ -223,13 +223,13 @@ runs:
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         DEDUPE: ${{ inputs.t9n-dedupe }}
+      shell: bash
     - uses: ./commit-changes.yml
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
         change-type: 'Dedupe'
-      shell: bash
 
     - name: Format Translations - Trim
       if: ${{ inputs.t9n-trim != 'false' }}
@@ -242,13 +242,13 @@ runs:
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         TRIM: ${{ inputs.t9n-trim }}
+      shell: bash
     - uses: ./commit-changes.yml
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
         change-type: 'Trim'
-      shell: bash
 
     - name: Format Translations - Quotes
       if: ${{ inputs.t9n-quotes != 'false' }}
@@ -261,13 +261,13 @@ runs:
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         QUOTES: ${{ inputs.t9n-quotes }}
+      shell: bash
     - uses: ./commit-changes.yml
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
         change-type: 'Quotes'
-      shell: bash
 
     - name: Close Pull Request (if necessary)
       run: |
