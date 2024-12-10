@@ -58,7 +58,7 @@ runs:
       git config user.email 41898282+github-actions[bot]@users.noreply.github.com
       git reset HEAD
       git add -u
-      git commit -m 'Updating translations - ${CHANGE_TYPE}'
+      git commit -m "Updating translations - ${CHANGE_TYPE}"
 
       echo -e "\n\e[34mPushing the Translation Branch"
       git push --force origin ${T9N_BRANCH}
