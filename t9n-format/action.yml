@@ -166,7 +166,7 @@ runs:
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
       shell: bash
-    - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
+    - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
       if: ${{ inputs.t9n-newlines != 'false' }}
       id: commit-newlines
       with:
@@ -187,7 +187,7 @@ runs:
         NEWLINES: ${{ inputs.t9n-newlines }}
         ADD: ${{ inputs.t9n-add }}
       shell: bash
-    - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
+    - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
       if: ${{ inputs.t9n-add != 'false' }}
       id: commit-add
       with:
@@ -208,7 +208,7 @@ runs:
         NEWLINES: ${{ inputs.t9n-newlines }}
         REMOVE: ${{ inputs.t9n-remove }}
       shell: bash
-    - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
+    - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
       if: ${{ inputs.t9n-remove != 'false' }}
       id: format-remove
       with:
@@ -229,7 +229,7 @@ runs:
         NEWLINES: ${{ inputs.t9n-newlines }}
         DEDUPE: ${{ inputs.t9n-dedupe }}
       shell: bash
-    - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
+    - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
       if: ${{ inputs.t9n-dedupe != 'false' }}
       id: commit-dedupe
       with:
@@ -250,7 +250,7 @@ runs:
         NEWLINES: ${{ inputs.t9n-newlines }}
         TRIM: ${{ inputs.t9n-trim }}
       shell: bash
-    - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
+    - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
       if: ${{ inputs.t9n-trim != 'false' }}
       id: commit-trim
       with:
@@ -271,7 +271,7 @@ runs:
         NEWLINES: ${{ inputs.t9n-newlines }}
         QUOTES: ${{ inputs.t9n-quotes }}
       shell: bash
-    - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
+    - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
       if: ${{ inputs.t9n-quotes != 'false' }}
       id: commit-quote
       with:
