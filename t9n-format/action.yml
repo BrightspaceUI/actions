@@ -167,6 +167,7 @@ runs:
         NEWLINES: ${{ inputs.t9n-newlines }}
       shell: bash
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
+      if: ${{ inputs.t9n-newlines != 'false' }}
       id: commit-newlines
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
@@ -187,6 +188,7 @@ runs:
         ADD: ${{ inputs.t9n-add }}
       shell: bash
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
+      if: ${{ inputs.t9n-add != 'false' }}
       id: commit-add
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
@@ -207,6 +209,7 @@ runs:
         REMOVE: ${{ inputs.t9n-remove }}
       shell: bash
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
+      if: ${{ inputs.t9n-remove != 'false' }}
       id: format-remove
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
@@ -227,6 +230,7 @@ runs:
         DEDUPE: ${{ inputs.t9n-dedupe }}
       shell: bash
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
+      if: ${{ inputs.t9n-dedupe != 'false' }}
       id: commit-dedupe
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
@@ -247,6 +251,7 @@ runs:
         TRIM: ${{ inputs.t9n-trim }}
       shell: bash
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
+      if: ${{ inputs.t9n-trim != 'false' }}
       id: commit-trim
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
@@ -267,6 +272,7 @@ runs:
         QUOTES: ${{ inputs.t9n-quotes }}
       shell: bash
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
+      if: ${{ inputs.t9n-quotes != 'false' }}
       id: commit-quote
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
