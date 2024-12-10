@@ -170,7 +170,7 @@ runs:
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
-        source-sha: ${{ steps.run-info.outputs.source-sha }}
+        source-branch: ${{ steps.run-info.outputs.source-branch }}
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
         change-type: 'Newlines'
 
@@ -189,7 +189,7 @@ runs:
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
-        source-sha: ${{ steps.run-info.outputs.source-sha }}
+        source-branch: ${{ steps.run-info.outputs.source-branch }}
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
         change-type: 'Add'
 
@@ -208,7 +208,7 @@ runs:
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
-        source-sha: ${{ steps.run-info.outputs.source-sha }}
+        source-branch: ${{ steps.run-info.outputs.source-branch }}
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
         change-type: 'Remove'
 
@@ -227,7 +227,7 @@ runs:
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
-        source-sha: ${{ steps.run-info.outputs.source-sha }}
+        source-branch: ${{ steps.run-info.outputs.source-branch }}
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
         change-type: 'Dedupe'
 
@@ -246,7 +246,7 @@ runs:
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
-        source-sha: ${{ steps.run-info.outputs.source-sha }}
+        source-branch: ${{ steps.run-info.outputs.source-branch }}
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
         change-type: 'Trim'
 
@@ -265,7 +265,7 @@ runs:
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
-        source-sha: ${{ steps.run-info.outputs.source-sha }}
+        source-branch: ${{ steps.run-info.outputs.source-branch }}
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
         change-type: 'Quotes'
 
