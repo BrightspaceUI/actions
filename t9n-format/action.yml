@@ -167,7 +167,7 @@ runs:
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
       shell: bash
-    - uses: BrightspaceUI/actions/t9n-format/commit-changes.yml@dgleckler/translations
+    - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
@@ -186,7 +186,7 @@ runs:
         NEWLINES: ${{ inputs.t9n-newlines }}
         ADD: ${{ inputs.t9n-add }}
       shell: bash
-    - uses: BrightspaceUI/actions/t9n-format/commit-changes.yml@dgleckler/translations
+    - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
@@ -205,7 +205,7 @@ runs:
         NEWLINES: ${{ inputs.t9n-newlines }}
         REMOVE: ${{ inputs.t9n-remove }}
       shell: bash
-    - uses: BrightspaceUI/actions/t9n-format/commit-changes.yml@dgleckler/translations
+    - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
@@ -224,7 +224,7 @@ runs:
         NEWLINES: ${{ inputs.t9n-newlines }}
         DEDUPE: ${{ inputs.t9n-dedupe }}
       shell: bash
-    - uses: BrightspaceUI/actions/t9n-format/commit-changes.yml@dgleckler/translations
+    - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
@@ -243,7 +243,7 @@ runs:
         NEWLINES: ${{ inputs.t9n-newlines }}
         TRIM: ${{ inputs.t9n-trim }}
       shell: bash
-    - uses: BrightspaceUI/actions/t9n-format/commit-changes.yml@dgleckler/translations
+    - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
@@ -262,7 +262,7 @@ runs:
         NEWLINES: ${{ inputs.t9n-newlines }}
         QUOTES: ${{ inputs.t9n-quotes }}
       shell: bash
-    - uses: BrightspaceUI/actions/t9n-format/commit-changes.yml@dgleckler/translations
+    - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-sha: ${{ steps.run-info.outputs.source-sha }}
