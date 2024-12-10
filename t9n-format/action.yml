@@ -1,0 +1,473 @@
+name: translations
+description: Run translation formatting and open a PR with the changes as necessary
+inputs:
+  t9n-newlines:
+    description: When formatting complex arguments, use newlines and indentation for readability
+    default: false
+  t9n-add:
+    description: Add cases for missing supported plural and selectordinal categories
+    default: false
+  t9n-remove:
+    description: Remove cases for unsupported plural and selectordinal categories
+    default: true
+  t9n-dedupe:
+    description: Remove complex argument cases that duplicate the `other` case. Takes precedence over --add.
+    default: false
+  t9n-trim:
+    description: Trim whitespace from both ends of messages
+    default: true
+  t9n-quotes:
+    description: Replace quote characters with locale-appropriate characters ("source", "straight", or "both")
+    default: 'straight'
+
+  draft-pr:
+    description: Whether to open the translation formatting PR as a draft PR
+    default: true
+  github-token:
+    description: Token used to cleanup branches and open the translation formatting PR
+    required: true
+
+  t9n-branch-prefix:
+    description: Prefix for translation branches
+    default: 'ghworkflow/translation'
+
+runs:
+  using: composite
+  steps:
+    - name: Get Run Info
+      id: run-info
+      run: |
+        echo -e "\e[34mGetting Run Info"
+        if [ ${{ github.event.number }} ]; then
+          SOURCE_BRANCH='${{ github.event.pull_request.head.ref }}'
+          T9N_BRANCH=${PREFIX}-pr-${{ github.event.number }}
+          ORIGINAL_SHA=${{ github.event.pull_request.head.sha }}
+        else
+          SOURCE_BRANCH=${GITHUB_REF#refs/heads/}
+          T9N_BRANCH=${PREFIX}-${GITHUB_REF#refs/heads/}
+          ORIGINAL_SHA=${GITHUB_SHA}
+        fi
+        echo "source-branch=${SOURCE_BRANCH}" >> ${GITHUB_OUTPUT}
+        echo "t9n-branch=${T9N_BRANCH}" >> ${GITHUB_OUTPUT}
+        echo "original-sha=${ORIGINAL_SHA}" >> ${GITHUB_OUTPUT}
+      env:
+        FORCE_COLOR: 3
+        PREFIX: ${{ inputs.t9n-branch-prefix }}
+      shell: bash
+
+    - name: Generate Commit Status Name
+      id: commit-status-name
+      uses: Brightspace/third-party-actions@actions/github-script
+      with:
+        github-token: ${{ inputs.github-token }}
+        result-encoding: string
+        script: |
+          console.log('\x1b[34mGenerating Commit Status Name');
+
+          const { data: { jobs } = {} } = await github.rest.actions.listJobsForWorkflowRunAttempt({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            run_id: context.runId,
+            attempt_number: process.env.GITHUB_RUN_ATTEMPT
+          });
+          const runnerName = process.env.RUNNER_NAME;
+          const jobNames = jobs
+            .filter(({runner_name}) => runner_name === runnerName)
+            .map(({name}) => name);
+          const jobName = jobNames.length === 1 ? jobNames[0] : context.job;
+          console.log(jobNames);
+          const resultsText = jobName[0].toUpperCase() === jobName[0] ? 'Results' : 'results';
+
+          return `${context.workflow} / ${jobName} ${resultsText} (${context.eventName})`;
+      env:
+        FORCE_COLOR: 3
+
+    - name: Create Commit Status
+      uses: Brightspace/third-party-actions@actions/github-script
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          console.log('\x1b[34mCreating Pending Commit Status');
+
+          await github.rest.repos.createCommitStatus({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            sha: process.env.ORIGINAL_SHA,
+            state: 'pending',
+            description: 'Formatting in progress',
+            context: process.env.COMMIT_STATUS_NAME
+          });
+      env:
+        FORCE_COLOR: 3
+        ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
+        COMMIT_STATUS_NAME: ${{ steps.commit-status-name.outputs.result }}
+
+    - name: Translation Branch Cleanup
+      uses: Brightspace/third-party-actions@actions/github-script
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          console.log('\x1b[34mCleaning Up Orphaned Translation Branches');
+          const branchPrefix = `${process.env.PREFIX}-pr-`;
+
+          const t9nBranches = await github.rest.git.listMatchingRefs({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: `heads/${branchPrefix}`
+          });
+
+          for (let i = 0; i < t9nBranches.data.length; i++) {
+            const branch = t9nBranches.data[i].ref;
+            const prNum = branch.slice(branch.lastIndexOf('-') + 1);
+
+            let prInfo,
+              prOpen = true;
+            try {
+              prInfo = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNum
+              });
+
+              if (prInfo.data.state !== 'open') {
+                prOpen = false;
+              }
+            } catch (e) {
+              console.log(`\x1b[31m${e}`);
+              console.log(`\x1b[31mCould not get details for PR #${prNum} - skipping branch ${branch}.`);
+              continue;
+            }
+
+            if (!prOpen) {
+              console.log(`PR #${prNum} is no longer open - deleting branch ${branch}.\n`);
+              try {
+                await github.rest.git.deleteRef({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: branch.substring(5)
+                });
+              } catch (e) {
+                console.log(`\x1b[31m${e}`);
+                console.log(`\x1b[31mCould not delete branch ${branch}.`);
+              }
+            }
+          }
+          console.log('Done processing translation branches.\n');
+      env:
+        FORCE_COLOR: 3
+        PREFIX: ${{ inputs.t9n-branch-prefix }}
+
+    - name: Format Translations - Newlines
+      if: ${{ inputs.t9n-newlines != 'false' }}
+      run: |
+        echo -e "\e[34mFormatting translations - Newlines"
+        if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
+
+        npx mfv format ${FLAGS}
+      env:
+        NEWLINES: ${{ inputs.t9n-newlines }}
+      shell: bash
+
+    - name: Format Translations - Add
+      if: ${{ inputs.t9n-add != 'false' }}
+      run: |
+        echo -e "\e[34mFormatting translations - Add"
+        if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
+        if [[ ${ADD} != "" ]]; then FLAGS="${FLAGS}--add "; fi
+
+        npx mfv format ${FLAGS}
+      env:
+        NEWLINES: ${{ inputs.t9n-newlines }}
+        ADD: ${{ inputs.t9n-add }}
+      shell: bash
+
+    - name: Format Translations - Remove
+      if: ${{ inputs.t9n-remove != 'false' }}
+      run: |
+        echo -e "\e[34mFormatting translations - Remove"
+        if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
+        if [[ ${REMOVE} != "" ]]; then FLAGS="${FLAGS}--remove "; fi
+
+        npx mfv format ${FLAGS}
+      env:
+        NEWLINES: ${{ inputs.t9n-newlines }}
+        REMOVE: ${{ inputs.t9n-remove }}
+      shell: bash
+
+    - name: Format Translations - Dedupe
+      if: ${{ inputs.t9n-dedupe != 'false' }}
+      run: |
+        echo -e "\e[34mFormatting translations - Dedupe"
+        if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
+        if [[ ${DEDUPE} != "" ]]; then FLAGS="${FLAGS}--dedupe "; fi
+
+        npx mfv format ${FLAGS}
+      env:
+        NEWLINES: ${{ inputs.t9n-newlines }}
+        DEDUPE: ${{ inputs.t9n-dedupe }}
+      shell: bash
+
+    - name: Format Translations - Trim
+      if: ${{ inputs.t9n-trim != 'false' }}
+      run: |
+        echo -e "\e[34mFormatting translations - Trim"
+        if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
+        if [[ ${TRIM} != "" ]]; then FLAGS="${FLAGS}--trim "; fi
+
+        npx mfv format ${FLAGS}
+      env:
+        NEWLINES: ${{ inputs.t9n-newlines }}
+        TRIM: ${{ inputs.t9n-trim }}
+      shell: bash
+
+    - name: Format Translations - Quotes
+      if: ${{ inputs.t9n-quotes != 'false' }}
+      run: |
+        echo -e "\e[34mFormatting translations - Quotes"
+        if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
+        if [[ ${QUOTES} != "false" ]]; then FLAGS="${FLAGS}--quotes ${QUOTES} "; fi
+
+        npx mfv format ${FLAGS}
+      env:
+        NEWLINES: ${{ inputs.t9n-newlines }}
+        QUOTES: ${{ inputs.t9n-quotes }}
+      shell: bash
+
+    - name: Commit Changes (if necessary)
+      id: commit-changes
+      run: |
+        echo -e "\e[34mCommitting translation changes (if necessary)"
+        if git diff --quiet; then
+          echo -e "\e[32m - no changes needed.\n"
+          exit 0;
+        fi
+        echo -e "\e[31mChanges made - committing"
+
+        if ! git diff --quiet ${ORIGINAL_SHA}; then
+          echo "diff=true" >> ${GITHUB_OUTPUT}
+        fi
+
+        echo -e "\n\e[34mCreating the Translation Branch"
+        git stash --include-untracked
+        git fetch origin +refs/heads/${SOURCE_BRANCH}:refs/heads/${SOURCE_BRANCH} -q -u || true
+        git checkout ${SOURCE_BRANCH}
+        git checkout -b ${T9N_BRANCH}
+        if [ $(git rev-parse HEAD) != ${ORIGINAL_SHA} ]; then
+          echo -e "\e[31mBranch out of date - more commits have been added to the '${SOURCE_BRANCH}' branch since this action started running.  Stopping this formatting run."
+          exit 1;
+        fi
+
+        echo "empty=false" >> ${GITHUB_OUTPUT}
+        echo "conflict=false" >> ${GITHUB_OUTPUT}
+        if [ $(git stash list | wc -l) == 0 ]; then
+          echo -e "\e[31mNo changes to apply - please see errors above."
+          echo "empty=true" >> ${GITHUB_OUTPUT}
+          exit 0;
+        fi
+        if ! git stash apply; then
+          echo -e "\e[31mCould not apply stash - merge conflicts with ${{ github.event.pull_request.base.ref }}."
+          echo "conflict=true" >> ${GITHUB_OUTPUT}
+          exit 0;
+        fi
+
+        echo -e "\n\e[34mCommitting translation changes"
+        git config user.name github-actions[bot]
+        # what dis
+        git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+        git reset HEAD
+        git add -u
+        git commit -m 'Updating translations'
+
+        echo -e "\n\e[34mPushing the Translation Branch"
+        git push --force origin ${T9N_BRANCH}
+      env:
+        FORCE_COLOR: 3
+        ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
+        SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
+        T9N_BRANCH: ${{ steps.run-info.outputs.t9n-branch }}
+      shell: bash
+
+    - name: Close Pull Request (if necessary)
+      run: |
+        echo -e "\e[34mClosing Pull Request (if necessary)"
+        if [ ${FORMAT_DIFF} != true ] || [ ${FORMAT_CONFLICT} == true ]; then
+          if git ls-remote --exit-code --heads origin ${T9N_BRANCH}; then
+            echo -e "\e[34mClosing Translation Format PR and Deleting Branch"
+            git push -d origin ${T9N_BRANCH} || true
+          fi
+        fi
+      env:
+        FORCE_COLOR: 3
+        FORMAT_CONFLICT: ${{ steps.commit-changes.outputs.conflict }}
+        FORMAT_DIFF: ${{ steps.commit-changes.outputs.diff }}
+        T9N_BRANCH: ${{ steps.run-info.outputs.t9n-branch }}
+      shell: bash
+
+    - name: Open Pull Request (if necessary)
+      id: pull-request
+      uses: Brightspace/third-party-actions@actions/github-script
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          console.log('\x1b[34mOpening Pull Request (if necessary)');
+          if (process.env.FORMAT_DIFF !== 'true' || process.env.FORMAT_CONFLICT === 'true') return;
+
+          const prNum = process.env.PULL_REQUEST_NUM;
+          const sourceBranchName = process.env.SOURCE_BRANCH;
+          const t9nBranchName = process.env.T9N_BRANCH;
+          if (prNum) {
+            console.log('\nTranslation formatting triggered by PR - Verifying PR information');
+            let prInfo;
+            try {
+              prInfo = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNum
+              });
+            } catch (e) {
+              console.log(`\x1b[31mCould not find PR #${prNum} that triggered the translation formatting run`);
+              console.log(e);
+              return;
+            }
+
+            if (prInfo.data.head.ref !== sourceBranchName) {
+              console.log('\x1b[31mBranch name does not match what is expected.');
+              return;
+            } else if (prInfo.data.state !== 'open') {
+              console.log('\x1b[31mPR that triggered the translation formatting run is no longer open.');
+              return;
+            }
+            console.log(`Translation changes are for PR #${prNum} (branch: ${sourceBranchName})`);
+          } else {
+            console.log('\nTranslation formatting triggered by push to branch - Verifying branch information');
+            try {
+              await github.rest.repos.getBranch({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                branch: sourceBranchName
+              });
+            } catch (e) {
+              console.log(`\x1b[31mCould not find branch ${sourceBranchName} that triggered the translation formatting run.`);
+              console.log(e);
+              return;
+            }
+            console.log(`Translation changes are for branch ${sourceBranchName}`);
+          }
+
+          console.log('\x1b[34m\nChecking For Existing Translation Formatting PR');
+          const t9nPRs = await github.rest.pulls.list({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            head: `${context.repo.owner}:refs/heads/${t9nBranchName}`,
+            base: `refs/heads/${sourceBranchName}`,
+            state: 'open'
+          });
+
+          let prBody = `This pull request formats translations for ${prNum ? `the changes in pull request #${prNum}.` : `branch \`${sourceBranchName}\`.`}`;
+          prBody = `${prBody}\n\nPlease review these changes carefully before merging to ensure they are as expected.`;
+
+          let t9nPrNum;
+          if (t9nPRs.data.length === 0) {
+            console.log('Translation formatting PR does not exist');
+            console.log('\x1b[34m\nOpening new translation formatting PR');
+            const newPR = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: prNum ? `Updating translation formatting for PR ${prNum}` : `Updating translation formatting for Branch ${sourceBranchName}`,
+              head: `refs/heads/${t9nBranchName}`,
+              base: `refs/heads/${sourceBranchName}`,
+              draft: process.env['DRAFT_PR'].toLowerCase() === 'false' ? false : true,
+              body: prBody
+            });
+            t9nPrNum = newPR.data.number;
+            console.log(`PR #${t9nPrNum} opened: ${newPR.data.html_url}`);
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: t9nPrNum,
+              labels: ['auto-t9n']
+            });
+          } else {
+            t9nPrNum = t9nPRs.data[0].number;
+            console.log(`Translation formatting PR already exists: ${t9nPRs.data[0].html_url}`);
+            console.log('Updating PR description');
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: t9nPrNum,
+              body: prBody
+            });
+          }
+          core.setOutput('num', t9nPrNum);
+
+          console.log('Adding PR Reviewers');
+          try {
+            await github.rest.pulls.requestReviewers({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: t9nPrNum,
+              reviewers: [process.env.GITHUB_ACTOR]
+            });
+          } catch (e) {
+            console.log('Could not add reviewer');
+            console.log(e);
+          }
+      env:
+        FORCE_COLOR: 3
+        DRAFT_PR: ${{ inputs.draft-pr }}
+        FORMAT_CONFLICT: ${{ steps.commit-changes.outputs.conflict }}
+        FORMAT_DIFF: ${{ steps.commit-changes.outputs.diff }}
+        PULL_REQUEST_NUM: ${{ github.event.number }}
+        PULL_REQUEST_BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+        SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
+        T9N_BRANCH: ${{ steps.run-info.outputs.t9n-branch }}
+
+    - name: Update Commit Status
+      uses: Brightspace/third-party-actions@actions/github-script
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          console.log('\x1b[34mUpdating Commit Status');
+
+          let state, description, targetUrl;
+          if (process.env.FORMAT_DIFF !== 'true') {
+            state = 'success';
+            description = 'No changes were made.';
+            console.log('\x1b[32mCompleted - Build Passed.');
+          } else {
+            if (process.env.FORMAT_CONFLICT === 'true') {
+              state = 'error';
+              description = 'Could not apply translation changes: Rebase or merge in the base branch. Your changes will update translations you don\'t have the latest version of.';
+              console.log(`\x1b[31m${description}`);
+            } else {
+              state = 'failure';
+              if (process.env.PULL_REQUEST_NUM) {
+                description = `Translations formatted: PR #${process.env.PULL_REQUEST_NUM} has been opened with the changes. ->`;
+                targetUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/pull/${process.env.PULL_REQUEST_NUM}`;
+                console.log(`\x1b[31mTranslations formatted: ${targetUrl} opened with the changes.`);
+              } else {
+                description = 'Could not open translation formatting PR: Check the Translation Format workflow run log for errors. ->';
+                targetUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+                console.log('\x1b[31mCould not open translation formatting PR: See errors above.');
+              }
+            }
+
+            core.setFailed('Completed - Build Failed.');
+          }
+
+          await github.rest.repos.createCommitStatus({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            sha: process.env.ORIGINAL_SHA,
+            state: state,
+            target_url: targetUrl,
+            description: description,
+            context: process.env.COMMIT_STATUS_NAME
+          });
+      env:
+        FORCE_COLOR: 3
+        FORMAT_CONFLICT: ${{ steps.commit-changes.outputs.conflict }}
+        FORMAT_DIFF: ${{ steps.commit-changes.outputs.diff }}
+        ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
+        PULL_REQUEST_NUM: ${{ steps.pull-request.outputs.num }}
+        COMMIT_STATUS_NAME: ${{ steps.commit-status-name.outputs.result }}
