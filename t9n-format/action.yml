@@ -75,7 +75,6 @@ runs:
             .filter(({runner_name}) => runner_name === runnerName)
             .map(({name}) => name);
           const jobName = jobNames.length === 1 ? jobNames[0] : context.job;
-          console.log(jobNames);
           const resultsText = jobName[0].toUpperCase() === jobName[0] ? 'Results' : 'results';
 
           return `${context.workflow} / ${jobName} ${resultsText} (${context.eventName})`;
@@ -168,6 +167,7 @@ runs:
         NEWLINES: ${{ inputs.t9n-newlines }}
       shell: bash
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
+      id: commit-newlines
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-branch: ${{ steps.run-info.outputs.source-branch }}
@@ -187,6 +187,7 @@ runs:
         ADD: ${{ inputs.t9n-add }}
       shell: bash
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
+      id: commit-add
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-branch: ${{ steps.run-info.outputs.source-branch }}
@@ -206,6 +207,7 @@ runs:
         REMOVE: ${{ inputs.t9n-remove }}
       shell: bash
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
+      id: format-remove
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-branch: ${{ steps.run-info.outputs.source-branch }}
@@ -225,6 +227,7 @@ runs:
         DEDUPE: ${{ inputs.t9n-dedupe }}
       shell: bash
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
+      id: commit-dedupe
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-branch: ${{ steps.run-info.outputs.source-branch }}
@@ -244,6 +247,7 @@ runs:
         TRIM: ${{ inputs.t9n-trim }}
       shell: bash
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
+      id: commit-trim
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-branch: ${{ steps.run-info.outputs.source-branch }}
@@ -263,6 +267,7 @@ runs:
         QUOTES: ${{ inputs.t9n-quotes }}
       shell: bash
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@dgleckler/translations
+      id: commit-quote
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-branch: ${{ steps.run-info.outputs.source-branch }}
