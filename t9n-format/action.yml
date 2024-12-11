@@ -19,6 +19,9 @@ inputs:
   t9n-quotes:
     description: Replace quote characters with locale-appropriate characters ("source", "straight", or "both")
     default: 'straight'
+  t9n-locales:
+    description: Comma-separated list of locales to format
+    default: ''
 
   draft-pr:
     description: Whether to open the translation formatting PR as a draft PR
@@ -160,11 +163,13 @@ runs:
       if: ${{ inputs.t9n-newlines != 'false' }}
       run: |
         echo -e "\e[34mFormatting translations - Newlines"
-        if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
+        if [[ ${LOCALES} != "" ]]; then FLAGS="--locales '${LOCALES}' "; fi
+        if [[ ${NEWLINES} == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
 
         npx mfv format ${FLAGS}
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
+        LOCALES: ${{ inputs.t9n-locales }}
       shell: bash
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
       if: ${{ inputs.t9n-newlines != 'false' }}
@@ -179,11 +184,13 @@ runs:
       if: ${{ inputs.t9n-add != 'false' }}
       run: |
         echo -e "\e[34mFormatting translations - Add"
-        if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
+        if [[ ${LOCALES} != "" ]]; then FLAGS="--locales '${LOCALES}' "; fi
+        if [[ ${NEWLINES} == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
         if [[ ${ADD} != "" ]]; then FLAGS="${FLAGS}--add "; fi
 
         npx mfv format ${FLAGS}
       env:
+        LOCALES: ${{ inputs.t9n-locales }}
         NEWLINES: ${{ inputs.t9n-newlines }}
         ADD: ${{ inputs.t9n-add }}
       shell: bash
@@ -200,11 +207,13 @@ runs:
       if: ${{ inputs.t9n-remove != 'false' }}
       run: |
         echo -e "\e[34mFormatting translations - Remove"
-        if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
+        if [[ ${LOCALES} != "" ]]; then FLAGS="--locales '${LOCALES}' "; fi
+        if [[ ${NEWLINES} == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
         if [[ ${REMOVE} != "" ]]; then FLAGS="${FLAGS}--remove "; fi
 
         npx mfv format ${FLAGS}
       env:
+        LOCALES: ${{ inputs.t9n-locales }}
         NEWLINES: ${{ inputs.t9n-newlines }}
         REMOVE: ${{ inputs.t9n-remove }}
       shell: bash
@@ -221,11 +230,13 @@ runs:
       if: ${{ inputs.t9n-dedupe != 'false' }}
       run: |
         echo -e "\e[34mFormatting translations - Dedupe"
-        if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
+        if [[ ${LOCALES} != "" ]]; then FLAGS="--locales '${LOCALES}' "; fi
+        if [[ ${NEWLINES} == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
         if [[ ${DEDUPE} != "" ]]; then FLAGS="${FLAGS}--dedupe "; fi
 
         npx mfv format ${FLAGS}
       env:
+        LOCALES: ${{ inputs.t9n-locales }}
         NEWLINES: ${{ inputs.t9n-newlines }}
         DEDUPE: ${{ inputs.t9n-dedupe }}
       shell: bash
@@ -242,11 +253,13 @@ runs:
       if: ${{ inputs.t9n-trim != 'false' }}
       run: |
         echo -e "\e[34mFormatting translations - Trim"
-        if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
+        if [[ ${LOCALES} != "" ]]; then FLAGS="--locales '${LOCALES}' "; fi
+        if [[ ${NEWLINES} == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
         if [[ ${TRIM} != "" ]]; then FLAGS="${FLAGS}--trim "; fi
 
         npx mfv format ${FLAGS}
       env:
+        LOCALES: ${{ inputs.t9n-locales }}
         NEWLINES: ${{ inputs.t9n-newlines }}
         TRIM: ${{ inputs.t9n-trim }}
       shell: bash
@@ -263,11 +276,13 @@ runs:
       if: ${{ inputs.t9n-quotes != 'false' }}
       run: |
         echo -e "\e[34mFormatting translations - Quotes"
-        if [[ ${NEWLINES} == "true" ]]; then FLAGS="--newlines "; fi
+        if [[ ${LOCALES} != "" ]]; then FLAGS="--locales '${LOCALES}' "; fi
+        if [[ ${NEWLINES} == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
         if [[ ${QUOTES} != "false" ]]; then FLAGS="${FLAGS}--quotes ${QUOTES} "; fi
 
         npx mfv format ${FLAGS}
       env:
+        LOCALES: ${{ inputs.t9n-locales }}
         NEWLINES: ${{ inputs.t9n-newlines }}
         QUOTES: ${{ inputs.t9n-quotes }}
       shell: bash
