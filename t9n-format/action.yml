@@ -162,6 +162,7 @@ runs:
     - name: Format Translations - Newlines
       if: ${{ inputs.t9n-newlines != 'false' }}
       run: |
+        set -x  # Enable debugging
         echo -e "\e[34mFormatting translations - Newlines"
         if [[ ${LOCALES} != "" ]]; then FLAGS="--locales '${LOCALES}' "; fi
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
