@@ -167,7 +167,7 @@ runs:
         if [[ "${LOCALES}" != "" ]]; then FLAGS="--locales ${LOCALES} "; fi
         if [[ "${NEWLINES}" == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
 
-        npx mfv format ${FLAGS}
+        eval npx mfv format ${FLAGS}
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         LOCALES: "'${{ inputs.t9n-locales }}'"
@@ -189,7 +189,7 @@ runs:
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
         if [[ ${ADD} != "" ]]; then FLAGS="${FLAGS}--add "; fi
 
-        npx mfv format ${FLAGS}
+        eval npx mfv format ${FLAGS}
       env:
         LOCALES: "'${{ inputs.t9n-locales }}'"
         NEWLINES: ${{ inputs.t9n-newlines }}
@@ -212,7 +212,7 @@ runs:
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
         if [[ ${REMOVE} != "" ]]; then FLAGS="${FLAGS}--remove "; fi
 
-        npx mfv format ${FLAGS}
+        eval npx mfv format ${FLAGS}
       env:
         LOCALES: "'${{ inputs.t9n-locales }}'"
         NEWLINES: ${{ inputs.t9n-newlines }}
@@ -235,7 +235,7 @@ runs:
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
         if [[ ${DEDUPE} != "" ]]; then FLAGS="${FLAGS}--dedupe "; fi
 
-        npx mfv format ${FLAGS}
+        eval npx mfv format ${FLAGS}
       env:
         LOCALES: "'${{ inputs.t9n-locales }}'"
         NEWLINES: ${{ inputs.t9n-newlines }}
@@ -259,7 +259,7 @@ runs:
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
         if [[ ${TRIM} != "" ]]; then FLAGS="${FLAGS}--trim "; fi
 
-        npx mfv format ${FLAGS}
+        eval npx mfv format ${FLAGS}
       env:
         LOCALES: "'${{ inputs.t9n-locales }}'"
         NEWLINES: ${{ inputs.t9n-newlines }}
@@ -283,7 +283,7 @@ runs:
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
         if [[ ${QUOTES} != "false" ]]; then FLAGS="${FLAGS}--quotes ${QUOTES} "; fi
 
-        npx mfv format ${FLAGS}
+        eval npx mfv format ${FLAGS}
       env:
         LOCALES: "'${{ inputs.t9n-locales }}'"
         NEWLINES: ${{ inputs.t9n-newlines }}
