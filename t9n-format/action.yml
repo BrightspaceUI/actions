@@ -3,19 +3,19 @@ description: Run translation formatting and open a PR with the changes as necess
 inputs:
   t9n-newlines:
     description: When formatting complex arguments, use newlines and indentation for readability
-    default: false
+    default: 'false'
   t9n-add:
     description: Add cases for missing supported plural and selectordinal categories
-    default: false
+    default: 'false'
   t9n-remove:
     description: Remove cases for unsupported plural and selectordinal categories
-    default: true
+    default: 'true'
   t9n-dedupe:
     description: Remove complex argument cases that duplicate the `other` case. Takes precedence over --add.
-    default: false
+    default: 'false'
   t9n-trim:
     description: Trim whitespace from both ends of messages
-    default: true
+    default: 'true'
   t9n-quotes:
     description: Replace quote characters with locale-appropriate characters ("source", "straight", or "both")
     default: 'straight'
@@ -25,7 +25,7 @@ inputs:
 
   draft-pr:
     description: Whether to open the translation formatting PR as a draft PR
-    default: true
+    default: 'true'
   github-token:
     description: Token used to cleanup branches and open the translation formatting PR
     required: true
