@@ -159,6 +159,24 @@ runs:
         FORCE_COLOR: 3
         PREFIX: ${{ inputs.t9n-branch-prefix }}
 
+    - name: Format Translations - Essentials
+      if: ${{ inputs.t9n-newlines != 'false' }}
+      run: |
+        echo -e "\e[34mFormatting translations - Essentials"
+        if [[ "${LOCALES}" != "" ]]; then FLAGS="--locales ${LOCALES}"; fi
+
+        eval npx mfv format ${FLAGS}
+      env:
+        LOCALES: "'${{ inputs.t9n-locales }}'"
+      shell: bash
+    - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
+      id: commit-essentials
+      with:
+        original-sha: ${{ steps.run-info.outputs.original-sha }}
+        source-branch: ${{ steps.run-info.outputs.source-branch }}
+        t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
+        change-type: 'Essentials'
+
     - name: Format Translations - Newlines
       if: ${{ inputs.t9n-newlines != 'false' }}
       run: |
