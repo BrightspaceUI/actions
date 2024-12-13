@@ -189,6 +189,7 @@ runs:
     - name: Format Translations - Argument Correction
       if: ${{ inputs.t9n-correct != 'false' }}
       run: |
+        set -x
         echo -e "\e[34mFormatting translations - Argument Correction"
         if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi
         if [[ ${CORRECT} == "true" ]]; then FLAGS="${FLAGS} --correct "; fi
