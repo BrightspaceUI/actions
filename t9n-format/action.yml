@@ -20,8 +20,17 @@ inputs:
     description: Replace quote characters with locale-appropriate characters ("source", "straight", or "both")
     default: 'straight'
   t9n-locales:
-    description: Comma-separated list of locales to format
+    description: Comma-separated list of locales to format. If empty, all locales are formatted.
     default: ''
+  t9n-source:
+    description: The locale to use as the source
+    default: ''
+  t9n-path:
+    description: Glob path to a directory containing locale files
+    default: ''
+  t9n-correct:
+    description: Attempt to correct argument names
+    default: 'true'
 
   draft-pr:
     description: Whether to open the translation formatting PR as a draft PR
@@ -163,11 +172,15 @@ runs:
       if: ${{ inputs.t9n-newlines != 'false' }}
       run: |
         echo -e "\e[34mFormatting translations - Essentials"
-        if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES}"; fi
+        if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi
+        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source ${SOURCE} "; fi
+        if [[ ${LOCALES_PATH} != "" ]]; then FLAGS="${FLAGS} --path ${LOCALES_PATH}"; fi
 
         eval npx mfv format ${FLAGS}
       env:
         LOCALES: "'${{ inputs.t9n-locales }}'"
+        SOURCE: ${{ inputs.t9n-source }}
+        LOCALES_PATH: ${{ inputs.t9n-path }}
       shell: bash
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
       id: commit-essentials
@@ -177,17 +190,45 @@ runs:
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
         change-type: 'Essentials'
 
+    - name: Format Translations - Argument Correction
+      if: ${{ inputs.t9n-correct != 'false' }}
+      run: |
+        echo -e "\e[34mFormatting translations - Argument Correction"
+        if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi
+        if [[ ${CORRECT} == "true" ]]; then FLAGS="${FLAGS} --correct "; fi
+        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source ${SOURCE} "; fi
+        if [[ ${LOCALES_PATH} != "" ]]; then FLAGS="${FLAGS} --path ${LOCALES_PATH}"; fi
+
+        eval npx mfv format ${FLAGS}
+      env:
+        LOCALES: "'${{ inputs.t9n-locales }}'"
+        SOURCE: ${{ inputs.t9n-source }}
+        CORRECT: ${{ inputs.t9n-correct }}
+        LOCALES_PATH: ${{ inputs.t9n-path }}
+      shell: bash
+    - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
+      id: commit-argument-correction
+      with:
+        original-sha: ${{ steps.run-info.outputs.original-sha }}
+        source-branch: ${{ steps.run-info.outputs.source-branch }}
+        t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
+        change-type: 'Argument Correction'
+
     - name: Format Translations - Newlines
       if: ${{ inputs.t9n-newlines != 'false' }}
       run: |
         echo -e "\e[34mFormatting translations - Newlines"
         if [[ "${LOCALES}" != "" ]]; then FLAGS="--locales ${LOCALES} "; fi
         if [[ "${NEWLINES}" == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
+        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source ${SOURCE} "; fi
+        if [[ ${LOCALES_PATH} != "" ]]; then FLAGS="${FLAGS} --path ${LOCALES_PATH} "; fi
 
         eval npx mfv format ${FLAGS}
       env:
         NEWLINES: ${{ inputs.t9n-newlines }}
         LOCALES: "'${{ inputs.t9n-locales }}'"
+        SOURCE: ${{ inputs.t9n-source }}
+        LOCALES_PATH: ${{ inputs.t9n-path }}
       shell: bash
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
       if: ${{ inputs.t9n-newlines != 'false' }}
@@ -205,12 +246,16 @@ runs:
         if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
         if [[ ${ADD} != "" ]]; then FLAGS="${FLAGS}--add "; fi
+        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source ${SOURCE} "; fi
+        if [[ ${LOCALES_PATH} != "" ]]; then FLAGS="${FLAGS} --path ${LOCALES_PATH} "; fi
 
         eval npx mfv format ${FLAGS}
       env:
         LOCALES: "'${{ inputs.t9n-locales }}'"
         NEWLINES: ${{ inputs.t9n-newlines }}
         ADD: ${{ inputs.t9n-add }}
+        SOURCE: ${{ inputs.t9n-source }}
+        LOCALES_PATH: ${{ inputs.t9n-path }}
       shell: bash
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
       if: ${{ inputs.t9n-add != 'false' }}
@@ -228,12 +273,16 @@ runs:
         if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
         if [[ ${REMOVE} != "" ]]; then FLAGS="${FLAGS}--remove "; fi
+        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source ${SOURCE} "; fi
+        if [[ ${LOCALES_PATH} != "" ]]; then FLAGS="${FLAGS} --path ${LOCALES_PATH} "; fi
 
         eval npx mfv format ${FLAGS}
       env:
         LOCALES: "'${{ inputs.t9n-locales }}'"
         NEWLINES: ${{ inputs.t9n-newlines }}
         REMOVE: ${{ inputs.t9n-remove }}
+        SOURCE: ${{ inputs.t9n-source }}
+        LOCALES_PATH: ${{ inputs.t9n-path }}
       shell: bash
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
       if: ${{ inputs.t9n-remove != 'false' }}
@@ -251,12 +300,16 @@ runs:
         if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
         if [[ ${DEDUPE} != "" ]]; then FLAGS="${FLAGS}--dedupe "; fi
+        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source ${SOURCE} "; fi
+        if [[ ${LOCALES_PATH} != "" ]]; then FLAGS="${FLAGS} --path ${LOCALES_PATH} "; fi
 
         eval npx mfv format ${FLAGS}
       env:
         LOCALES: "'${{ inputs.t9n-locales }}'"
         NEWLINES: ${{ inputs.t9n-newlines }}
         DEDUPE: ${{ inputs.t9n-dedupe }}
+        SOURCE: ${{ inputs.t9n-source }}
+        LOCALES_PATH: ${{ inputs.t9n-path }}
       shell: bash
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
       if: ${{ inputs.t9n-dedupe != 'false' }}
@@ -274,12 +327,16 @@ runs:
         if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
         if [[ ${TRIM} != "" ]]; then FLAGS="${FLAGS}--trim "; fi
+        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source ${SOURCE} "; fi
+        if [[ ${LOCALES_PATH} != "" ]]; then FLAGS="${FLAGS} --path ${LOCALES_PATH} "; fi
 
         eval npx mfv format ${FLAGS}
       env:
         LOCALES: "'${{ inputs.t9n-locales }}'"
         NEWLINES: ${{ inputs.t9n-newlines }}
         TRIM: ${{ inputs.t9n-trim }}
+        SOURCE: ${{ inputs.t9n-source }}
+        LOCALES_PATH: ${{ inputs.t9n-path }}
       shell: bash
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
       if: ${{ inputs.t9n-trim != 'false' }}
@@ -297,12 +354,16 @@ runs:
         if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
         if [[ ${QUOTES} != "false" ]]; then FLAGS="${FLAGS}--quotes ${QUOTES} "; fi
+        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source ${SOURCE} "; fi
+        if [[ ${LOCALES_PATH} != "" ]]; then FLAGS="${FLAGS} --path ${LOCALES_PATH} "; fi
 
         eval npx mfv format ${FLAGS}
       env:
         LOCALES: "'${{ inputs.t9n-locales }}'"
         NEWLINES: ${{ inputs.t9n-newlines }}
         QUOTES: ${{ inputs.t9n-quotes }}
+        SOURCE: ${{ inputs.t9n-source }}
+        LOCALES_PATH: ${{ inputs.t9n-path }}
       shell: bash
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
       if: ${{ inputs.t9n-quotes != 'false' }}
