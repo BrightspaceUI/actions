@@ -44,8 +44,8 @@ jobs:
 ```
 
 General Inputs:
-* `draft-pr` (default: `true`): Whether to open the golden PR as a draft PR.
-* `github-token`: Token used to cleanup branches and open the golden PR. This does not need admin privileges, so the standard `GITHUB_TOKEN` that's available can be used.
+* `draft-pr` (default: `true`): Whether to open the translation formatting PR as a draft PR.
+* `github-token`: Token used to cleanup branches and open the translation formatting PR. This does not need admin privileges, so the standard `GITHUB_TOKEN` that's available can be used.
 * `t9n-branch-prefix` (default: `ghworkflow/translation`): Prefix for translation formatting branches.
 
 `messageformat-validator` Inputs:
