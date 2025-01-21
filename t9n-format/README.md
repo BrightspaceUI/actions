@@ -4,11 +4,9 @@ This GitHub action runs [messageformat-validator's `format`](https://github.com/
 
 More specifically, this action will:
 * Cleanup abandoned formatting PRs
-<!-- * Run `mfv` to validate messages  -->
 * Run `mfv format` and display the results in a custom commit status (including error messages, a link to the formatting PR, etc.)
   * If changes are produced, it will open/update the corresponding formatting PR with various types of changes in separate commits
   * If there are no changes, it will close the corresponding formatting PR if it exists
-<!-- #* Run `mfv` again to validate the changes -->
 
 ## Using the Action
 
@@ -34,7 +32,7 @@ jobs:
           node-version-file: .nvmrc
           cache: 'npm'
       - name: Install dependencies
-        run: npm ci
+        run: npm i
       - name: Run formatter
         uses: BrightspaceUI/actions/t9n-format@main
         with:
