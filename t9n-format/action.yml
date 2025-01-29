@@ -173,7 +173,7 @@ runs:
       run: |
         echo -e "\e[34mFormatting translations - Essentials"
         if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi
-        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source ${SOURCE} "; fi
+        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source-locale ${SOURCE} "; fi
         if [[ ${LOCALES_PATH} != "" ]]; then FLAGS="${FLAGS} --path ${LOCALES_PATH}"; fi
 
         eval npx mfv format ${FLAGS}
@@ -196,7 +196,7 @@ runs:
         echo -e "\e[34mFormatting translations - Argument Correction"
         if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi
         if [[ ${CORRECT} == "true" ]]; then FLAGS="${FLAGS} --correct "; fi
-        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source ${SOURCE} "; fi
+        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source-locale ${SOURCE} "; fi
         if [[ ${LOCALES_PATH} != "" ]]; then FLAGS="${FLAGS} --path ${LOCALES_PATH}"; fi
 
         eval npx mfv format ${FLAGS}
@@ -220,7 +220,7 @@ runs:
         echo -e "\e[34mFormatting translations - Newlines"
         if [[ "${LOCALES}" != "" ]]; then FLAGS="--locales ${LOCALES} "; fi
         if [[ "${NEWLINES}" == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
-        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source ${SOURCE} "; fi
+        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source-locale ${SOURCE} "; fi
         if [[ ${LOCALES_PATH} != "" ]]; then FLAGS="${FLAGS} --path ${LOCALES_PATH} "; fi
 
         eval npx mfv format ${FLAGS}
@@ -246,7 +246,7 @@ runs:
         if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
         if [[ ${ADD} != "" ]]; then FLAGS="${FLAGS}--add "; fi
-        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source ${SOURCE} "; fi
+        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source-locale ${SOURCE} "; fi
         if [[ ${LOCALES_PATH} != "" ]]; then FLAGS="${FLAGS} --path ${LOCALES_PATH} "; fi
 
         eval npx mfv format ${FLAGS}
@@ -273,7 +273,7 @@ runs:
         if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
         if [[ ${REMOVE} != "" ]]; then FLAGS="${FLAGS}--remove "; fi
-        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source ${SOURCE} "; fi
+        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source-locale ${SOURCE} "; fi
         if [[ ${LOCALES_PATH} != "" ]]; then FLAGS="${FLAGS} --path ${LOCALES_PATH} "; fi
 
         eval npx mfv format ${FLAGS}
@@ -300,7 +300,7 @@ runs:
         if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
         if [[ ${DEDUPE} != "" ]]; then FLAGS="${FLAGS}--dedupe "; fi
-        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source ${SOURCE} "; fi
+        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source-locale ${SOURCE} "; fi
         if [[ ${LOCALES_PATH} != "" ]]; then FLAGS="${FLAGS} --path ${LOCALES_PATH} "; fi
 
         eval npx mfv format ${FLAGS}
@@ -327,7 +327,7 @@ runs:
         if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
         if [[ ${TRIM} != "" ]]; then FLAGS="${FLAGS}--trim "; fi
-        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source ${SOURCE} "; fi
+        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source-locale ${SOURCE} "; fi
         if [[ ${LOCALES_PATH} != "" ]]; then FLAGS="${FLAGS} --path ${LOCALES_PATH} "; fi
 
         eval npx mfv format ${FLAGS}
@@ -354,7 +354,7 @@ runs:
         if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi
         if [[ ${NEWLINES} == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
         if [[ ${QUOTES} != "false" ]]; then FLAGS="${FLAGS}--quotes ${QUOTES} "; fi
-        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source ${SOURCE} "; fi
+        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source-locale ${SOURCE} "; fi
         if [[ ${LOCALES_PATH} != "" ]]; then FLAGS="${FLAGS} --path ${LOCALES_PATH} "; fi
 
         eval npx mfv format ${FLAGS}
