@@ -87,6 +87,8 @@ Setup Node:
 ```yml
 - name: Setup Node
   uses: Brightspace/third-party-actions@actions/setup-node
+  with:
+    registry-url: "https://registry.npmjs.org"
 ```
 
 Then pass through the `NPM_TOKEN` secret.
