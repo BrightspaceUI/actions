@@ -1,0 +1,7 @@
+name: cache-test-data
+description: Share test result data between run attempts
+
+runs:
+  using: 'node20'
+  main: 'restore.js'
+  post: 'save.js'
