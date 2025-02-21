@@ -4,20 +4,10 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 const config = [
   {
-    input: 'test-data/save.js',
+    input: ['test-data/save.js', 'test-data/restore.js'],
     output: {
       esModule: true,
-      file: 'dist/test-data/save.js',
-      format: 'es',
-      sourcemap: false
-    },
-    plugins: [ json(), commonjs(), nodeResolve({ preferBuiltins: true }) ]
-  },
-  {
-    input: 'test-data/restore.js',
-    output: {
-      esModule: true,
-      file: 'dist/test-data/restore.js',
+      dir: 'dist/test-data/',
       format: 'es',
       sourcemap: false
     },
