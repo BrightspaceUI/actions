@@ -14,8 +14,7 @@
   },
   "dependencies": {
     "@actions/cache": "^4",
-    "@actions/core": "^1",
-    "@actions/github": "^6"
+    "@actions/core": "^1"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^6",
