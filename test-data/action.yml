@@ -3,5 +3,5 @@ description: Share test result data between run attempts
 
 runs:
   using: 'node20'
-  main: dist/test-data/restore/index.js
-  post: dist/test-data/save/index.js
+  main: ../dist/test-data/restore.js
+  post: ../dist/test-data/save.js
