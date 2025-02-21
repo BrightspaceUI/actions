@@ -78312,10 +78312,15 @@ var githubExports = requireGithub();
 
 var coreExports = requireCore();
 
-coreExports.info(JSON.stringify(githubExports.context, null, 2));
+const runAttempt = process.env.GITHUB_RUN_ATTEMPT;
+
+coreExports.info(githubExports.context.runAttempt);
+coreExports.info(process.env.GITHUB_RUN_ATTEMPT);
+
+coreExports.info(process.env);
 
 const paths = ['.d2l-test'];
-const key = `d2l-test-${ githubExports.context.runId }-${ githubExports.context.runNumber }`;
+const key = `d2l-test-${ githubExports.context.runId }-${ runAttempt }`;
 const restoreKeys = [
     `d2l-test-${ githubExports.context.runId }-`
 ];
