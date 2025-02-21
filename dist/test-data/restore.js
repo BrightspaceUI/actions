@@ -74352,6 +74352,8 @@ function requireCache () {
 
 var cacheExports = requireCache();
 
+var coreExports = requireCore();
+
 const runAttempt = process.env.GITHUB_RUN_ATTEMPT;
 const runId = process.env.GITHUB_RUN_ID;
 
@@ -74360,4 +74362,6 @@ const key = `d2l-test-${ runId }-${ runAttempt }`;
 const restoreKeys = [
     `d2l-test-${ runId }-`
 ];
-await cacheExports.restoreCache(paths, key, restoreKeys);
+const cacheKey = await cacheExports.restoreCache(paths, key, restoreKeys);
+
+coreExports.info(`Restored cache with key: ${cacheKey}`);

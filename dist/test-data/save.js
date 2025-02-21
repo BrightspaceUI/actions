@@ -74352,6 +74352,8 @@ function requireCache () {
 
 var cacheExports = requireCache();
 
+var coreExports = requireCore();
+
 const runAttempt = process.env.GITHUB_RUN_ATTEMPT;
 const runId = process.env.GITHUB_RUN_ID;
 
@@ -74359,3 +74361,5 @@ const paths = ['.d2l-test'];
 const key = `d2l-test-${ runId }-${ runAttempt }`;
 
 await cacheExports.saveCache(paths, key);
+
+coreExports.info(`Saved cache with key: ${key}`);
