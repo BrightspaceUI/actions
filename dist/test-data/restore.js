@@ -78310,6 +78310,10 @@ function requireGithub () {
 
 var githubExports = requireGithub();
 
+var coreExports = requireCore();
+
+coreExports.info(JSON.stringify(githubExports.context, null, 2));
+
 const paths = ['.d2l-test'];
 const key = `d2l-test-${ githubExports.context.runId }-${ githubExports.context.runNumber }`;
 const restoreKeys = [
