@@ -1,4 +1,6 @@
-import { nodeResolve } from '@rollup/plugin-node-resolve'
+import commonjs from '@rollup/plugin-commonjs';
+import json from '@rollup/plugin-json';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 const config = [
   {
@@ -9,7 +11,7 @@ const config = [
       format: 'es',
       sourcemap: false
     },
-    plugins: [nodeResolve({ preferBuiltins: true })]
+    plugins: [ json(), commonjs(), nodeResolve({ preferBuiltins: true }) ]
   },
   {
     input: 'test-data/restore.js',
@@ -19,7 +21,7 @@ const config = [
       format: 'es',
       sourcemap: false
     },
-    plugins: [nodeResolve({ preferBuiltins: true })]
+    plugins: [ json(), commonjs(), nodeResolve({ preferBuiltins: true }) ]
   }
 ];
 
