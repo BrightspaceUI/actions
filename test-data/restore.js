@@ -1,17 +1,11 @@
 import * as cache from '@actions/cache';
-import * as github from '@actions/github';
-import * as core from '@actions/core';
 
 const runAttempt = process.env.GITHUB_RUN_ATTEMPT;
-
-core.info(github.context.runAttempt);
-core.info(process.env.GITHUB_RUN_ATTEMPT);
-
-core.info(process.env);
+const runId = process.env.GITHUB_RUN_ID;
 
 const paths = ['.d2l-test'];
-const key = `d2l-test-${ github.context.runId }-${ runAttempt }`
+const key = `d2l-test-${ runId }-${ runAttempt }`
 const restoreKeys = [
-    `d2l-test-${ github.context.runId }-`
+    `d2l-test-${ runId }-`
 ]
 const cacheKey = await cache.restoreCache(paths, key, restoreKeys)
