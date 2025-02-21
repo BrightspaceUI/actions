@@ -74358,10 +74358,14 @@ const runAttempt = process.env.GITHUB_RUN_ATTEMPT;
 const runId = process.env.GITHUB_RUN_ID;
 
 const paths = ['.d2l-test'];
-const key = `d2l-test-${ runId }-${ runAttempt }`;
+const key = `d2l-test-${ runId }-${ runAttempt - 1 }`;
 const restoreKeys = [
     `d2l-test-${ runId }-`
 ];
 const cacheKey = await cacheExports.restoreCache(paths, key, restoreKeys);
 
-coreExports.info(`Restored cache with key: ${cacheKey}`);
+if (!cacheKey) {
+  coreExports.info(`Cache not found for input keys: ${[ key, ...restoreKeys ].join(", ")}`);
+} else {
+  coreExports.info(`Restored cache with key: ${cacheKey}`);
+}

@@ -74360,6 +74360,8 @@ const runId = process.env.GITHUB_RUN_ID;
 const paths = ['.d2l-test'];
 const key = `d2l-test-${ runId }-${ runAttempt }`;
 
-await cacheExports.saveCache(paths, key);
+const cacheId = await cacheExports.saveCache(paths, key);
 
-coreExports.info(`Saved cache with key: ${key}`);
+if (cacheId != -1) {
+  coreExports.info(`Saved cache with key: ${key}`);
+}

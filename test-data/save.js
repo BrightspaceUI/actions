@@ -9,4 +9,6 @@ const key = `d2l-test-${ runId }-${ runAttempt }`
 
 const cacheId = await cache.saveCache(paths, key);
 
-core.info(`Saved cache with key: ${key}`);
+if (cacheId != -1) {
+  core.info(`Saved cache with key: ${key}`);
+}
