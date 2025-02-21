@@ -8,5 +8,18 @@
     "url": "git+https://github.com/BrightspaceUI/actions.git"
   },
   "author": "D2L Corporation",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "rollup --config rollup.config.js"
+  },
+  "dependencies": {
+    "@actions/cache": "^4",
+    "@actions/core": "^1"
+  },
+  "devDependencies": {
+    "@rollup/plugin-json": "^6",
+    "@rollup/plugin-commonjs": "^28",
+    "@rollup/plugin-node-resolve": "^16",
+    "rollup": "^4"
+  }
 }
