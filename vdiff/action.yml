@@ -36,6 +36,8 @@ inputs:
     default: 'ghworkflow/vdiff'
 runs:
   using: composite
+  env:
+    LANG: en_US.UTF-8
   steps:
     - name: Get Run Info
       id: run-info
