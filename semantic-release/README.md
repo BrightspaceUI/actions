@@ -133,8 +133,6 @@ Regular expressions are complicated, but this essentially means branch names sho
 * `1.15.x` for patch releases on top of the `1.15` release (after version `1.16` exists)
 * `2.x` for feature releases on top of the `2` release (after version `3` exists)
 
-**TO NOTE:** Non-admins may need to use [release-branch-management](https://github.com/Brightspace/release-branch-management) to create these maintenance branches, due to current restrictions with ruleset functionality.
-
 ## Auto-releasing when LMS version changes
 
 When the LMS version changes -- for example from `20.22.6` to `20.22.7` -- it can be desireable for your project to ignore semantic versioning rules and automatically do a minor release.
