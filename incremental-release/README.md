@@ -53,10 +53,6 @@ The release step will fail to write to `package.json` because of the org-level r
 
 [Learn how to set up the D2L_RELEASE_TOKEN...](../docs/release-token.md)
 
-## Maintenance Branches
-
-**TO NOTE:** Non-admins may need to use [release-branch-management](https://github.com/Brightspace/release-branch-management) to create maintenance branches (ex: `1.7.x`, `release/2.5.x`, etc.), due to current restrictions with ruleset functionality.
-
 ## NPM Package Deployment
 
 If you'd like the action to deploy your package to NPM, set the `NPM` option to `true`.
