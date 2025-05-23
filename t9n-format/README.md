@@ -47,11 +47,11 @@ General Inputs:
 * `t9n-branch-prefix` (default: `ghworkflow/translation`): Prefix for translation formatting branches.
 
 `messageformat-validator` Inputs:
-* `t9n-newlines`: When formatting complex arguments, use newlines and indentation for readability
-* `t9n-add`: Add cases for missing supported plural and selectordinal categories
+<!-- * `t9n-newlines`: When formatting complex arguments, use newlines and indentation for readability -->
+<!-- * `t9n-add`: Add cases for missing supported plural and selectordinal --> categories
 * `t9n-remove` (default: `true`): Remove cases for unsupported plural and selectordinal categories
 * `t9n-dedupe`: Remove complex argument cases that duplicate the `other` case. Takes precedence over --add.
-* `t9n-trim` (default: `true`): Trim whitespace from both ends of messages
+<!--* `t9n-trim` (default: `true`): Trim whitespace from both ends of messages -->
 * `t9n-quotes` (default: `straight`): Replace quote characters with locale-appropriate characters ("source", "straight", or "both")
 * `t9n-sort`: Sort translations by key
 * `t9n-locales`: Comma-separated list of locales to format
