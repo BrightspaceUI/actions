@@ -46,6 +46,12 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Installing messageformat-validator
+      run: |
+        echo "Installing messageformat-validator..."
+        npm install messageformat-validator@3.0.0-beta --no-save
+      shell: bash
+
     - name: Get Run Info
       id: run-info
       run: |
