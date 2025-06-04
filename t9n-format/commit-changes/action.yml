@@ -27,6 +27,8 @@ runs:
 
       if ! git diff --quiet ${ORIGINAL_SHA}; then
         echo "diff=true" >> ${GITHUB_OUTPUT}
+      else
+        echo "diff=false" >> ${GITHUB_OUTPUT}
       fi
 
       echo -e "\n\e[34mCreating the Translation Branch"
