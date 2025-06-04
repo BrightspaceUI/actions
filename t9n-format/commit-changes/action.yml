@@ -20,7 +20,7 @@ runs:
     run: |
       echo -e "\e[34mCommitting translation changes (if necessary)"
       if git diff --quiet; then
-        echo -e "\e[32m - no changes needed.\n"
+        echo -e "\e[32mNo changes needed\n"
         exit 0;
       fi
       echo -e "\e[31mChanges made - committing"
@@ -36,13 +36,7 @@ runs:
 
       git checkout ${T9N_BRANCH} || git checkout -b ${T9N_BRANCH}
 
-      echo "empty=false" >> ${GITHUB_OUTPUT}
       echo "conflict=false" >> ${GITHUB_OUTPUT}
-      if [ $(git stash list | wc -l) == 0 ]; then
-        echo -e "\e[31mNo changes to apply - please see errors above."
-        echo "empty=true" >> ${GITHUB_OUTPUT}
-        exit 0;
-      fi
       if ! git stash apply; then
         echo -e "\e[31mCould not apply stash - merge conflicts with ${{ github.event.pull_request.base.ref }}."
         echo "conflict=true" >> ${GITHUB_OUTPUT}
