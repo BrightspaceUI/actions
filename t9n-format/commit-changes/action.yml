@@ -25,10 +25,6 @@ runs:
       fi
       echo -e "\e[31mChanges made - committing"
 
-      if ! git diff --quiet ${ORIGINAL_SHA}; then
-        echo "diff=true" >> ${GITHUB_OUTPUT}
-      fi
-
       echo -e "\n\e[34mCreating the Translation Branch"
       git stash --include-untracked
       git fetch origin +refs/heads/${SOURCE_BRANCH}:refs/heads/${SOURCE_BRANCH} -q -u || true

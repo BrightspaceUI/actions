@@ -379,6 +379,15 @@ runs:
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
         change-type: 'Quotes'
 
+    - name: Compare Base to Head
+      id: compare
+      run: |
+        if ! git diff --quiet ${ORIGINAL_SHA}; then
+          echo "diff=true" >> ${GITHUB_OUTPUT}
+        fi
+      env:
+        ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
+
     - name: Close Pull Request (if necessary)
       run: |
         echo -e "\e[34mClosing Pull Request (if necessary)"
@@ -391,7 +400,7 @@ runs:
       env:
         FORCE_COLOR: 3
         FORMAT_CONFLICT: ${{ steps.commit-changes.outputs.conflict }}
-        FORMAT_DIFF: ${{ contains(steps.*.outputs.diff, 'true') }}
+        FORMAT_DIFF: ${{ steps.compare.outputs.diff == 'true' }}
         T9N_BRANCH: ${{ steps.run-info.outputs.t9n-branch }}
       shell: bash
 
@@ -508,7 +517,7 @@ runs:
         FORCE_COLOR: 3
         DRAFT_PR: ${{ inputs.draft-pr }}
         FORMAT_CONFLICT: ${{ steps.commit-changes.outputs.conflict }}
-        FORMAT_DIFF: ${{ contains(steps.*.outputs.diff, 'true') }}
+        FORMAT_DIFF: ${{ steps.compare.outputs.diff == 'true' }}
         PULL_REQUEST_NUM: ${{ github.event.number }}
         PULL_REQUEST_BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
         SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
@@ -559,7 +568,7 @@ runs:
       env:
         FORCE_COLOR: 3
         FORMAT_CONFLICT: ${{ steps.commit-changes.outputs.conflict }}
-        FORMAT_DIFF: ${{ contains(steps.*.outputs.diff, 'true') }}
+        FORMAT_DIFF: ${{ steps.compare.outputs.diff == 'true' }}
         ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
         PULL_REQUEST_NUM: ${{ steps.pull-request.outputs.num }}
         COMMIT_STATUS_NAME: ${{ steps.commit-status-name.outputs.result }}
