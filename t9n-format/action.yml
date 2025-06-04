@@ -387,6 +387,7 @@ runs:
         fi
       env:
         ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
+      shell: bash
 
     - name: Close Pull Request (if necessary)
       run: |
