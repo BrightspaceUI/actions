@@ -68,7 +68,6 @@ runs:
         echo "source-branch=${SOURCE_BRANCH}" >> ${GITHUB_OUTPUT}
         echo "t9n-branch=${T9N_BRANCH}" >> ${GITHUB_OUTPUT}
         echo "original-sha=${ORIGINAL_SHA}" >> ${GITHUB_OUTPUT}
-        echo -e "$(git rev-list --count head) commits"
       env:
         FORCE_COLOR: 3
         PREFIX: ${{ inputs.t9n-branch-prefix }}
@@ -383,9 +382,8 @@ runs:
     - name: Compare Base to Head
       id: compare
       run: |
-        git commit --allow-empty
-        echo -e "$(git rev-list --count head) commits"
         git fetch origin +refs/heads/${SOURCE_BRANCH}:refs/heads/${SOURCE_BRANCH} -q -u || true
+        git diff --quiet ${ORIGINAL_SHA}
         if ! git diff --quiet ${ORIGINAL_SHA}; then
           echo "diff=true" >> ${GITHUB_OUTPUT};
           echo -e "Changes detected"
