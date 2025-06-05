@@ -382,11 +382,13 @@ runs:
     - name: Compare Base to Head
       id: compare
       run: |
+        git fetch origin +refs/heads/${SOURCE_BRANCH}:refs/heads/${SOURCE_BRANCH} -q -u || true
         if ! git diff --quiet ${ORIGINAL_SHA}; then
-          echo "diff=true" >> ${GITHUB_OUTPUT}
+          echo "diff=true" >> ${GITHUB_OUTPUT};
         fi
       env:
         ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
+        SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
       shell: bash
 
     - name: Close Pull Request (if necessary)
