@@ -68,6 +68,7 @@ runs:
         echo "source-branch=${SOURCE_BRANCH}" >> ${GITHUB_OUTPUT}
         echo "t9n-branch=${T9N_BRANCH}" >> ${GITHUB_OUTPUT}
         echo "original-sha=${ORIGINAL_SHA}" >> ${GITHUB_OUTPUT}
+        echo "checkout-sha=$(git rev-parse HEAD)" >> ${GITHUB_OUTPUT}
       env:
         FORCE_COLOR: 3
         PREFIX: ${{ inputs.t9n-branch-prefix }}
@@ -382,15 +383,12 @@ runs:
     - name: Compare Base to Head
       id: compare
       run: |
-        git fetch origin +refs/heads/${SOURCE_BRANCH}:refs/heads/${SOURCE_BRANCH} -q -u || true
-        git diff --quiet ${ORIGINAL_SHA}
-        if ! git diff --quiet ${ORIGINAL_SHA}; then
+        if [ $(git rev-parse HEAD) != ${CHECKOUT_SHA} ]; then
           echo "diff=true" >> ${GITHUB_OUTPUT};
           echo -e "Changes detected"
         fi
       env:
-        ORIGINAL_SHA: ${{ steps.run-info.outputs.original-sha }}
-        SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
+        CHECKOUT_SHA: ${{ steps.run-info.outputs.checkout-sha }}
       shell: bash
 
     - name: Close Pull Request (if necessary)
