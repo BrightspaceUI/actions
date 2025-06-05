@@ -383,7 +383,7 @@ runs:
     - name: Compare Base to Head
       id: compare
       run: |
-        if ! git diff ${CHECKOUT_SHA} HEAD; then
+        if ! git diff --quiet ${CHECKOUT_SHA} HEAD; then
           echo "diff=true" >> ${GITHUB_OUTPUT};
           echo -e "Changes detected"
         fi
