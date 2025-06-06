@@ -56,7 +56,9 @@ jobs:
 * `t9n-trim` (default: `true`): Trim whitespace from both ends of messages
 * `t9n-quotes` (default: `straight`): Replace quote characters with locale-appropriate characters ("source", "straight", or "both")
 <!-- * `t9n-sort`: Sort translations by key -->
-<br><br>
+
+<br>
+
 * `t9n-source`: The locale to use as the source for comparisons
 * `t9n-path`: A glob path to the directory containing translation files
 * `t9n-locales` (default: '' [all]): Comma-separated list of locales to format
