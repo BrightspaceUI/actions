@@ -221,7 +221,7 @@ runs:
         change-type: 'Argument Correction'
 
     - name: Format Translations - Newlines
-      if: ${{ inputs.t9n-newlines != 'false' && inputs.false }} # disabled
+      if: ${{ inputs.t9n-newlines != 'false' }}
       run: |
         echo -e "\e[34mFormatting translations - Newlines"
         if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi
@@ -327,7 +327,7 @@ runs:
         change-type: 'Dedupe'
 
     - name: Format Translations - Trim
-      if: ${{ inputs.t9n-trim != 'false' && inputs.false }} # disabled
+      if: ${{ inputs.t9n-trim != 'false' }}
       run: |
         echo -e "\e[34mFormatting translations - Trim"
         if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi

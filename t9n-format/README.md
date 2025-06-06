@@ -41,22 +41,28 @@ jobs:
 
 ```
 
-General Inputs:
+### General Inputs:
+
 * `draft-pr` (default: `true`): Whether to open the translation formatting PR as a draft PR.
 * `github-token`: Token used to cleanup branches and open the translation formatting PR. This does not need admin privileges, so the standard `GITHUB_TOKEN` that's available can be used.
 * `t9n-branch-prefix` (default: `ghworkflow/translation`): Prefix for translation formatting branches.
 
-`messageformat-validator` Inputs:
-<!-- * `t9n-newlines`: When formatting complex arguments, use newlines and indentation for readability -->
-<!-- * `t9n-add`: Add cases for missing supported plural and selectordinal --> categories
+### `messageformat-validator` Inputs:
+
+* `t9n-newlines`: When formatting complex arguments, use newlines and indentation for readability
+<!-- * `t9n-add`: Add cases for missing but supported plural and selectordinal categories -->
 * `t9n-remove` (default: `true`): Remove cases for unsupported plural and selectordinal categories
-* `t9n-dedupe`: Remove complex argument cases that duplicate the `other` case. Takes precedence over --add.
-<!--* `t9n-trim` (default: `true`): Trim whitespace from both ends of messages -->
+<!--* `t9n-dedupe`: Remove complex argument cases that duplicate the `other` case. Takes precedence over --add.-->
+* `t9n-trim` (default: `true`): Trim whitespace from both ends of messages
 * `t9n-quotes` (default: `straight`): Replace quote characters with locale-appropriate characters ("source", "straight", or "both")
-* `t9n-sort`: Sort translations by key
-* `t9n-locales`: Comma-separated list of locales to format
+<!-- * `t9n-sort`: Sort translations by key -->
+<br><br>
+* `t9n-source`: The locale to use as the source for comparisons
+* `t9n-path`: A glob path to the directory containing translation files
+* `t9n-locales` (default: '' [all]): Comma-separated list of locales to format
 
 See the [`messageformat-validator` repo's README](https://github.com/bearfriend/messageformat-validator) to learn more about these flags.
 
 **Notes:**
 * You can use the standard `GITHUB_TOKEN` that exists automatically in your repository's secrets.
+* Options in an `mfv.config.json` file will be respected if not re-declared via a corresponding input
