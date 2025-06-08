@@ -65,6 +65,9 @@ A glob path to the directory containing translation files. e.g. `lang/`
 * `t9n-locales`<br>
 A comma-separated list of locales to limit all operations to. By default all files in the `t9n-path` are acted on.
 
+* `t9n-validate` (default: `true`)<br>
+Check for and report common message issues
+
 #### Message Formatting
 
 * `t9n-newlines` (default: `false`)<br>
