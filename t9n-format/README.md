@@ -90,11 +90,8 @@ Replace quote characters with locale-appropriate characters ("source", "straight
 
 #### File Formatting
 
-* `t9n-add-missing` (default: `true`)
-Add messages that do not exist in the target locale
-
-* `t9n-remove-extraneous` (default: `true`)
-Remove messages that do not exist in the source locale
+* `t9n-sync` (default: `true`)
+Sync messages between source and target locales
 
 * `t9n-sort` (default: `true`)
 Sort messages alphabetically by key, maintaining any blocks

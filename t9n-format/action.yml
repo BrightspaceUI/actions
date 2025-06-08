@@ -26,11 +26,8 @@ inputs:
     default: 'true'
 
   # mfv file commands
-  t9n-add-missing:
-    description: Add messages that do not exist in the target locale
-    default: 'true'
-  t9n-remove-extraneous:
-    description: Remove messages that do not exist in the source locale
+  t9n-sync:
+    description: Sync messages between source and target locales
     default: 'true'
   t9n-sort:
     description: Sort messages alphabetically by key, maintaining any blocks
@@ -396,14 +393,15 @@ runs:
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
         change-type: 'Quotes'
 
-    - name: Format Files - Add Missing
-      if: ${{ inputs.t9n-add-missing != 'false' }}
+    - name: Format Files - Sync Messages
+      if: ${{ inputs.t9n-sync != 'false' }}
       run: |
-        echo -e "\e[34mFormatting translations - Quotes"
+        echo -e "\e[34mFormatting files - Sync Messages"
         if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi
         if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source-locale ${SOURCE} "; fi
         if [[ ${LOCALES_PATH} != "" ]]; then FLAGS="${FLAGS} --path ${LOCALES_PATH} "; fi
 
+        eval npx mfv ${FLAGS} remove-extraneous
         eval npx mfv ${FLAGS} add-missing
       env:
         LOCALES: "'${{ inputs.t9n-locales }}'"
@@ -411,41 +409,18 @@ runs:
         LOCALES_PATH: ${{ inputs.t9n-path }}
       shell: bash
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
-      if: ${{ inputs.t9n-add-missing != 'false' }}
-      id: commit-add-missing
+      if: ${{ inputs.t9n-sync != 'false' }}
+      id: commit-sync
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-branch: ${{ steps.run-info.outputs.source-branch }}
         t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
-        change-type: 'Add Missing'
-
-    - name: Format Files - Remove Extraneous
-      if: ${{ inputs.t9n-remove-extraneous != 'false' }}
-      run: |
-        echo -e "\e[34mFormatting translations - Quotes"
-        if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi
-        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source-locale ${SOURCE} "; fi
-        if [[ ${LOCALES_PATH} != "" ]]; then FLAGS="${FLAGS} --path ${LOCALES_PATH} "; fi
-
-        eval npx mfv ${FLAGS} remove-extraneous
-      env:
-        LOCALES: "'${{ inputs.t9n-locales }}'"
-        SOURCE: ${{ inputs.t9n-source }}
-        LOCALES_PATH: ${{ inputs.t9n-path }}
-      shell: bash
-    - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
-      if: ${{ inputs.t9n-remove-extraneous != 'false' }}
-      id: commit-add-missing
-      with:
-        original-sha: ${{ steps.run-info.outputs.original-sha }}
-        source-branch: ${{ steps.run-info.outputs.source-branch }}
-        t9n-branch: ${{ steps.run-info.outputs.t9n-branch }}
-        change-type: 'Remove Extraneous'
+        change-type: 'Sync'
 
     - name: Format Files - Sort
       if: ${{ inputs.t9n-sort != 'false' }}
       run: |
-        echo -e "\e[34mFormatting translations - Quotes"
+        echo -e "\e[34mFormatting files - Sort"
         if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi
         if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source-locale ${SOURCE} "; fi
         if [[ ${LOCALES_PATH} != "" ]]; then FLAGS="${FLAGS} --path ${LOCALES_PATH} "; fi
