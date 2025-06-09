@@ -44,6 +44,9 @@ inputs:
   t9n-path:
     description: Glob path to a directory containing locale files
     default: ''
+  t9n-validate:
+    description: Check for and report common message issues
+    default: 'true'
 
   # action configs
   draft-pr:
@@ -187,6 +190,21 @@ runs:
       env:
         FORCE_COLOR: 3
         PREFIX: ${{ inputs.t9n-branch-prefix }}
+
+    - name: Validate
+      if: ${{ inputs.t9n-validate != 'false' }}
+      run: |
+        echo -e "\e[34mRunning validation"
+        if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi
+        if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source-locale ${SOURCE} "; fi
+        if [[ ${LOCALES_PATH} != "" ]]; then FLAGS="${FLAGS} --path ${LOCALES_PATH} "; fi
+        eval npx mfv ${FLAGS} --ignore untranslated,category-missing || echo -e "\nRun validation locally: \e[33mnpx messageformat-validator@next${SOURCE:+ -s $SOURCE}${LOCALES_PATH:+ -p $LOCALES_PATH}${LOCALES:+ -l $LOCALES} --ignore untranslated,category-missing"
+      env:
+        LOCALES: "'${{ inputs.t9n-locales }}'"
+        SOURCE: ${{ inputs.t9n-source }}
+        LOCALES_PATH: ${{ inputs.t9n-path }}
+      shell: bash
+
 
     - name: Format Translations - Essentials
       run: |
