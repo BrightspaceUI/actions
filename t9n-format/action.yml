@@ -313,7 +313,7 @@ runs:
         change-type: 'Remove'
 
     - name: Format Translations - Dedupe
-      if: ${{ inputs.t9n-dedupe != 'false' }}
+      if: ${{ inputs.t9n-dedupe != 'false' && inputs.false }} # disabled
       run: |
         echo -e "\e[34mFormatting translations - Dedupe"
         if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi
