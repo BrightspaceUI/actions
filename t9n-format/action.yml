@@ -433,7 +433,7 @@ runs:
       shell: bash
     - uses: BrightspaceUI/actions/t9n-format/commit-changes@main
       if: ${{ inputs.t9n-sort != 'false' }}
-      id: commit-add-missing
+      id: commit-sort
       with:
         original-sha: ${{ steps.run-info.outputs.original-sha }}
         source-branch: ${{ steps.run-info.outputs.source-branch }}
