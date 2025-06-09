@@ -41,30 +41,63 @@ jobs:
 
 ```
 
-### General Inputs:
+### Inputs
 
-* `draft-pr` (default: `true`): Whether to open the translation formatting PR as a draft PR.
-* `github-token`: Token used to cleanup branches and open the translation formatting PR. This does not need admin privileges, so the standard `GITHUB_TOKEN` that's available can be used.
-* `t9n-branch-prefix` (default: `ghworkflow/translation`): Prefix for translation formatting branches.
+#### Action Configuration
 
-### `messageformat-validator` Inputs:
+* `draft-pr` (default: `true`)<br>
+Open the translation formatting PR as a draft PR
 
-* `t9n-newlines`: When formatting complex arguments, use newlines and indentation for readability
-<!-- * `t9n-add`: Add cases for missing but supported plural and selectordinal categories -->
-* `t9n-remove` (default: `true`): Remove cases for unsupported plural and selectordinal categories
-<!--* `t9n-dedupe`: Remove complex argument cases that duplicate the `other` case. Takes precedence over --add.-->
-* `t9n-trim` (default: `true`): Trim whitespace from both ends of messages
-* `t9n-quotes` (default: `straight`): Replace quote characters with locale-appropriate characters ("source", "straight", or "both")
-<!-- * `t9n-sort`: Sort translations by key -->
+* `github-token` (required)<br>
+Token used to cleanup branches and open the translation formatting PR. This does not need admin privileges, so the standard `GITHUB_TOKEN` that's available can be used.
 
-<br>
+* `t9n-branch-prefix` (default: `ghworkflow/translation`)<br>
+Prefix for translation formatting branches
 
-* `t9n-source`: The locale to use as the source for comparisons
-* `t9n-path`: A glob path to the directory containing translation files
-* `t9n-locales` (default: '' [all]): Comma-separated list of locales to format
+#### `messageformat-validator` Configuration
+
+* `t9n-source`<br>
+The locale to use as the source for comparisons. Usually `en`.
+
+* `t9n-path`<br>
+A glob path to the directory containing translation files. e.g. `lang/`
+
+* `t9n-locales`<br>
+A comma-separated list of locales to limit all operations to. By default all files in the `t9n-path` are acted on.
+
+#### Message Formatting
+
+* `t9n-newlines` (default: `false`)<br>
+When formatting complex arguments, use newlines and indentation for readability
+
+* `t9n-remove` (default: `true`)<br>
+Remove cases for unsupported plural and selectordinal categories
+
+* `t9n-trim` (default: `true`)<br>
+Trim whitespace from both ends of messages
+
+* `t9n-quotes` (default: `straight`)<br>
+Replace quote characters with locale-appropriate characters ("source", "straight", or "both")
+
+> [!WARNING]
+> Use these options with extreme caution. If you don't understand the implications, you shouldn't use them.
+>
+> * `t9n-add` (default: `false`)<br>
+> Add cases for supported but missing plural and selectordinal categories
+>
+> * `t9n-dedupe` (default: `false`)<br>
+> Remove complex argument cases that duplicate the `other` case. Takes precedence over `t9n-add`.
+
+#### File Formatting
+
+* `t9n-sync` (default: `true`)<br>
+Sync messages between source and target locales
+
+* `t9n-sort` (default: `true`)<br>
+Sort messages alphabetically by key, maintaining any blocks
 
 See the [`messageformat-validator` repo's README](https://github.com/bearfriend/messageformat-validator) to learn more about these flags.
 
 **Notes:**
-* You can use the standard `GITHUB_TOKEN` that exists automatically in your repository's secrets.
-* Options in an `mfv.config.json` file will be respected if not re-declared via a corresponding input
+* You can use the standard `GITHUB_TOKEN` that exists automatically in your repository's secrets
+* Options in an `mfv.config.json` file will be respected if not overridden by a corresponding input
