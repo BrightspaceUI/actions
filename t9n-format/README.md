@@ -45,55 +45,55 @@ jobs:
 
 #### Action Configuration
 
-* `draft-pr` (default: `true`)
+* `draft-pr` (default: `true`)<br>
 Open the translation formatting PR as a draft PR
 
-* `github-token` (required)
+* `github-token` (required)<br>
 Token used to cleanup branches and open the translation formatting PR. This does not need admin privileges, so the standard `GITHUB_TOKEN` that's available can be used.
 
-* `t9n-branch-prefix` (default: `ghworkflow/translation`)
+* `t9n-branch-prefix` (default: `ghworkflow/translation`)<br>
 Prefix for translation formatting branches
 
 #### `messageformat-validator` Configuration
 
-* `t9n-source`
-The locale to use as the source for comparisons
+* `t9n-source`<br>
+The locale to use as the source for comparisons. Usually `en`.
 
-* `t9n-path`
-A glob path to the directory containing translation files
+* `t9n-path`<br>
+A glob path to the directory containing translation files. e.g. `lang/`
 
-* `t9n-locales`
-A comma-separated list of locales to limit all operations to
+* `t9n-locales`<br>
+A comma-separated list of locales to limit all operations to. By default all files in the `t9n-path` are acted on.
 
 #### Message Formatting:
 
-* `t9n-newlines` (default: `false`)
+* `t9n-newlines` (default: `false`)<br>
 When formatting complex arguments, use newlines and indentation for readability
 
-* `t9n-remove` (default: `true`)
+* `t9n-remove` (default: `true`)<br>
 Remove cases for unsupported plural and selectordinal categories
 
-* `t9n-trim` (default: `true`)
+* `t9n-trim` (default: `true`)<br>
 Trim whitespace from both ends of messages
 
-* `t9n-quotes` (default: `straight`)
+* `t9n-quotes` (default: `straight`)<br>
 Replace quote characters with locale-appropriate characters ("source", "straight", or "both")
 
 > [!WARNING]
 > Use these options with extreme caution. If you don't understand the implications, you shouldn't use them.
 >
-> * `t9n-add` (default: `false`)
+> * `t9n-add` (default: `false`)<br>
 > Add cases for supported but missing plural and selectordinal categories
 >
-> * `t9n-dedupe` (default: `false`)
+> * `t9n-dedupe` (default: `false`)<br>
 > Remove complex argument cases that duplicate the `other` case. Takes precedence over `t9n-add`.
 
 #### File Formatting
 
-* `t9n-sync` (default: `true`)
+* `t9n-sync` (default: `true`)<br>
 Sync messages between source and target locales
 
-* `t9n-sort` (default: `true`)
+* `t9n-sort` (default: `true`)<br>
 Sort messages alphabetically by key, maintaining any blocks
 
 See the [`messageformat-validator` repo's README](https://github.com/bearfriend/messageformat-validator) to learn more about these flags.
