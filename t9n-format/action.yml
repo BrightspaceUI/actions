@@ -7,7 +7,7 @@ inputs:
     description: When formatting complex arguments, use newlines and indentation for readability
     default: 'false'
   t9n-add:
-    description: Add cases for missing supported plural and selectordinal categories
+    description: Add cases for supported but missing plural and selectordinal categories
     default: 'false'
   t9n-remove:
     description: Remove cases for unsupported plural and selectordinal categories
@@ -232,7 +232,6 @@ runs:
       run: |
         echo -e "\e[34mFormatting translations - Trim"
         if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi
-        if [[ ${NEWLINES} == "true" ]]; then FLAGS="${FLAGS}--newlines "; fi
         if [[ ${TRIM} != "" ]]; then FLAGS="${FLAGS}--trim "; fi
         if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source-locale ${SOURCE} "; fi
         if [[ ${LOCALES_PATH} != "" ]]; then FLAGS="${FLAGS} --path ${LOCALES_PATH} "; fi
