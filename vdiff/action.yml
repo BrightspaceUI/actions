@@ -34,6 +34,10 @@ inputs:
   vdiff-branch-prefix:
     description: Prefix for vdiff branches
     default: 'ghworkflow/vdiff'
+outputs:
+  pr-num:
+    description: ID number of vdiff goldens PR (only sent when first opened)
+    value: ${{ steps.pull-request.outputs.new }}
 runs:
   using: composite
   steps:
@@ -466,6 +470,7 @@ runs:
             });
             goldenPrNum = newPR.data.number;
             console.log(`PR #${goldenPrNum} opened: ${newPR.data.html_url}`);
+            core.setOutput('new', goldenPrNum);
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,

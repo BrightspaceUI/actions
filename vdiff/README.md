@@ -57,6 +57,9 @@ General Inputs:
 
 See the [`@brightspace-ui/testing` repo's README](https://github.com/BrightspaceUI/testing#running-tests) to learn more about these flags.
 
+Outputs:
+* `pr-num`: ID number of the newly opened vdiff goldens pull request. Only sent for the run where the PR is first opened.
+
 **Notes:**
 * You can also run this action in the release workflow to confirm the `main` branch is in a good state before releasing.  If there's a problem, a PR will be opened against `main` to get the goldens back in the expected state.  This mostly comes down to a time versus risk trade-off - the risk of things getting out of sync may be lower than the time taken to run the vdiff tests every release.
 * You can use the standard `GITHUB_TOKEN` that exists automatically, but will need to [set up the AWS secrets](#setting-up-aws-access-creds).
