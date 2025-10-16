@@ -22,8 +22,6 @@ inputs:
   NPM:
     description: Whether or not to release as an NPM package
     default: false
-  NPM_TOKEN:
-    description: Token to publish to NPM (not required for CodeArtifact)
 outputs:
   VERSION:
     description: Version of the new release
@@ -34,7 +32,7 @@ runs:
     - name: Installing semantic-release
       run: |
         echo "Installing semantic-release..."
-        npm install semantic-release@19 @semantic-release/git@10 --no-save
+        npm install semantic-release@beta @semantic-release/git@10 --no-save
       shell: bash
     - name: Get maintenance version
       uses: BrightspaceUI/actions/get-maintenance-version@main
@@ -78,7 +76,6 @@ runs:
       id: semantic-release
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
-        NPM_TOKEN: ${{ inputs.NPM_TOKEN }}
       run: |
         echo "version=" >> $GITHUB_OUTPUT
         if [ ${{ inputs.DRY_RUN }} == true ]; then
