@@ -6,7 +6,7 @@ This GitHub action will determine if any updates can be made to your repo's `pac
 
 Typically this action would be scheduled to run on whatever cadence works well for your repo. Our [brightspace-integration repo](https://github.com/Brightspace/brightspace-integration) runs it hourly to catch new changes across all our web components, whereas a regular project repo may only want to run it once a day or once a week.
 
-This action provides similar functionality to what dependabot gives you, but will combine all changes in one PR and can be set to automerge if all tests pass. It also will not change the `package.json` file, only handling updates that fall within the range you've set there. This means the action can provide a nice compliment to dependabot - it can handle all the "easy" updates for you automatically, so your time is mostly spent on reviewing/debugging major updates and breaking changes. See the [recommended Dependabot setup](#recommended-dependabot-setup) below that works well when the `update-package-lock` workflow is configured.
+This action provides similar functionality to what dependabot gives you, but will combine all changes in one PR and can be set to automerge if all tests pass. It also will not change the `package.json` file, only handling updates that fall within the range you've set there. This means the action can provide a nice compliment to dependabot - it can handle all the "easy" updates for you automatically, so your time is mostly spent on reviewing/debugging major updates and breaking changes. See the [recommended Dependabot setup](#recommended-dependabot-setup) section below for an example configuration.
 
 Here's a sample workflow:
 
