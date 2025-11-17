@@ -127,11 +127,15 @@ To trigger a MAJOR release, include `BREAKING CHANGE:` with a space or two newli
 
 Occasionally you'll want to backport a feature or bug fix to an older release. `semantic-release` refers to these as [maintenance branches](https://semantic-release.gitbook.io/semantic-release/usage/workflow-configuration#maintenance-branches).
 
+You will have to create a new branch from the Tag you want to update. `git checkout -b 2.22.x v2.22.0` Note that the Tag has a `v` in the name, but the branch should not.
+
 Maintenance branch names should be of the form: `+([0-9])?(.{+([0-9]),x}).x`.
 
 Regular expressions are complicated, but this essentially means branch names should look like:
 * `1.15.x` for patch releases on top of the `1.15` release (after version `1.16` exists)
 * `2.x` for feature releases on top of the `2` release (after version `3` exists)
+
+Once you have your branch, you can make a PR targeting that branch with your changes. Merge it and provided the branch name is correct, and the correct semantic versioning keyword is in the PR, this should result in a new release Tag with your updates.
 
 ## Auto-releasing when LMS version changes
 
