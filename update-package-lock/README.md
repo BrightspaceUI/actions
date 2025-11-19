@@ -95,7 +95,7 @@ Also, remember to add the GitHub Actions Slack app to your channel's integration
 
 ## Recommended Dependabot Setup
 
-Dependabot has a [cooldown feature](https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference#cooldown) that works well with the `update-package-lock` workflow. The cooldown delays when Dependabot opens PRs for new versions, giving this workflow time to handle minor and patch updates automatically first.
+Dependabot has a [cooldown feature](https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference#cooldown-) that works well with the `update-package-lock` workflow. The cooldown delays when Dependabot opens PRs for new versions, giving this workflow time to handle minor and patch updates automatically first.
 
 In your `dependabot.yml` file:
 ```yml
