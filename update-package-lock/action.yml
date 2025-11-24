@@ -43,6 +43,11 @@ runs:
           echo -e "\e[34mChecking for global kill switch..."
           echo "value=true" >> $GITHUB_OUTPUT
         shell: bash
+      - name: Kill Switch Message
+        if: ${{ steps.kill_switch.outputs.value == 'true' }}
+        run: |
+          echo -e "Global kill switch is enabled to prevent unwanted updates during a security incident. Exiting without making changes."
+        shell: bash
       - name: Save Initial Dependencies
         if: ${{ steps.kill_switch.outputs.value == 'false' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
