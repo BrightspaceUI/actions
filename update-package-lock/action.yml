@@ -44,7 +44,7 @@ runs:
           echo "value=true" >> $GITHUB_OUTPUT
         shell: bash
       - name: Save Initial Dependencies
-        if: ${{ steps.kill_switch.outputs.value == false }}
+        if: ${{ steps.kill_switch.outputs.value == 'false' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\e[34mSaving Initial Dependencies"
@@ -52,14 +52,14 @@ runs:
           npm ls --json --package-lock-only --all > "$RUNNER_TEMP/dependencies-before.json"
         shell: bash
       - name: Install Dependencies
-        if: ${{ steps.kill_switch.outputs.value == false }}
+        if: ${{ steps.kill_switch.outputs.value == 'false' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\e[34mInstalling Dependencies"
           npm install chalk@5 @octokit/graphql@4 @actions/core@1 --prefix ${{ github.action_path }} --no-save --loglevel error
         shell: bash
       - name: Checkout Branch
-        if: ${{ steps.kill_switch.outputs.value == false }}
+        if: ${{ steps.kill_switch.outputs.value == 'false' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\e[34mFetching Branch"
@@ -68,7 +68,7 @@ runs:
           git checkout ${{ inputs.BRANCH_NAME }} || git checkout -b ${{ inputs.BRANCH_NAME }}
         shell: bash
       - name: Fresh Dependency Install
-        if: ${{ steps.kill_switch.outputs.value == false }}
+        if: ${{ steps.kill_switch.outputs.value == 'false' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\n\e[34mRunning Fresh Dependency Install"
@@ -80,14 +80,14 @@ runs:
         shell: bash
       - name: Check For Changes
         id: check-for-changes
-        if: ${{ steps.kill_switch.outputs.value == false }}
+        if: ${{ steps.kill_switch.outputs.value == 'false' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\n\e[34mChecking For Changes"
           git diff --exit-code package-lock.json && echo "changes-exist=false" >> $GITHUB_OUTPUT || echo "changes-exist=true" >> $GITHUB_OUTPUT
         shell: bash
       - name: Create Commit
-        if: ${{ steps.kill_switch.outputs.value == false }}
+        if: ${{ steps.kill_switch.outputs.value == 'false' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           if [ ${{ steps.check-for-changes.outputs.changes-exist }} == false ]; then
@@ -114,7 +114,7 @@ runs:
         shell: bash
       - name: Create PR (if necessary)
         id: create-pr
-        if: ${{ steps.kill_switch.outputs.value == false }}
+        if: ${{ steps.kill_switch.outputs.value == 'false' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           if [ ${{ steps.check-for-changes.outputs.changes-exist }} == false ]; then
@@ -136,7 +136,7 @@ runs:
           PR_TITLE: ${{ inputs.PR_TITLE }}
         shell: bash
       - name: Notify Slack About Stale PR (if necessary)
-        if: ${{ steps.kill_switch.outputs.value == false && steps.create-pr.outputs.stale == 'true' && inputs.SLACK_CHANNEL_STALE_PR != '' && inputs.SLACK_TOKEN != '' }}
+        if: ${{ steps.kill_switch.outputs.value == 'false' && steps.create-pr.outputs.stale == 'true' && inputs.SLACK_CHANNEL_STALE_PR != '' && inputs.SLACK_TOKEN != '' }}
         uses: Brightspace/third-party-actions@slackapi/slack-github-action
         with:
           channel-id: ${{ env.CHANNEL }}
