@@ -50,7 +50,7 @@ runs:
         id: kill-switch
         run: |
           KILL_SWITCH_VALUE="true"
-          if [ "$KILL_SWITCH_VALUE" != "true" ]; then
+          if [ "$KILL_SWITCH_VALUE" == "true" ]; then
             echo -e "Global kill switch is enabled to prevent unwanted updates during a security incident. Exiting without making changes."
             exit 0
           fi
