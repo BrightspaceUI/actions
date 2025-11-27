@@ -40,7 +40,7 @@ runs:
       - name: Kill Switch
         id: kill-switch
         run: |
-          echo "value=true" >> $GITHUB_OUTPUT
+          echo "value=false" >> $GITHUB_OUTPUT
         shell: bash
       - name: Kill Switch Message
         if: ${{ steps.kill-switch.outputs.value == 'true' }}
