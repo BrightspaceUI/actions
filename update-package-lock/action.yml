@@ -50,11 +50,11 @@ runs:
         id: kill-switch
         run: |
           KILL_SWITCH_VALUE="true"
+          echo "value=$KILL_SWITCH_VALUE" >> $GITHUB_OUTPUT
           if [ "$KILL_SWITCH_VALUE" == "true" ]; then
             echo -e "Global kill switch is enabled to prevent unwanted updates during a security incident. Exiting without making changes."
             exit 0
           fi
-          echo "value=$KILL_SWITCH_VALUE" >> $GITHUB_OUTPUT
         shell: bash
       - name: Save Initial Dependencies
         if: ${{ steps.kill-switch.outputs.value != 'true' }}
