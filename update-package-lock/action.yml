@@ -37,15 +37,24 @@ inputs:
 runs:
   using: composite
   steps:
+      - name: Validate ignore-scripts setting
+        run: |
+          IGNORE_SCRIPTS_VALUE=$(npm config get ignore-scripts)
+          echo "ignore-scripts value is: $IGNORE_SCRIPTS_VALUE"
+          if [ "$IGNORE_SCRIPTS_VALUE" != "true" ]; then
+            echo -e "Error: ignore-scripts is not set to true. Please set ignore-scripts to true in your .npmrc file to prevent unwanted scripts from running during the update process."
+            exit 1
+          fi
+        shell: bash
       - name: Kill Switch
         id: kill-switch
         run: |
-          echo "value=true" >> $GITHUB_OUTPUT
-        shell: bash
-      - name: Kill Switch Message
-        if: ${{ steps.kill-switch.outputs.value == 'true' }}
-        run: |
-          echo -e "Global kill switch is enabled to prevent unwanted updates during a security incident. Exiting without making changes."
+          KILL_SWITCH_VALUE="false"
+          echo "value=$KILL_SWITCH_VALUE" >> $GITHUB_OUTPUT
+          if [ "$KILL_SWITCH_VALUE" == "true" ]; then
+            echo -e "Global kill switch is enabled to prevent unwanted updates during a security incident. Exiting without making changes."
+            exit 0
+          fi
         shell: bash
       - name: Save Initial Dependencies
         if: ${{ steps.kill-switch.outputs.value != 'true' }}
