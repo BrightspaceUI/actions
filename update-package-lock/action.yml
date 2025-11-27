@@ -49,7 +49,7 @@ runs:
       - name: Kill Switch
         id: kill-switch
         run: |
-          KILL_SWITCH_VALUE="true"
+          KILL_SWITCH_VALUE="false"
           echo "value=$KILL_SWITCH_VALUE" >> $GITHUB_OUTPUT
           if [ "$KILL_SWITCH_VALUE" == "true" ]; then
             echo -e "Global kill switch is enabled to prevent unwanted updates during a security incident. Exiting without making changes."
