@@ -27,7 +27,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Setup Node
-        uses: Brightspace/third-party-actions@actions/setup-node
+        uses: Brightspace/setup-node@main
       - name: Incremental Release
         uses: BrightspaceUI/actions/incremental-release@main
         with:
@@ -82,7 +82,7 @@ Setup Node:
 
 ```yml
 - name: Setup Node
-  uses: Brightspace/third-party-actions@actions/setup-node
+  uses: Brightspace/setup-node@main
   with:
     registry-url: "https://registry.npmjs.org"
 ```
@@ -158,7 +158,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Setup Node
-        uses: Brightspace/third-party-actions@actions/setup-node
+        uses: Brightspace/setup-node@main
       # additional build/validation steps can be run here
       - name: Incremental Release
         id: release

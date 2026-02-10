@@ -30,7 +30,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Setup Node
-        uses: Brightspace/third-party-actions@actions/setup-node
+        uses: Brightspace/setup-node@main
       - name: Semantic Release
         uses: BrightspaceUI/actions/semantic-release@main
         with:
