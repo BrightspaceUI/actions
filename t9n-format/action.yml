@@ -65,7 +65,7 @@ runs:
     - name: Installing messageformat-validator
       run: |
         echo "Installing messageformat-validator..."
-        npm install messageformat-validator --no-save
+        npm install messageformat-validator@3 --no-save
       shell: bash
 
     - name: Get Run Info
@@ -198,7 +198,7 @@ runs:
         if [[ "${LOCALES}" != "''" ]]; then FLAGS="--locales ${LOCALES} "; fi
         if [[ ${SOURCE} != "" ]]; then FLAGS="${FLAGS} --source-locale ${SOURCE} "; fi
         if [[ ${LOCALES_PATH} != "" ]]; then FLAGS="${FLAGS} --path ${LOCALES_PATH} "; fi
-        eval npx mfv ${FLAGS} --ignore untranslated,category-missing || echo -e "\nRun validation locally: \e[33mnpx messageformat-validator${SOURCE:+ -s $SOURCE}${LOCALES_PATH:+ -p $LOCALES_PATH}${LOCALES:+ -l $LOCALES} --ignore untranslated,category-missing"
+        eval npx mfv ${FLAGS} --ignore untranslated,category-missing || echo -e "\nRun validation locally: \e[33mnpx messageformat-validator@3${SOURCE:+ -s $SOURCE}${LOCALES_PATH:+ -p $LOCALES_PATH}${LOCALES:+ -l $LOCALES} --ignore untranslated,category-missing"
       env:
         LOCALES: "'${{ inputs.t9n-locales }}'"
         SOURCE: ${{ inputs.t9n-source }}
