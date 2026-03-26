@@ -6,6 +6,8 @@ This GitHub action uses the [semantic-release](https://semantic-release.gitbook.
 * A GitHub Release will be created
 * Optionally, the package will be published to NPM
 
+Note: Our `semantic-release` version requires at least Node `v22.14.0` or `v24.10.0`.
+
 ## Using the Action
 
 Typically this action is triggered from a workflow that runs on your `main` branch after each commit or pull request merge.
