@@ -300,7 +300,14 @@ runs:
             mkdir -p "./${TEST_PATH}/golden/${TEST}/${BROWSER}"
             for PNG in `ls "${FAIL_DIR}/${BROWSER}"`; do
               NAME=`basename "${PNG}"`
-              if  [[ ${NAME} != *"-diff.png" ]] && [[ ${NAME} != *"-resized-golden.png" ]] && [[ ${NAME} != *"-resized-screenshot.png" ]]; then
+              NOEXTENSION="${NAME%%.png}"
+              # remove alt extension if present
+              ALT="${NOEXTENSION##*.}"
+              ALTTESTS="|dark|"
+              if [[ "$ALTTESTS" == *"|$ALT|"* ]]; then
+                NOEXTENSION="${NOEXTENSION%.*}"
+              fi
+              if  [[ ${NOEXTENSION} != *"-diff" ]] && [[ ${NOEXTENSION} != *"-resized-golden" ]] && [[ ${NOEXTENSION} != *"-resized-screenshot" ]]; then
                 mv "${FAIL_DIR}/${BROWSER}/${PNG}" "./${TEST_PATH}/golden/${TEST}/${BROWSER}/${PNG}"
               fi
             done
