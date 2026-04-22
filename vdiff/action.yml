@@ -300,7 +300,7 @@ runs:
             mkdir -p "./${TEST_PATH}/golden/${TEST}/${BROWSER}"
             for PNG in `ls "${FAIL_DIR}/${BROWSER}"`; do
               NAME=`basename "${PNG}"`
-              if  [[ ${NAME} != *"-diff.png" ]] && [[ ${NAME} != *"-resized-golden.png" ]] && [[ ${NAME} != *"-resized-screenshot.png" ]]; then
+              if [[ ! "${NAME}" =~ -(diff|resized-golden|resized-screenshot)(\.[^.]+)?\.png$ ]]; then
                 mv "${FAIL_DIR}/${BROWSER}/${PNG}" "./${TEST_PATH}/golden/${TEST}/${BROWSER}/${PNG}"
               fi
             done
