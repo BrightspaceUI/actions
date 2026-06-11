@@ -14,6 +14,10 @@ inputs:
     description: Whether or not to release as an NPM package
     default: false
     required: false
+  NPM_REGISTRY:
+    description: NPM registry to set token for (defaults to public NPM registry)
+    default: https://registry.npmjs.org/
+    required: false
   NPM_TOKEN:
     description: Token to publish to NPM
     required: false
@@ -96,7 +100,11 @@ runs:
         [ ${{ inputs.DRY_RUN }} == true ] && OPTS=" --dry-run"
         [ ${{ steps.get-maintenance-version.outputs.IS_MAINTENANCE_BRANCH }} == true ] && OPTS="${OPTS} --tag release-${{ steps.get-maintenance-version.outputs.MAINTENANCE_VERSION }}"
         echo "Running npm publish with options: ${OPTS}"
+        REGISTRY="${NPM_REGISTRY#https://}"
+        REGISTRY="${REGISTRY%/}"
+        npm config set "//${REGISTRY}/:_authToken=\${NPM_TOKEN}"
         npm publish ${OPTS}
       env:
-        NODE_AUTH_TOKEN: ${{ inputs.NPM_TOKEN }}
+        NPM_REGISTRY: ${{ inputs.NPM_REGISTRY }}
+        NPM_TOKEN: ${{ inputs.NPM_TOKEN }}
       shell: bash
