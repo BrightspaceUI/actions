@@ -20,8 +20,6 @@ inputs:
   GITHUB_TOKEN:
     description: Token for opening the pull request
     required: true
-  NODE_AUTH_TOKEN:
-    description: Token for reading packages from already setup private registry
   PR_TITLE:
     description: Title for the opened pull request
     default: 'Updating package-lock.json'
@@ -88,8 +86,6 @@ runs:
           rm -rf ./node_modules
           rm package-lock.json
           npm install
-        env:
-          NODE_AUTH_TOKEN: ${{ inputs.NODE_AUTH_TOKEN }}
         shell: bash
       - name: Check For Changes
         id: check-for-changes
@@ -123,7 +119,6 @@ runs:
           npm ls --json --package-lock-only --all > "$RUNNER_TEMP/dependencies-after.json"
         env:
           GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ inputs.NODE_AUTH_TOKEN }}
         shell: bash
       - name: Create PR (if necessary)
         id: create-pr
