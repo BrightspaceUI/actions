@@ -2,6 +2,8 @@
 
 This GitHub action will determine if any updates can be made to your repo's `package-lock.json`. If so, a PR will be opened with the updates against the repo's default release branch. You can also configure this action to auto-approve the PR for you, and set it to auto-merge after tests pass.
 
+Note: This action requires at least Node `v20` (as required by our version of `@octokit/graphql`).
+
 ## Using the Action
 
 Typically this action would be scheduled to run on whatever cadence works well for your repo. Our [brightspace-integration repo](https://github.com/Brightspace/brightspace-integration) runs it hourly to catch new changes across all our web components, whereas a regular project repo may only want to run it once a day or once a week.
