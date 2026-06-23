@@ -67,7 +67,7 @@ runs:
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\e[34mInstalling Dependencies"
-          npm install chalk@5 @octokit/graphql@4 @actions/core@1 --prefix ${{ github.action_path }} --no-save --loglevel error
+          npm install chalk@5 @octokit/graphql@9 @actions/core@3 --prefix ${{ github.action_path }} --no-save --loglevel error
         shell: bash
       - name: Checkout Branch
         if: ${{ steps.kill-switch.outputs.value != 'true' }}
