@@ -517,10 +517,6 @@ runs:
         github-token: ${{ inputs.github-token }}
         script: |
           console.log('\x1b[34mUpdating Commit Status');
-          if (context.actor === 'dependabot[bot]') {
-            console.log('\x1b[33mActor is dependabot - skipping custom commit status update.');
-            return;
-          }
 
           let state, description, targetUrl;
           if (process.env.TESTS_PASSED === 'true' && process.env.FILES_MATCH === 'true') {
@@ -553,15 +549,19 @@ runs:
             core.setFailed('Completed - Build Failed.');
           }
 
-          await github.rest.repos.createCommitStatus({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            sha: process.env.ORIGINAL_SHA,
-            state: state,
-            target_url: targetUrl,
-            description: description,
-            context: process.env.COMMIT_STATUS_NAME
-          });
+          if (context.actor === 'dependabot[bot]') {
+            console.log('\x1b[33mActor is dependabot - skipping custom commit status update.');
+          } else {
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: process.env.ORIGINAL_SHA,
+              state: state,
+              target_url: targetUrl,
+              description: description,
+              context: process.env.COMMIT_STATUS_NAME
+            });
+          }
       env:
         FORCE_COLOR: 3
         GOLDENS_EMPTY: ${{ steps.commit-goldens.outputs.empty }}
