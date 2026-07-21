@@ -16,6 +16,9 @@ inputs:
   GITHUB_TOKEN:
     description: Token to use to update version in 'package.json' and create GitHub release
     required: true
+  GITHUB_PRERELEASE:
+    description: Whether or not to create a GitHub prerelease
+    default: false
   MINOR_RELEASE_WITH_LMS:
     description: Automatically perform a minor release whenever the LMS release changes
     default: false
@@ -67,12 +70,14 @@ runs:
       shell: bash
     - name: Create semantic-release configuration
       run: |
-        echo "Creating semantic-release configuration (DEFAULT_BRANCH: ${{ inputs.DEFAULT_BRANCH }} , NPM: ${{ inputs.NPM }})..."
+        echo "Creating semantic-release configuration (DEFAULT_BRANCH: ${{ inputs.DEFAULT_BRANCH }}, NPM: ${{ inputs.NPM }}, GITHUB_PRERELEASE: ${{ inputs.GITHUB_PRERELEASE }})..."
         ${{ github.action_path }}/create-config.sh
       env:
         DEFAULT_BRANCH: ${{ inputs.DEFAULT_BRANCH }}
         FILE_PATH: ${{ github.workspace }}/.releaserc.json
         NPM: ${{ inputs.NPM }}
+        GITHUB_PRERELEASE: ${{ inputs.GITHUB_PRERELEASE }}
+        GITHUB_PRERELEASE_PLUGIN_PATH: ${{ github.action_path }}/github-prerelease.js
       shell: bash
     - name: Running semantic-release
       id: semantic-release
