@@ -47,6 +47,7 @@ Options:
 * `DEFAULT_BRANCH` (default: `"main"`): name of the default release branch
 * `DRY_RUN` (default: `false`): Runs semantic-release with the `--dry-run` flag to simulate a release but not actually do one
 * `GITHUB_TOKEN`: Token to use to update version in 'package.json' and create GitHub release -- see section below on the release token for more details
+* `GITHUB_PRERELEASE` (default: `false`): Whether to create the GitHub Release as a pre-release while preserving normal semantic-release versioning for the release branch (see "GitHub Pre-releases" below)
 * `MINOR_RELEASE_WITH_LMS` (default: `false`): Automatically perform a minor release whenever the LMS release changes (requires `aws-access-key-id`, `aws-secret-access-key` and `aws-session-token` to be passed)
 * `NPM` (default: `false`): Whether or not to release as an NPM package (see "NPM Package Deployment" below for more info)
 * `NPM_TOKEN` (optional if `NPM` is `false` or publishing to CodeArtifact): Token to publish to NPM (see "NPM Package Deployment" below for more info)
@@ -64,6 +65,39 @@ Notes:
 The release step will fail to write to `package.json` because of the org-level rule requiring pull requests, as well as any rulesets you may have defined requiring PRs or status checks to pass. To get around this, we use a special rotating `D2L_RELEASE_TOKEN`.
 
 [Learn how to set up the D2L_RELEASE_TOKEN...](../docs/release-token.md)
+
+## GitHub Pre-releases
+
+By default, the action creates a normal GitHub Release. Set `GITHUB_PRERELEASE` to `true` to create the GitHub Release as a pre-release instead.
+
+```yml
+- name: Semantic Release
+  uses: BrightspaceUI/actions/semantic-release@main
+  with:
+    DEFAULT_BRANCH: master
+    GITHUB_TOKEN: ${{ secrets.D2L_RELEASE_TOKEN }}
+    GITHUB_PRERELEASE: true
+```
+
+This option only changes the GitHub Release's pre-release status. The release branch remains a normal semantic-release branch, so semantic-release continues to create normal versions and tags such as `1.2.3` and `v1.2.3`, rather than prerelease versions such as `1.2.3-master.1`.
+
+This is useful for services that deploy a GitHub pre-release to a non-production environment and promote the same release to production later. A workflow can listen for the following GitHub Release events:
+
+```yml
+# Deploy to a non-production environment when the pre-release is created.
+on:
+  release:
+    types: [ prereleased ]
+```
+
+```yml
+# Deploy to production when the pre-release is promoted in GitHub.
+on:
+  release:
+    types: [ released ]
+```
+
+To promote a release, open the release in GitHub, edit it, clear the **Set as a pre-release** checkbox, and publish the change. GitHub emits the `released` event for the promoted release.
 
 ## NPM Package Deployment
 
