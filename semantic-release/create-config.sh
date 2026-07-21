@@ -5,9 +5,9 @@ else
   ASSETS="[\"package.json\"]"
 fi
 if [ "$GITHUB_PRERELEASE" = "true" ]; then
-  GITHUB_PRERELEASE_PLUGIN="\"$GITHUB_PRERELEASE_PLUGIN_PATH\""
+  GITHUB_RELEASE_PLUGIN="\"$GITHUB_PRERELEASE_PLUGIN_PATH\""
 else
-  GITHUB_PRERELEASE_PLUGIN="\"@semantic-release/github\""
+  GITHUB_RELEASE_PLUGIN="\"@semantic-release/github\""
 fi
 cat >$FILE_PATH <<EOL
 {
@@ -21,7 +21,6 @@ cat >$FILE_PATH <<EOL
   ],
   "plugins": [
     "@semantic-release/commit-analyzer",
-    "@semantic-release/github",
     $GITHUB_RELEASE_PLUGIN,
     [
       "@semantic-release/npm",
