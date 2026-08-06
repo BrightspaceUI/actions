@@ -28,6 +28,8 @@ jobs:
       - uses: Brightspace/setup-node@main
         with:
           node-version-file: .nvmrc
+          cache: npm
+          d2l-registry-token: ${{ secrets.D2L_PACKAGE_REGISTRY_AUTH_TOKEN }}
       - name: Update package-lock.json
         uses: BrightspaceUI/actions/update-package-lock@main
         with:
