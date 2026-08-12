@@ -59,7 +59,6 @@ runs:
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\e[34mSaving Initial Dependencies"
-          npm ci
           npm ls --json --package-lock-only --all > "$RUNNER_TEMP/dependencies-before.json"
         shell: bash
       - name: Install Dependencies
