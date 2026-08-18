@@ -38,8 +38,8 @@ runs:
       - name: Validate ignore-scripts setting
         run: |
           IGNORE_SCRIPTS_VALUE=$(npm config get ignore-scripts)
-          echo "ignore-scripts value is: $IGNORE_SCRIPTS_VALUE"
-          if [ "$IGNORE_SCRIPTS_VALUE" != "true" ]; then
+          echo "ignore-scripts value is: ${IGNORE_SCRIPTS_VALUE}"
+          if [ "${IGNORE_SCRIPTS_VALUE}" != "true" ]; then
             echo -e "Error: ignore-scripts is not set to true. Please set ignore-scripts to true in your .npmrc file to prevent unwanted scripts from running during the update process."
             exit 1
           fi
@@ -48,8 +48,8 @@ runs:
         id: kill-switch
         run: |
           KILL_SWITCH_VALUE="false"
-          echo "value=$KILL_SWITCH_VALUE" >> $GITHUB_OUTPUT
-          if [ "$KILL_SWITCH_VALUE" == "true" ]; then
+          echo "value=${KILL_SWITCH_VALUE}" >> "${GITHUB_OUTPUT}"
+          if [ "${KILL_SWITCH_VALUE}" == "true" ]; then
             echo -e "Global kill switch is enabled to prevent unwanted updates during a security incident. Exiting without making changes."
             exit 0
           fi
@@ -59,23 +59,25 @@ runs:
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\e[34mSaving Initial Dependencies"
-          npm ls --json --package-lock-only --all > "$RUNNER_TEMP/dependencies-before.json"
+          npm ls --json --package-lock-only --all > "${RUNNER_TEMP}/dependencies-before.json"
         shell: bash
       - name: Install Dependencies
         if: ${{ steps.kill-switch.outputs.value != 'true' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\e[34mInstalling Dependencies"
-          npm install chalk@5 @octokit/graphql@9 @actions/core@3 --prefix ${{ github.action_path }} --no-save --loglevel error
+          npm install chalk@5 @octokit/graphql@9 @actions/core@3 --prefix "${GITHUB_ACTION_PATH}" --no-save --loglevel error
         shell: bash
       - name: Checkout Branch
         if: ${{ steps.kill-switch.outputs.value != 'true' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\e[34mFetching Branch"
-          git fetch -n origin +refs/heads/${{ inputs.BRANCH_NAME }}:refs/heads/${{ inputs.BRANCH_NAME }} || true
+          git fetch -n origin "+refs/heads/${BRANCH_NAME}:refs/heads/${BRANCH_NAME}" || true
           echo -e "\n\e[34mChecking Out Branch"
-          git checkout ${{ inputs.BRANCH_NAME }} || git checkout -b ${{ inputs.BRANCH_NAME }}
+          git checkout "${BRANCH_NAME}" || git checkout -b "${BRANCH_NAME}"
+        env:
+          BRANCH_NAME: ${{ inputs.BRANCH_NAME }}
         shell: bash
       - name: Fresh Dependency Install
         if: ${{ steps.kill-switch.outputs.value != 'true' }}
@@ -92,31 +94,35 @@ runs:
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\n\e[34mChecking For Changes"
-          git diff --exit-code package-lock.json && echo "changes-exist=false" >> $GITHUB_OUTPUT || echo "changes-exist=true" >> $GITHUB_OUTPUT
+          git diff --exit-code package-lock.json && echo "changes-exist=false" >> "${GITHUB_OUTPUT}" || echo "changes-exist=true" >> "${GITHUB_OUTPUT}"
         shell: bash
       - name: Create Commit
         if: ${{ steps.kill-switch.outputs.value != 'true' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
-          if [ ${{ steps.check-for-changes.outputs.changes-exist }} == false ]; then
+          if [ "${CHANGES_EXIST}" == "false" ]; then
             echo -e "\n\e[32mNo changes to commit."
             exit 0;
           fi
 
           echo -e "\n\e[34mCommitting Changes"
-          git reset --hard origin/${{ inputs.DEFAULT_BRANCH }}
+          git reset --hard "origin/${DEFAULT_BRANCH}"
           rm -rf ./node_modules
           rm package-lock.json
           npm install
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add package-lock.json
-          git commit -m '${{ inputs.COMMIT_MESSAGE }}'
-          git push --force https://${GITHUB_TOKEN}@github.com/${{ github.repository }} ${{ inputs.BRANCH_NAME }}
+          git commit -m "${COMMIT_MESSAGE}"
+          git push --force "https://${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}" "${BRANCH_NAME}"
 
           echo -e "\e[34mSaving New Dependencies"
-          npm ls --json --package-lock-only --all > "$RUNNER_TEMP/dependencies-after.json"
+          npm ls --json --package-lock-only --all > "${RUNNER_TEMP}/dependencies-after.json"
         env:
+          BRANCH_NAME: ${{ inputs.BRANCH_NAME }}
+          CHANGES_EXIST: ${{ steps.check-for-changes.outputs.changes-exist }}
+          COMMIT_MESSAGE: ${{ inputs.COMMIT_MESSAGE }}
+          DEFAULT_BRANCH: ${{ inputs.DEFAULT_BRANCH }}
           GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
         shell: bash
       - name: Create PR (if necessary)
@@ -124,19 +130,20 @@ runs:
         if: ${{ steps.kill-switch.outputs.value != 'true' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
-          if [ ${{ steps.check-for-changes.outputs.changes-exist }} == false ]; then
+          if [ "${CHANGES_EXIST}" == "false" ]; then
             echo -e "\n\e[32mBuild Complete."
             exit 0;
           fi
 
           echo -e "\n\e[34mCreating PR"
-          node ${{ github.action_path }}/handle-pr.js
+          node "${GITHUB_ACTION_PATH}/handle-pr.js"
           echo -e "\n\e[32mBuild Complete."
         env:
           APPROVAL_TOKEN: ${{ inputs.APPROVAL_TOKEN }}
           AUTO_MERGE_METHOD: ${{ inputs.AUTO_MERGE_METHOD }}
           AUTO_MERGE_TOKEN: ${{ inputs.AUTO_MERGE_TOKEN }}
           BRANCH_NAME: ${{ inputs.BRANCH_NAME }}
+          CHANGES_EXIST: ${{ steps.check-for-changes.outputs.changes-exist }}
           DEFAULT_BRANCH: ${{ inputs.DEFAULT_BRANCH }}
           FORCE_COLOR: 3
           GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
