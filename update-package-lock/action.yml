@@ -75,7 +75,7 @@ runs:
           echo -e "\e[34mFetching Branch"
           git fetch -n origin "+refs/heads/${BRANCH_NAME}:refs/heads/${BRANCH_NAME}" || true
           echo -e "\n\e[34mChecking Out Branch"
-          git checkout "${BRANCH_NAME}" || git checkout -b "${BRANCH_NAME}"
+          git checkout "${BRANCH_NAME}" -- || git checkout -b "${BRANCH_NAME}"
         env:
           BRANCH_NAME: ${{ inputs.BRANCH_NAME }}
         shell: bash
@@ -94,7 +94,7 @@ runs:
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\n\e[34mChecking For Changes"
-          git diff --exit-code package-lock.json && echo "changes-exist=false" >> "${GITHUB_OUTPUT}" || echo "changes-exist=true" >> "${GITHUB_OUTPUT}"
+          git diff --exit-code -- package-lock.json && echo "changes-exist=false" >> "${GITHUB_OUTPUT}" || echo "changes-exist=true" >> "${GITHUB_OUTPUT}"
         shell: bash
       - name: Create Commit
         if: ${{ steps.kill-switch.outputs.value != 'true' }}
@@ -106,7 +106,7 @@ runs:
           fi
 
           echo -e "\n\e[34mCommitting Changes"
-          git reset --hard "origin/${DEFAULT_BRANCH}"
+          git reset --hard "origin/${DEFAULT_BRANCH}" --
           rm -rf ./node_modules
           rm package-lock.json
           npm install
