@@ -119,7 +119,7 @@ runs:
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add package-lock.json
-          git commit --allow-empty -m "${COMMIT_MESSAGE}"
+          git commit -m "${COMMIT_MESSAGE}" || true
           git push --force "https://${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}" "${BRANCH_NAME}"
         env:
           BRANCH_NAME: ${{ inputs.BRANCH_NAME }}
