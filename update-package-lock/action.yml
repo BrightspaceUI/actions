@@ -54,6 +54,17 @@ runs:
             exit 0
           fi
         shell: bash
+      - name: Checkout Branch
+        if: ${{ steps.kill-switch.outputs.value != 'true' }}
+        working-directory: ${{ inputs.WORKING_DIRECTORY }}
+        run: |
+          echo -e "\n\e[34mChecking Out Branch"
+          git checkout "${BRANCH_NAME}" -- || git checkout -b "${BRANCH_NAME}"
+          git reset --hard "origin/${DEFAULT_BRANCH}" --
+        env:
+          BRANCH_NAME: ${{ inputs.BRANCH_NAME }}
+          DEFAULT_BRANCH: ${{ inputs.DEFAULT_BRANCH }}
+        shell: bash
       - name: Save Initial Dependencies
         if: ${{ steps.kill-switch.outputs.value != 'true' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
@@ -67,17 +78,6 @@ runs:
         run: |
           echo -e "\e[34mInstalling Dependencies"
           npm install chalk@5 @octokit/graphql@9 @actions/core@3 --prefix "${GITHUB_ACTION_PATH}" --no-save --loglevel error
-        shell: bash
-      - name: Checkout Branch
-        if: ${{ steps.kill-switch.outputs.value != 'true' }}
-        working-directory: ${{ inputs.WORKING_DIRECTORY }}
-        run: |
-          echo -e "\e[34mFetching Branch"
-          git fetch -n origin "+refs/heads/${BRANCH_NAME}:refs/heads/${BRANCH_NAME}" || true
-          echo -e "\n\e[34mChecking Out Branch"
-          git checkout "${BRANCH_NAME}" -- || git checkout -b "${BRANCH_NAME}"
-        env:
-          BRANCH_NAME: ${{ inputs.BRANCH_NAME }}
         shell: bash
       - name: Fresh Dependency Install
         if: ${{ steps.kill-switch.outputs.value != 'true' }}
@@ -106,10 +106,6 @@ runs:
           fi
 
           echo -e "\n\e[34mCommitting Changes"
-          git reset --hard "origin/${DEFAULT_BRANCH}" --
-          rm -rf ./node_modules
-          rm package-lock.json
-          npm install
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add package-lock.json
@@ -122,7 +118,6 @@ runs:
           BRANCH_NAME: ${{ inputs.BRANCH_NAME }}
           CHANGES_EXIST: ${{ steps.check-for-changes.outputs.changes-exist }}
           COMMIT_MESSAGE: ${{ inputs.COMMIT_MESSAGE }}
-          DEFAULT_BRANCH: ${{ inputs.DEFAULT_BRANCH }}
           GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
         shell: bash
       - name: Create PR (if necessary)
