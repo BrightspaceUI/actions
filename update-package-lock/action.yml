@@ -93,18 +93,28 @@ runs:
         if: ${{ steps.kill-switch.outputs.value != 'true' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
-          echo -e "\n\e[34mChecking For Changes"
-          git diff --exit-code -- package-lock.json && echo "changes-exist=false" >> "${GITHUB_OUTPUT}" || echo "changes-exist=true" >> "${GITHUB_OUTPUT}"
-        shell: bash
-      - name: Create Commit
-        if: ${{ steps.kill-switch.outputs.value != 'true' }}
-        working-directory: ${{ inputs.WORKING_DIRECTORY }}
-        run: |
-          if [ "${CHANGES_EXIST}" == "false" ]; then
-            echo -e "\n\e[32mNo changes to commit."
-            exit 0;
+          DIFF_REF="origin/${BRANCH_NAME}"
+
+          echo -e "\e[34mFetching Branch"
+          if ! git fetch -n origin "+refs/heads/${BRANCH_NAME}"; then
+            echo -e "\n\e[32mRemote branch doesn't exist."
+            DIFF_REF="HEAD"
           fi
 
+          echo -e "\n\e[34mChecking For Changes"
+          if git diff --exit-code "${DIFF_REF}" -- package-lock.json ; then
+            echo -e "\n\e[32mNo changes.`"
+            echo "changes-exist=false" >> "${GITHUB_OUTPUT}"
+          else
+            echo "changes-exist=true" >> "${GITHUB_OUTPUT}"
+          fi
+        env:
+          BRANCH_NAME: ${{ inputs.BRANCH_NAME }}
+        shell: bash
+      - name: Create And Push Commit
+        if: ${{ steps.kill-switch.outputs.value != 'true' && steps.check-for-changes.changes-exist == 'true' }}
+        working-directory: ${{ inputs.WORKING_DIRECTORY }}
+        run: |
           echo -e "\n\e[34mCommitting Changes"
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
@@ -113,12 +123,11 @@ runs:
           git push --force "https://${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}" "${BRANCH_NAME}"
         env:
           BRANCH_NAME: ${{ inputs.BRANCH_NAME }}
-          CHANGES_EXIST: ${{ steps.check-for-changes.outputs.changes-exist }}
           COMMIT_MESSAGE: ${{ inputs.COMMIT_MESSAGE }}
           GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
         shell: bash
       - name: Install Tool Dependencies
-        if: ${{ steps.kill-switch.outputs.value != 'true' }}
+        if: ${{ steps.kill-switch.outputs.value != 'true' && steps.check-for-changes.changes-exist == 'true' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\e[34mInstalling Dependencies"
@@ -126,14 +135,9 @@ runs:
         shell: bash
       - name: Create PR (if necessary)
         id: create-pr
-        if: ${{ steps.kill-switch.outputs.value != 'true' }}
+        if: ${{ steps.kill-switch.outputs.value != 'true' && steps.check-for-changes.changes-exist == 'true' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
-          if [ "${CHANGES_EXIST}" == "false" ]; then
-            echo -e "\n\e[32mBuild Complete."
-            exit 0;
-          fi
-
           echo -e "\n\e[34mCreating PR"
           node "${GITHUB_ACTION_PATH}/handle-pr.js"
           echo -e "\n\e[32mBuild Complete."
@@ -142,7 +146,6 @@ runs:
           AUTO_MERGE_METHOD: ${{ inputs.AUTO_MERGE_METHOD }}
           AUTO_MERGE_TOKEN: ${{ inputs.AUTO_MERGE_TOKEN }}
           BRANCH_NAME: ${{ inputs.BRANCH_NAME }}
-          CHANGES_EXIST: ${{ steps.check-for-changes.outputs.changes-exist }}
           DEFAULT_BRANCH: ${{ inputs.DEFAULT_BRANCH }}
           FORCE_COLOR: 3
           GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
