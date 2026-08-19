@@ -124,6 +124,7 @@ runs:
             echo "should-create-pr=true" >> "${GITHUB_OUTPUT}"
           else
             # No changes compared to the default branch so delete the remote branch, which will also close an open PR
+            echo -e "\n\e[34mDeleting stale remote branch."
             git push --delete "https://${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}" "${BRANCH_NAME}" || true
           fi
         env:
