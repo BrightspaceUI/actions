@@ -54,30 +54,23 @@ runs:
             exit 0
           fi
         shell: bash
+      - name: Checkout Branch
+        if: ${{ steps.kill-switch.outputs.value != 'true' }}
+        working-directory: ${{ inputs.WORKING_DIRECTORY }}
+        run: |
+          echo -e "\n\e[34mChecking Out Branch"
+          git checkout "${BRANCH_NAME}" -- || git checkout -b "${BRANCH_NAME}"
+          git reset --hard "origin/${DEFAULT_BRANCH}" --
+        env:
+          BRANCH_NAME: ${{ inputs.BRANCH_NAME }}
+          DEFAULT_BRANCH: ${{ inputs.DEFAULT_BRANCH }}
+        shell: bash
       - name: Save Initial Dependencies
         if: ${{ steps.kill-switch.outputs.value != 'true' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\e[34mSaving Initial Dependencies"
           npm ls --json --package-lock-only --all > "${RUNNER_TEMP}/dependencies-before.json"
-        shell: bash
-      - name: Install Dependencies
-        if: ${{ steps.kill-switch.outputs.value != 'true' }}
-        working-directory: ${{ inputs.WORKING_DIRECTORY }}
-        run: |
-          echo -e "\e[34mInstalling Dependencies"
-          npm install chalk@5 @octokit/graphql@9 @actions/core@3 --prefix "${GITHUB_ACTION_PATH}" --no-save --loglevel error
-        shell: bash
-      - name: Checkout Branch
-        if: ${{ steps.kill-switch.outputs.value != 'true' }}
-        working-directory: ${{ inputs.WORKING_DIRECTORY }}
-        run: |
-          echo -e "\e[34mFetching Branch"
-          git fetch -n origin "+refs/heads/${BRANCH_NAME}:refs/heads/${BRANCH_NAME}" || true
-          echo -e "\n\e[34mChecking Out Branch"
-          git checkout "${BRANCH_NAME}" -- || git checkout -b "${BRANCH_NAME}"
-        env:
-          BRANCH_NAME: ${{ inputs.BRANCH_NAME }}
         shell: bash
       - name: Fresh Dependency Install
         if: ${{ steps.kill-switch.outputs.value != 'true' }}
@@ -88,53 +81,69 @@ runs:
           rm package-lock.json
           npm install
         shell: bash
+      - name: Save New Dependencies
+        if: ${{ steps.kill-switch.outputs.value != 'true' }}
+        working-directory: ${{ inputs.WORKING_DIRECTORY }}
+        run: |
+          echo -e "\e[34mSaving New Dependencies"
+          npm ls --json --package-lock-only --all > "${RUNNER_TEMP}/dependencies-after.json"
+        shell: bash
       - name: Check For Changes
         id: check-for-changes
         if: ${{ steps.kill-switch.outputs.value != 'true' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
-          echo -e "\n\e[34mChecking For Changes"
-          git diff --exit-code -- package-lock.json && echo "changes-exist=false" >> "${GITHUB_OUTPUT}" || echo "changes-exist=true" >> "${GITHUB_OUTPUT}"
-        shell: bash
-      - name: Create Commit
-        if: ${{ steps.kill-switch.outputs.value != 'true' }}
-        working-directory: ${{ inputs.WORKING_DIRECTORY }}
-        run: |
-          if [ "${CHANGES_EXIST}" == "false" ]; then
-            echo -e "\n\e[32mNo changes to commit."
-            exit 0;
+          DIFF_REF="origin/${BRANCH_NAME}"
+
+          echo -e "\e[34mFetching Branch"
+          if ! git fetch -n origin "+refs/heads/${BRANCH_NAME}"; then
+            echo -e "\n\e[32mRemote branch doesn't exist."
+            DIFF_REF="HEAD"
           fi
 
-          echo -e "\n\e[34mCommitting Changes"
-          git reset --hard "origin/${DEFAULT_BRANCH}" --
-          rm -rf ./node_modules
-          rm package-lock.json
-          npm install
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add package-lock.json
-          git commit -m "${COMMIT_MESSAGE}"
-          git push --force "https://${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}" "${BRANCH_NAME}"
-
-          echo -e "\e[34mSaving New Dependencies"
-          npm ls --json --package-lock-only --all > "${RUNNER_TEMP}/dependencies-after.json"
+          echo -e "\n\e[34mChecking For Changes"
+          if git diff --exit-code --color "${DIFF_REF}" -- package-lock.json ; then
+            echo -e "\n\e[32mNo changes."
+            echo "changes-exist=false" >> "${GITHUB_OUTPUT}"
+          else
+            echo "changes-exist=true" >> "${GITHUB_OUTPUT}"
+          fi
         env:
           BRANCH_NAME: ${{ inputs.BRANCH_NAME }}
-          CHANGES_EXIST: ${{ steps.check-for-changes.outputs.changes-exist }}
+        shell: bash
+      - name: Create And Push Commit
+        id: commit
+        if: ${{ steps.kill-switch.outputs.value != 'true' && steps.check-for-changes.outputs.changes-exist == 'true' }}
+        working-directory: ${{ inputs.WORKING_DIRECTORY }}
+        run: |
+          echo -e "\n\e[34mCommitting Changes"
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          if git commit -m "${COMMIT_MESSAGE}" -- package-lock.json; then
+            git push --force "https://${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}" "${BRANCH_NAME}"
+            echo "should-create-pr=true" >> "${GITHUB_OUTPUT}"
+          else
+            # No changes compared to the default branch so delete the remote branch, which will also close an open PR
+            echo -e "\n\e[34mDeleting stale remote branch."
+            git push --delete "https://${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}" "${BRANCH_NAME}" || true
+          fi
+        env:
+          BRANCH_NAME: ${{ inputs.BRANCH_NAME }}
           COMMIT_MESSAGE: ${{ inputs.COMMIT_MESSAGE }}
-          DEFAULT_BRANCH: ${{ inputs.DEFAULT_BRANCH }}
           GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+        shell: bash
+      - name: Install Tool Dependencies
+        if: ${{ steps.kill-switch.outputs.value != 'true' && steps.commit.outputs.should-create-pr == 'true' }}
+        working-directory: ${{ inputs.WORKING_DIRECTORY }}
+        run: |
+          echo -e "\e[34mInstalling Dependencies"
+          npm install chalk@5 @octokit/graphql@9 @actions/core@3 --prefix "${GITHUB_ACTION_PATH}" --no-save --loglevel error
         shell: bash
       - name: Create PR (if necessary)
         id: create-pr
-        if: ${{ steps.kill-switch.outputs.value != 'true' }}
+        if: ${{ steps.kill-switch.outputs.value != 'true' && steps.commit.outputs.should-create-pr == 'true' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
-          if [ "${CHANGES_EXIST}" == "false" ]; then
-            echo -e "\n\e[32mBuild Complete."
-            exit 0;
-          fi
-
           echo -e "\n\e[34mCreating PR"
           node "${GITHUB_ACTION_PATH}/handle-pr.js"
           echo -e "\n\e[32mBuild Complete."
@@ -143,7 +152,6 @@ runs:
           AUTO_MERGE_METHOD: ${{ inputs.AUTO_MERGE_METHOD }}
           AUTO_MERGE_TOKEN: ${{ inputs.AUTO_MERGE_TOKEN }}
           BRANCH_NAME: ${{ inputs.BRANCH_NAME }}
-          CHANGES_EXIST: ${{ steps.check-for-changes.outputs.changes-exist }}
           DEFAULT_BRANCH: ${{ inputs.DEFAULT_BRANCH }}
           FORCE_COLOR: 3
           GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
