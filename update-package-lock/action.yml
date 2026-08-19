@@ -81,6 +81,13 @@ runs:
           rm package-lock.json
           npm install
         shell: bash
+      - name: Save New Dependencies
+        if: ${{ steps.kill-switch.outputs.value != 'true' }}
+        working-directory: ${{ inputs.WORKING_DIRECTORY }}
+        run: |
+          echo -e "\e[34mSaving New Dependencies"
+          npm ls --json --package-lock-only --all > "${RUNNER_TEMP}/dependencies-after.json"
+        shell: bash
       - name: Check For Changes
         id: check-for-changes
         if: ${{ steps.kill-switch.outputs.value != 'true' }}
@@ -104,9 +111,6 @@ runs:
           git add package-lock.json
           git commit -m "${COMMIT_MESSAGE}"
           git push --force "https://${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}" "${BRANCH_NAME}"
-
-          echo -e "\e[34mSaving New Dependencies"
-          npm ls --json --package-lock-only --all > "${RUNNER_TEMP}/dependencies-after.json"
         env:
           BRANCH_NAME: ${{ inputs.BRANCH_NAME }}
           CHANGES_EXIST: ${{ steps.check-for-changes.outputs.changes-exist }}
