@@ -113,7 +113,7 @@ runs:
         shell: bash
       - name: Create And Push Commit
         id: commit
-        if: ${{ steps.kill-switch.outputs.value != 'true' && steps.check-for-changes.changes-exist == 'true' }}
+        if: ${{ steps.kill-switch.outputs.value != 'true' && steps.check-for-changes.outputs.changes-exist == 'true' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\n\e[34mCommitting Changes"
@@ -132,7 +132,7 @@ runs:
           GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
         shell: bash
       - name: Install Tool Dependencies
-        if: ${{ steps.kill-switch.outputs.value != 'true' && steps.commit.should-create-pr == 'true' }}
+        if: ${{ steps.kill-switch.outputs.value != 'true' && steps.commit.outputs.should-create-pr == 'true' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\e[34mInstalling Dependencies"
@@ -140,7 +140,7 @@ runs:
         shell: bash
       - name: Create PR (if necessary)
         id: create-pr
-        if: ${{ steps.kill-switch.outputs.value != 'true' && steps.commit.should-create-pr == 'true' }}
+        if: ${{ steps.kill-switch.outputs.value != 'true' && steps.commit.outputs.should-create-pr == 'true' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\n\e[34mCreating PR"
