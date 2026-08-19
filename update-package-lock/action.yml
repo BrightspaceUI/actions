@@ -102,7 +102,7 @@ runs:
           fi
 
           echo -e "\n\e[34mChecking For Changes"
-          if git diff --exit-code "${DIFF_REF}" -- package-lock.json ; then
+          if git diff --exit-code --color "${DIFF_REF}" -- package-lock.json ; then
             echo -e "\n\e[32mNo changes.`"
             echo "changes-exist=false" >> "${GITHUB_OUTPUT}"
           else
