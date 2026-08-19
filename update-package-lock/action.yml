@@ -72,13 +72,6 @@ runs:
           echo -e "\e[34mSaving Initial Dependencies"
           npm ls --json --package-lock-only --all > "${RUNNER_TEMP}/dependencies-before.json"
         shell: bash
-      - name: Install Dependencies
-        if: ${{ steps.kill-switch.outputs.value != 'true' }}
-        working-directory: ${{ inputs.WORKING_DIRECTORY }}
-        run: |
-          echo -e "\e[34mInstalling Dependencies"
-          npm install chalk@5 @octokit/graphql@9 @actions/core@3 --prefix "${GITHUB_ACTION_PATH}" --no-save --loglevel error
-        shell: bash
       - name: Fresh Dependency Install
         if: ${{ steps.kill-switch.outputs.value != 'true' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
@@ -119,6 +112,13 @@ runs:
           CHANGES_EXIST: ${{ steps.check-for-changes.outputs.changes-exist }}
           COMMIT_MESSAGE: ${{ inputs.COMMIT_MESSAGE }}
           GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+        shell: bash
+      - name: Install Tool Dependencies
+        if: ${{ steps.kill-switch.outputs.value != 'true' }}
+        working-directory: ${{ inputs.WORKING_DIRECTORY }}
+        run: |
+          echo -e "\e[34mInstalling Dependencies"
+          npm install chalk@5 @octokit/graphql@9 @actions/core@3 --prefix "${GITHUB_ACTION_PATH}" --no-save --loglevel error
         shell: bash
       - name: Create PR (if necessary)
         id: create-pr
