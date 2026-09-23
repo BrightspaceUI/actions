@@ -17,6 +17,10 @@ name: Update package-lock.json
 on:
   schedule:
     - cron: "0 15 * * 1-5" # Mon-Fri 11:00AM EDT. 10:00AM EST.
+
+permissions:
+  pull-requests: write
+
 jobs:
   test:
     timeout-minutes: 10

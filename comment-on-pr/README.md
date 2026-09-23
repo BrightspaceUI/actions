@@ -11,6 +11,10 @@ Here's a simple example of posting a comment onto a pull request.
 ```yml
 name: Comment
 on: pull_request
+
+permissions:
+  pull-requests: write
+
 jobs:
   comment:
     timeout-minutes: 5
