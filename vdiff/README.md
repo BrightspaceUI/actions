@@ -18,6 +18,13 @@ Here's a sample workflow:
 ```yml
 name: vdiff
 on: pull_request
+
+permissions:
+  actions: read
+  contents: write
+  pull-requests: write
+  statuses: write
+
 jobs:
   vdiff:
     timeout-minutes: 10

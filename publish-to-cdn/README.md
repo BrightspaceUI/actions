@@ -27,6 +27,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   publish:
     timeout-minutes: 5

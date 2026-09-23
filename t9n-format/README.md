@@ -21,6 +21,12 @@ on:
     paths:
       - 'src/lang/*'
 
+permissions:
+  actions: read
+  contents: write
+  pull-requests: write
+  statuses: write
+
 jobs:
   format:
     timeout-minutes: 5

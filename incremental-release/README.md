@@ -16,6 +16,10 @@ on:
   push:
     branches:
       - main
+
+permissions:
+  contents: read
+
 jobs:
   release:
     if: "!contains(github.event.head_commit.message, 'skip ci')"
@@ -112,6 +116,10 @@ on:
   push:
     branches:
       - main
+
+permissions:
+  contents: read
+
 jobs:
   release:
     if: "!contains(github.event.head_commit.message, 'skip ci')"
