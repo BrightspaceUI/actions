@@ -18,13 +18,20 @@ Here's a sample workflow:
 ```yml
 name: vdiff
 on: pull_request
+
+permissions:
+  actions: read
+  contents: write
+  pull-requests: write
+  statuses: write
+
 jobs:
   vdiff:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
       - uses: Brightspace/third-party-actions@actions/checkout
-      - uses: Brightspace/third-party-actions@actions/setup-node
+      - uses: Brightspace/setup-node@main
         with:
           node-version-file: .nvmrc
           cache: 'npm'

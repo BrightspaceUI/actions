@@ -14,9 +14,6 @@ inputs:
     description: Whether or not to release as an NPM package
     default: false
     required: false
-  NPM_TOKEN:
-    description: Token to publish to NPM
-    required: false
 outputs:
   VERSION:
     description: Version of the new release
@@ -97,6 +94,4 @@ runs:
         [ ${{ steps.get-maintenance-version.outputs.IS_MAINTENANCE_BRANCH }} == true ] && OPTS="${OPTS} --tag release-${{ steps.get-maintenance-version.outputs.MAINTENANCE_VERSION }}"
         echo "Running npm publish with options: ${OPTS}"
         npm publish ${OPTS}
-      env:
-        NODE_AUTH_TOKEN: ${{ inputs.NPM_TOKEN }}
       shell: bash

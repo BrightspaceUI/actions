@@ -2,11 +2,13 @@
 
 This GitHub action will determine if any updates can be made to your repo's `package-lock.json`. If so, a PR will be opened with the updates against the repo's default release branch. You can also configure this action to auto-approve the PR for you, and set it to auto-merge after tests pass.
 
+Note: This action requires at least Node `v20` (as required by our version of `@octokit/graphql`).
+
 ## Using the Action
 
 Typically this action would be scheduled to run on whatever cadence works well for your repo. Our [brightspace-integration repo](https://github.com/Brightspace/brightspace-integration) runs it hourly to catch new changes across all our web components, whereas a regular project repo may only want to run it once a day or once a week.
 
-This action provides similar functionality to what dependabot gives you, but will combine all changes in one PR and can be set to automerge if all tests pass. It also will not change the `package.json` file, only handling updates that fall within the range you've set there. This means the action can provide a nice compliment to dependabot - it can handle all the "easy" updates for you automatically, so your time is mostly spent on reviewing/debugging major updates and breaking changes.
+This action provides similar functionality to what dependabot gives you, but will combine all changes in one PR and can be set to automerge if all tests pass. It also will not change the `package.json` file, only handling updates that fall within the range you've set there. This means the action can provide a nice compliment to dependabot - it can handle all the "easy" updates for you automatically, so your time is mostly spent on reviewing/debugging major updates and breaking changes. See the [recommended Dependabot setup](#recommended-dependabot-setup) section below for an example configuration.
 
 Here's a sample workflow:
 
@@ -15,6 +17,10 @@ name: Update package-lock.json
 on:
   schedule:
     - cron: "0 15 * * 1-5" # Mon-Fri 11:00AM EDT. 10:00AM EST.
+
+permissions:
+  pull-requests: write
+
 jobs:
   test:
     timeout-minutes: 10
@@ -23,9 +29,11 @@ jobs:
       - uses: Brightspace/third-party-actions@actions/checkout
         with:
           token: ${{ secrets.MY_GITHUB_TOKEN }}
-      - uses: Brightspace/third-party-actions@actions/setup-node
+      - uses: Brightspace/setup-node@main
         with:
           node-version-file: .nvmrc
+          cache: npm
+          d2l-registry-token: ${{ secrets.D2L_PACKAGE_REGISTRY_AUTH_TOKEN }}
       - name: Update package-lock.json
         uses: BrightspaceUI/actions/update-package-lock@main
         with:
@@ -92,3 +100,23 @@ If you set either of these inputs, you'll need to pass the `D2L_SLACK_TOKEN` sec
 For your repo to have access to `D2L_SLACK_TOKEN`, you'll need to set this up in [`repo-settings`](https://github.com/Brightspace/repo-settings/blob/main/docs/slack.md).
 
 Also, remember to add the GitHub Actions Slack app to your channel's integrations. If you forget to do this, you'll see an error like: `Error: An API error occurred: not_in_channel`.
+
+## Recommended Dependabot Setup
+
+Dependabot has a [cooldown feature](https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference#cooldown-) that works well with the `update-package-lock` workflow. The cooldown delays when Dependabot opens PRs for new versions, giving this workflow time to handle minor and patch updates automatically first.
+
+In your `dependabot.yml` file:
+```yml
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      # update-package-lock workflow handles minor/patch updates - delay for a few weeks to give time to handle breaking changes in those PRs
+      default-days: 25
+      semver-major-days: 5
+```
+
+This delays Dependabot PRs for minor/patch updates for 25 days (letting `update-package-lock` handle them and giving you time to investigate and fix test/vdiff failures), while opening major version PRs after 5 days (for manual review) and security updates immediately.

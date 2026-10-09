@@ -20,8 +20,6 @@ inputs:
   GITHUB_TOKEN:
     description: Token for opening the pull request
     required: true
-  NODE_AUTH_TOKEN:
-    description: Token for reading packages from already setup private registry
   PR_TITLE:
     description: Title for the opened pull request
     default: 'Updating package-lock.json'
@@ -37,80 +35,117 @@ inputs:
 runs:
   using: composite
   steps:
+      - name: Validate ignore-scripts setting
+        run: |
+          IGNORE_SCRIPTS_VALUE=$(npm config get ignore-scripts)
+          echo "ignore-scripts value is: ${IGNORE_SCRIPTS_VALUE}"
+          if [ "${IGNORE_SCRIPTS_VALUE}" != "true" ]; then
+            echo -e "Error: ignore-scripts is not set to true. Please set ignore-scripts to true in your .npmrc file to prevent unwanted scripts from running during the update process."
+            exit 1
+          fi
+        shell: bash
+      - name: Kill Switch
+        id: kill-switch
+        run: |
+          KILL_SWITCH_VALUE="false"
+          echo "value=${KILL_SWITCH_VALUE}" >> "${GITHUB_OUTPUT}"
+          if [ "${KILL_SWITCH_VALUE}" == "true" ]; then
+            echo -e "Global kill switch is enabled to prevent unwanted updates during a security incident. Exiting without making changes."
+            exit 0
+          fi
+        shell: bash
+      - name: Checkout Branch
+        if: ${{ steps.kill-switch.outputs.value != 'true' }}
+        working-directory: ${{ inputs.WORKING_DIRECTORY }}
+        run: |
+          echo -e "\n\e[34mChecking Out Branch"
+          git checkout "${BRANCH_NAME}" -- || git checkout -b "${BRANCH_NAME}"
+          git reset --hard "origin/${DEFAULT_BRANCH}" --
+        env:
+          BRANCH_NAME: ${{ inputs.BRANCH_NAME }}
+          DEFAULT_BRANCH: ${{ inputs.DEFAULT_BRANCH }}
+        shell: bash
       - name: Save Initial Dependencies
+        if: ${{ steps.kill-switch.outputs.value != 'true' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\e[34mSaving Initial Dependencies"
-          npm ci
-          npm ls --json --package-lock-only --all > "$RUNNER_TEMP/dependencies-before.json"
-        shell: bash
-      - name: Install Dependencies
-        working-directory: ${{ inputs.WORKING_DIRECTORY }}
-        run: |
-          echo -e "\e[34mInstalling Dependencies"
-          npm install chalk@5 @octokit/graphql@4 @actions/core@1 --prefix ${{ github.action_path }} --no-save --loglevel error
-        shell: bash
-      - name: Checkout Branch
-        working-directory: ${{ inputs.WORKING_DIRECTORY }}
-        run: |
-          echo -e "\e[34mFetching Branch"
-          git fetch -n origin +refs/heads/${{ inputs.BRANCH_NAME }}:refs/heads/${{ inputs.BRANCH_NAME }} || true
-          echo -e "\n\e[34mChecking Out Branch"
-          git checkout ${{ inputs.BRANCH_NAME }} || git checkout -b ${{ inputs.BRANCH_NAME }}
+          npm ls --json --package-lock-only --all > "${RUNNER_TEMP}/dependencies-before.json"
         shell: bash
       - name: Fresh Dependency Install
+        if: ${{ steps.kill-switch.outputs.value != 'true' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
           echo -e "\n\e[34mRunning Fresh Dependency Install"
           rm -rf ./node_modules
           rm package-lock.json
           npm install
-        env:
-          NODE_AUTH_TOKEN: ${{ inputs.NODE_AUTH_TOKEN }}
+        shell: bash
+      - name: Save New Dependencies
+        if: ${{ steps.kill-switch.outputs.value != 'true' }}
+        working-directory: ${{ inputs.WORKING_DIRECTORY }}
+        run: |
+          echo -e "\e[34mSaving New Dependencies"
+          npm ls --json --package-lock-only --all > "${RUNNER_TEMP}/dependencies-after.json"
         shell: bash
       - name: Check For Changes
         id: check-for-changes
+        if: ${{ steps.kill-switch.outputs.value != 'true' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
-          echo -e "\n\e[34mChecking For Changes"
-          git diff --exit-code package-lock.json && echo "changes-exist=false" >> $GITHUB_OUTPUT || echo "changes-exist=true" >> $GITHUB_OUTPUT
-        shell: bash
-      - name: Create Commit
-        working-directory: ${{ inputs.WORKING_DIRECTORY }}
-        run: |
-          if [ ${{ steps.check-for-changes.outputs.changes-exist }} == false ]; then
-            echo -e "\n\e[32mNo changes to commit."
-            exit 0;
+          DIFF_REF="origin/${BRANCH_NAME}"
+
+          echo -e "\e[34mFetching Branch"
+          if ! git fetch -n origin "+refs/heads/${BRANCH_NAME}"; then
+            echo -e "\n\e[32mRemote branch doesn't exist."
+            DIFF_REF="HEAD"
           fi
 
+          echo -e "\n\e[34mChecking For Changes"
+          if git diff --exit-code --color "${DIFF_REF}" -- package-lock.json ; then
+            echo -e "\n\e[32mNo changes."
+            echo "changes-exist=false" >> "${GITHUB_OUTPUT}"
+          else
+            echo "changes-exist=true" >> "${GITHUB_OUTPUT}"
+          fi
+        env:
+          BRANCH_NAME: ${{ inputs.BRANCH_NAME }}
+        shell: bash
+      - name: Create And Push Commit
+        id: commit
+        if: ${{ steps.kill-switch.outputs.value != 'true' && steps.check-for-changes.outputs.changes-exist == 'true' }}
+        working-directory: ${{ inputs.WORKING_DIRECTORY }}
+        run: |
           echo -e "\n\e[34mCommitting Changes"
-          git reset --hard origin/${{ inputs.DEFAULT_BRANCH }}
-          rm -rf ./node_modules
-          rm package-lock.json
-          npm install
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add package-lock.json
-          git commit -m '${{ inputs.COMMIT_MESSAGE }}'
-          git push --force https://${GITHUB_TOKEN}@github.com/${{ github.repository }} ${{ inputs.BRANCH_NAME }}
-
-          echo -e "\e[34mSaving New Dependencies"
-          npm ls --json --package-lock-only --all > "$RUNNER_TEMP/dependencies-after.json"
+          if git commit -m "${COMMIT_MESSAGE}" -- package-lock.json; then
+            git push --force "https://${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}" "${BRANCH_NAME}"
+            echo "should-create-pr=true" >> "${GITHUB_OUTPUT}"
+          else
+            # No changes compared to the default branch so delete the remote branch, which will also close an open PR
+            echo -e "\n\e[34mDeleting stale remote branch."
+            git push --delete "https://${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}" "${BRANCH_NAME}" || true
+          fi
         env:
+          BRANCH_NAME: ${{ inputs.BRANCH_NAME }}
+          COMMIT_MESSAGE: ${{ inputs.COMMIT_MESSAGE }}
           GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ inputs.NODE_AUTH_TOKEN }}
+        shell: bash
+      - name: Install Tool Dependencies
+        if: ${{ steps.kill-switch.outputs.value != 'true' && steps.commit.outputs.should-create-pr == 'true' }}
+        working-directory: ${{ inputs.WORKING_DIRECTORY }}
+        run: |
+          echo -e "\e[34mInstalling Dependencies"
+          npm install chalk@5 @octokit/graphql@9 @actions/core@3 --prefix "${GITHUB_ACTION_PATH}" --no-save --loglevel error
         shell: bash
       - name: Create PR (if necessary)
         id: create-pr
+        if: ${{ steps.kill-switch.outputs.value != 'true' && steps.commit.outputs.should-create-pr == 'true' }}
         working-directory: ${{ inputs.WORKING_DIRECTORY }}
         run: |
-          if [ ${{ steps.check-for-changes.outputs.changes-exist }} == false ]; then
-            echo -e "\n\e[32mBuild Complete."
-            exit 0;
-          fi
-
           echo -e "\n\e[34mCreating PR"
-          node ${{ github.action_path }}/handle-pr.js
+          node "${GITHUB_ACTION_PATH}/handle-pr.js"
           echo -e "\n\e[32mBuild Complete."
         env:
           APPROVAL_TOKEN: ${{ inputs.APPROVAL_TOKEN }}
@@ -123,7 +158,7 @@ runs:
           PR_TITLE: ${{ inputs.PR_TITLE }}
         shell: bash
       - name: Notify Slack About Stale PR (if necessary)
-        if: ${{ steps.create-pr.outputs.stale == 'true' && inputs.SLACK_CHANNEL_STALE_PR != '' && inputs.SLACK_TOKEN != '' }}
+        if: ${{ steps.kill-switch.outputs.value != 'true' && steps.create-pr.outputs.stale == 'true' && inputs.SLACK_CHANNEL_STALE_PR != '' && inputs.SLACK_TOKEN != '' }}
         uses: Brightspace/third-party-actions@slackapi/slack-github-action
         with:
           channel-id: ${{ env.CHANNEL }}

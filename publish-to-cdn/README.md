@@ -27,6 +27,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   publish:
     timeout-minutes: 5
@@ -35,7 +38,7 @@ jobs:
       - name: Checkout
         uses: Brightspace/third-party-actions@actions/checkout
       - name: Setup Node
-        uses: Brightspace/third-party-actions@actions/setup-node
+        uses: Brightspace/setup-node@main
         with:
           node-version-file: .nvmrc
       - name: Install dependencies

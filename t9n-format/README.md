@@ -21,13 +21,19 @@ on:
     paths:
       - 'src/lang/*'
 
+permissions:
+  actions: read
+  contents: write
+  pull-requests: write
+  statuses: write
+
 jobs:
   format:
     timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
       - uses: Brightspace/third-party-actions@actions/checkout
-      - uses: Brightspace/third-party-actions@actions/setup-node
+      - uses: Brightspace/setup-node@main
         with:
           node-version-file: .nvmrc
           cache: 'npm'
