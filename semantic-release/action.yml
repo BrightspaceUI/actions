@@ -29,6 +29,11 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Check npm version
+      run: |
+        NPM_VERSION=$(npm -v)
+        echo "Current npm version: ${NPM_VERSION}"
+      shell: bash
     - name: Installing semantic-release
       run: |
         echo "Installing semantic-release..."
