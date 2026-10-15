@@ -4,6 +4,8 @@ This GitHub action looks for keywords in the latest commit to automatically incr
 
 > ⚠️ Where possible, use the [`semantic-release`](../semantic-release) instead! It offers similar functionality with a more standard versioning syntax.
 
+Note: Our `incremental-release` version requires at least Node `v22`.
+
 ## Using the Action
 
 Typically this action is triggered from a workflow that runs on your `main` branch after each commit or pull request merge.
