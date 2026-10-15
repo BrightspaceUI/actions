@@ -6,7 +6,7 @@ This GitHub action uses the [semantic-release](https://semantic-release.gitbook.
 * A GitHub Release will be created
 * Optionally, the package will be published to NPM
 
-Note: Our `semantic-release` version requires at least Node `v22.14.0` or `v24.10.0`.
+Note: the `semantic-release` action requires at least Node `v22.14.0` or `v24.10.0`.
 
 ## Using the Action
 
@@ -59,7 +59,6 @@ Outputs:
 * `VERSION`: will contain the new version number if a release occurred, empty otherwise
 
 Notes:
-* This action currently requires Node v16+ or v14.17+ (Node v15 is not supported).
 * If you have additional release validation steps (e.g. build step, validation tests), run them after the "Setup Node" step and before the "Semantic Release" step.
 * This example will release only from `main` and maintenance branches (e.g. `1.15.x` or `2.x`) -- see more info about maintenance branches below.
 

@@ -24,7 +24,7 @@ runs:
     - name: Install Dependencies
       run: |
         echo "Installing dependencies..."
-        npm install @octokit/rest@18 --prefix ${{ github.action_path }} --no-save --loglevel error
+        npm install @octokit/rest@22 --prefix ${{ github.action_path }} --no-save --loglevel error
       shell: bash
     - name: Get maintenance version
       uses: BrightspaceUI/actions/get-maintenance-version@main
