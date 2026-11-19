@@ -356,6 +356,7 @@ runs:
         git checkout -b ${VDIFF_BRANCH}
         if [ $(git rev-parse HEAD) != ${ORIGINAL_SHA} ]; then
           echo -e "\e[31mBranch out of date - more commits have been added to the '${SOURCE_BRANCH}' branch since this action started running.  Stopping this test run."
+          echo ":x: Branch out of date. More commits were added to \`${SOURCE_BRANCH}\` since this run started." >> ${GITHUB_STEP_SUMMARY}
           exit 1;
         fi
 
@@ -536,14 +537,14 @@ runs:
         FILES_MATCH: ${{ steps.move-goldens.outputs.passed }}
         VDIFF_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
 
-    - name: Update Commit Status
+    - name: Update Commit Status and Summary
       uses: Brightspace/third-party-actions@actions/github-script
       with:
         github-token: ${{ inputs.github-token }}
         script: |
           console.log('\x1b[34mUpdating Commit Status');
 
-          let state, description, targetUrl;
+          let state, description, targetUrl, summary;
           if (process.env.TESTS_PASSED === 'true' && process.env.FILES_MATCH === 'true') {
             state = 'success';
             description = 'Tests have passed.';
@@ -553,24 +554,29 @@ runs:
               state = 'error';
               description = 'Could not generate new goldens: Check the vdiff workflow run log for errors. ->';
               targetUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+              summary = ':x: Could not generate new goldens. Check the run log for errors.';
               console.log('\x1b[31mCould not generate new goldens: See errors above.');
             } else if (process.env.GOLDENS_CONFLICT === 'true') {
               state = 'error';
               description = 'Could not generate new goldens: Rebase or merge in the base branch. Your changes will update goldens you don\'t have the latest version of.';
+              summary = ':x: Could not generate new goldens. Your branch does not have the latest versions - rebase or merge in the base branch.';
               console.log(`\x1b[31m${description}`);
             } else {
               state = 'failure';
               if (process.env.PULL_REQUEST_NUM) {
                 description = `Tests failed: PR #${process.env.PULL_REQUEST_NUM} has been opened with the updated goldens. ->`;
                 targetUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/pull/${process.env.PULL_REQUEST_NUM}`;
+                summary = `:star: Goldens PR: [#${process.env.PULL_REQUEST_NUM}](${targetUrl})`;
                 console.log(`\x1b[31mTests failed: ${targetUrl} opened with the updated goldens.`);
               } else {
                 description = 'Could not open goldens PR: Check the vdiff workflow run log for errors. ->';
                 targetUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+                summary = `:x: Could not open goldens PR. Check the run log for errors.`;
                 console.log('\x1b[31mCould not open goldens PR: See errors above.');
               }
             }
 
+            await core.summary.addRaw(summary, true).write();
             core.setFailed('Completed - Build Failed.');
           }
 
