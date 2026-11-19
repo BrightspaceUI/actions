@@ -34,6 +34,10 @@ inputs:
   vdiff-branch-prefix:
     description: Prefix for vdiff branches
     default: 'ghworkflow/vdiff'
+outputs:
+  report-url:
+    description: URL of the uploaded vdiff report (empty if the report was not uploaded)
+    value: ${{ steps.create-summary.outputs.report-url }}
 runs:
   using: composite
   steps:
@@ -255,6 +259,28 @@ runs:
         publish-directory: ./.vdiff/
         only-log-errors: true
 
+    - name: Create Summary
+      id: create-summary
+      run: |
+        echo "## Visual Diff Results" >> ${GITHUB_STEP_SUMMARY}
+        if [[ ${TESTS_PASSED} == "true" ]]; then
+          echo ":white_check_mark: Tests passed." >> ${GITHUB_STEP_SUMMARY}
+        else
+          echo ":x: Tests failed." >> ${GITHUB_STEP_SUMMARY}
+        fi
+
+        if [[ ${REPORT_UPLOADED} == "success" ]]; then
+          echo "report-url=${REPORT_PATH}" >> ${GITHUB_OUTPUT}
+          echo ":bar_chart: [View the vdiff report.](${REPORT_PATH})" >> ${GITHUB_STEP_SUMMARY}
+        else
+          echo ":warning: The report could not be uploaded. Please review the [\"Setting Up AWS Access Creds\" section](https://github.com/BrightspaceUI/actions/tree/main/vdiff#setting-up-aws-access-creds) of the vdiff action's README." >> ${GITHUB_STEP_SUMMARY}
+        fi
+      env:
+        REPORT_PATH: https://vdiff.d2l.dev/${{ steps.prepare-report.outputs.upload-path }}/report/
+        REPORT_UPLOADED: ${{ steps.upload-report.outcome }}
+        TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
+      shell: bash
+
     - name: Move New Goldens
       id: move-goldens
       run: |
@@ -445,8 +471,8 @@ runs:
           });
 
           let prBody = `This pull request updates the vdiff goldens for ${prNum ? `the changes in pull request #${prNum}.` : `branch \`${sourceBranchName}\`.`}`;
-          if (process.env.REPORT_UPLOADED === 'success') {
-            prBody = `${prBody}\n\nPlease review the [resulting report](${process.env.REPORT_PATH}) closely before merging to ensure the visual differences are expected.`;
+          if (process.env.REPORT_URL) {
+            prBody = `${prBody}\n\nPlease review the [resulting report](${process.env.REPORT_URL}) closely before merging to ensure the visual differences are expected.`;
           } else {
             prBody = `${prBody}\n\n**Note:** The report could not be uploaded. Please review the ["Setting Up AWS Access Creds" section](https://github.com/BrightspaceUI/actions/tree/main/vdiff#setting-up-aws-access-creds) of the vdiff action's README.`;
           }
@@ -504,8 +530,7 @@ runs:
         GOLDENS_CONFLICT: ${{ steps.commit-goldens.outputs.conflict }}
         PULL_REQUEST_NUM: ${{ github.event.number }}
         PULL_REQUEST_BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
-        REPORT_PATH: https://vdiff.d2l.dev/${{ steps.prepare-report.outputs.upload-path }}/report/
-        REPORT_UPLOADED: ${{ steps.upload-report.outcome }}
+        REPORT_URL: ${{ steps.create-summary.outputs.report-url }}
         SOURCE_BRANCH: ${{ steps.run-info.outputs.source-branch }}
         TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
         FILES_MATCH: ${{ steps.move-goldens.outputs.passed }}
