@@ -99,6 +99,11 @@ runs:
             return;
           }
 
+          if (!context.payload.pull_request) {
+            console.log('\x1b[33mNot triggered by a pull request - skipping custom commit status.');
+            return;
+          }
+
           await github.rest.repos.createCommitStatus({
             owner: context.repo.owner,
             repo: context.repo.repo,
@@ -281,8 +286,24 @@ runs:
         TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
       shell: bash
 
+    - name: Complete Non-PR Run
+      if: ${{ !github.event.pull_request }}
+      run: |
+        if [[ ${TESTS_PASSED} == "true" ]]; then
+          echo -e "\e[32mCompleted - Build Passed."
+          exit 0;
+        fi
+        echo -e "\e[31mTests failed. Note: Goldens PRs are only opened for pull request runs."
+        echo ":information_source: Goldens PRs are only opened for pull request runs." >> ${GITHUB_STEP_SUMMARY}
+        exit 1;
+      env:
+        FORCE_COLOR: 3
+        TESTS_PASSED: ${{ steps.test-run.outputs.passed }}
+      shell: bash
+
     - name: Move New Goldens
       id: move-goldens
+      if: ${{ github.event.pull_request }}
       run: |
         echo -e "\e[34mMoving New Goldens to Proper Directories"
 
@@ -341,6 +362,7 @@ runs:
 
     - name: Commit New Goldens (if necessary)
       id: commit-goldens
+      if: ${{ github.event.pull_request }}
       run: |
         echo -e "\e[34mCommitting New Goldens (if necessary)"
         if [ ${TESTS_PASSED} == true ] && [ ${FILES_MATCH} == true ]; then
@@ -395,6 +417,7 @@ runs:
       shell: bash
 
     - name: Close Pull Request (if necessary)
+      if: ${{ github.event.pull_request }}
       run: |
         echo -e "\e[34mClosing Pull Request (if necessary)"
         if ([ ${TESTS_PASSED} == true ] && [ ${FILES_MATCH} == true ]) || [ ${GOLDENS_CONFLICT} == true ]; then
@@ -413,6 +436,7 @@ runs:
 
     - name: Open Pull Request (if necessary)
       id: pull-request
+      if: ${{ github.event.pull_request }}
       uses: Brightspace/third-party-actions@actions/github-script
       with:
         github-token: ${{ inputs.github-token }}
@@ -538,6 +562,7 @@ runs:
         VDIFF_BRANCH: ${{ steps.run-info.outputs.vdiff-branch }}
 
     - name: Update Commit Status and Summary
+      if: ${{ github.event.pull_request }}
       uses: Brightspace/third-party-actions@actions/github-script
       with:
         github-token: ${{ inputs.github-token }}

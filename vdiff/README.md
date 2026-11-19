@@ -1,11 +1,12 @@
 # vdiff Action
 
-This GitHub action runs a repo's [vdiff tests](https://github.com/BrightspaceUI/testing#vdiff-testing). If the tests fail, a draft PR will be opened with the new goldens against the branch/PR that triggered the action. If they pass, any open golden PRs for that branch/PR will be closed.
+This GitHub action runs a repo's [vdiff tests](https://github.com/BrightspaceUI/testing#vdiff-testing). If the tests fail, a draft PR will be opened with the new goldens against the PR that triggered the action. If they pass, any open golden PRs for that PR will be closed.
 
 More specifically, this action will:
 * Cleanup abandoned golden PRs
 * Grab the current golden images and set them up for the test run
-* Run the vdiff tests and display the results in a custom commit status (including error messages, a link to the golden PR, etc.)
+* Run the vdiff tests and post the results and a link to the report in the job summary
+* For pull requests, display the results in a custom commit status (including error messages, a link to the golden PR, etc.)
   * If failures occur, it will open/update the corresponding golden PR with the new goldens and link to the report
   * If the tests pass, it will close the corresponding golden PR if it exists
 
@@ -68,7 +69,7 @@ Outputs:
 * `report-url`: URL of the uploaded vdiff report. Empty if the report was not uploaded.
 
 **Notes:**
-* You can also run this action in the release workflow to confirm the `main` branch is in a good state before releasing.  If there's a problem, a PR will be opened against `main` to get the goldens back in the expected state.  This mostly comes down to a time versus risk trade-off - the risk of things getting out of sync may be lower than the time taken to run the vdiff tests every release.
+* You can also run this action on push to `main` or in the release workflow to confirm things are in a good state before releasing.  If there's a problem, the run will fail but a goldens pull request will not be opened. The main purpose of this would be to find conflicts or flaky tests.
 * You can use the standard `GITHUB_TOKEN` that exists automatically, but will need to [set up the AWS secrets](#setting-up-aws-access-creds).
 
 ## Setting Up AWS Access Creds
