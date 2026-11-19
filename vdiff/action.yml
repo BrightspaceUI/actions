@@ -273,7 +273,7 @@ runs:
           echo "report-url=${REPORT_PATH}" >> ${GITHUB_OUTPUT}
           echo ":bar_chart: [View the vdiff report.](${REPORT_PATH})" >> ${GITHUB_STEP_SUMMARY}
         else
-          echo ":warning: The report could not be uploaded. Please review the [\"Setting Up AWS Access Creds\" section](https://github.com/BrightspaceUI/actions/tree/main/vdiff#setting-up-aws-access-creds) of the vdiff action's README." >> ${GITHUB_STEP_SUMMARY}
+          echo "&#9888; The report could not be uploaded. Please review the [\"Setting Up AWS Access Creds\" section](https://github.com/BrightspaceUI/actions/tree/main/vdiff#setting-up-aws-access-creds) of the vdiff action's README." >> ${GITHUB_STEP_SUMMARY}
         fi
       env:
         REPORT_PATH: https://vdiff.d2l.dev/${{ steps.prepare-report.outputs.upload-path }}/report/
